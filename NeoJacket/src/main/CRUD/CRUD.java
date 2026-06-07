@@ -93,7 +93,7 @@ public class CRUD {
 
     // eliminar
       public void eliminarUsuario(int idUsuario) {
-        // 1. Instrucción SQL para eliminar físicamente el registro
+        // 1. Instrucción SQL para eliminar 
         String sql = "DELETE FROM usuarios WHERE id_usuario = ?";
         
         // 2. Bloque try-catch utilizando tu misma estructura de conexión
@@ -117,5 +117,36 @@ public class CRUD {
             System.out.println("Error de SQL al eliminar el usuario: " + e.getMessage());
             e.printStackTrace();
         }
-    // buscar
+        
+        
+  }
+      
+    public void desactivarUsuario(int idUsuario) {
+        //  Instrucción SQL para actualizar únicamente el estado a 'inactivo'
+        String sql = "UPDATE usuarios SET estado = 'inactivo' WHERE id_usuario = ?";
+        
+        
+        try {
+            Connection con = conexion.getConexion();
+            PreparedStatement ps = con.prepareStatement(sql);
+            
+            //  Pasamos el ID del usuario al único parámetro '?' de la consulta
+            ps.setInt(1, idUsuario);
+            
+            //  Ejecutamos la actualización en MySQL
+            ps.executeUpdate();
+            
+            System.out.println("La cuenta del usuario con ID " + idUsuario + " ahora está inactiva en Neo Jacket.");
+            
+            // Cerramos recursos
+            ps.close();
+            con.close();
+            
+        } catch (SQLException e) {
+            System.out.println("Error de SQL al desactivar el usuario: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+// buscar
 }  
