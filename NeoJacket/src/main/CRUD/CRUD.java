@@ -148,5 +148,75 @@ public class CRUD {
         }
     }
 
-// buscar
+    // buscar con ID
+   public Integer buscarUsuario(int idUsuario){
+       Integer idEncontrado = null;
+       
+       // 1. Instruccion de SQL.
+        String sql = "SELECT idUsuario FROM usuarios WHERE id_usuario = ?";
+        
+        // 2. Bloque try catch para una conexion estática
+       try{
+           Connection con = conexion.getConexion();
+           PreparedStatement ps = con.prepareStatement(sql);
+           
+           // 3. Orden exacto de la consulta de SQL 
+            ps.setInt(1, idUsuario); 
+            
+            // 4 Ejercutar la buscaqueda en MySQL
+            ResultSet rs = ps.executeQuery();
+            
+            //5. Guardamos el id encontrado
+            if (rs.next()){
+                idUsuario = rs.getInt("id_usuario");
+                System.out.println("El usuario con ID " + idUsuario + " fue encontrado con éxito en Neo Jacket.");
+            }else {
+            System.out.println("No se encontró ningún usuario con ID " + idUsuario);
+        }
+            // Cerramos recursos
+            rs.close();
+            ps.close();
+            con.close();
+           
+       } catch (SQLException e){
+           System.out.println("Error de SQL al buscar el usuario" + e.getMessage());
+           e.printStackTrace();
+       }
+       return idEncontrado;
+   }
+   
+   public Integer buscarUsuario2(int dpiNumero){
+      Integer dpi = null; 
+      
+      // 1. Intruccion de SQL.
+      String sql = "SELECT dpi_numero FROM usuarios WHRE dpi_umero = ?";
+      
+      // 2. Bloque try catch para una conexion estatica
+      try{
+          Connection con = conexion.getConexion();
+           PreparedStatement ps = con.prepareStatement(sql);
+           
+           // 3. Orden exacto de la consulta de SQL 
+            ps.setInt(1, dpiNumero); 
+            
+            // 4 Ejercutar la buscaqueda en MySQL
+            ResultSet rs = ps.executeQuery();
+            
+            //5. Guardamos el id encontrado
+            if (rs.next()){
+                dpiNumero = rs.getInt("dpi_numero");
+                System.out.println("El usuario con el DPI: " + dpiNumero + " fue encontrado con éxito en Neo Jacket.");
+            }else {
+            System.out.println("No se encontró ningún usuario con DPI: " + dpiNumero);
+        }
+            // Cerramos recursos
+            rs.close();
+            ps.close();
+            con.close();
+      } catch (SQLException e){
+          System.out.println("Error de SQL al buscar el usuario" + e.getMessage());
+           e.printStackTrace();
+      }
+      return dpi;
+   }
 }  
