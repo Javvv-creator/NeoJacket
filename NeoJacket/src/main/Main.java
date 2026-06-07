@@ -5,35 +5,36 @@ import main.CRUD.CRUD;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("=== INICIANDO PRUEBA DE EDICIÓN ===");
         
-        // 1. Instanciamos la clase CRUD
+        // 1. Instanciamos la clase CRUD una sola vez para usarla en ambas pruebas
         CRUD misConsultas = new CRUD();
         
-        // 2. Definimos las variables con los nuevos datos que queremos actualizar
-        // IMPORTANTE: El ID debe ser uno que ya exista en tu base de datos (por ejemplo, el 1)
-        int idAEditar = 1; 
+        // ========================================================
+        // 🛑 3. PRUEBA: BORRADO LÓGICO (desactivarUsuario)
+        // ========================================================
+        System.out.println("=== INICIANDO PRUEBA DE DESACTIVACIÓN (Borrado Lógico) ===");
         
-        String nuevoNombre = "Javier Modificado";
-        String nuevoApellido = "Andrei";
-        String nuevoCorreo = "javier.nuevo@neojacket.com"; // Si cambias el correo, asegúrate que no exista en otro usuario
-        String nuevoTelefono = "44449876";                // Teléfono editado
-        String nuevoGenero = "M";
-        String nuevoEstado = "suspendido";                 // Cambiamos el estado para probar el ENUM
+        // NOTA: Pon un ID real de tu tabla que quieras pasar a estado 'inactivo'
+        int idADesactivar = 1; 
         
-        // 3. Ejecutamos el método de editar
-        System.out.println("Enviando actualización a MySQL para el ID: " + idAEditar);
+        System.out.println("Cambiando el estado a 'inactivo' para el ID: " + idADesactivar);
+        misConsultas.desactivarUsuario(idADesactivar);
         
-        misConsultas.editarUsuario(
-            idAEditar, 
-            nuevoNombre, 
-            nuevoApellido, 
-            nuevoCorreo, 
-            nuevoTelefono, 
-            nuevoGenero, 
-            nuevoEstado
-        );
+        System.out.println("=== FIN DE LA PRUEBA DE DESACTIVACIÓN ===\n");
+
+
+        // ========================================================
+        // ❌ 4. PRUEBA: BORRADO FÍSICO (eliminarUsuario)
+        // ========================================================
+        System.out.println("=== INICIANDO PRUEBA DE ELIMINACIÓN (Borrado Físico) ===");
         
-        System.out.println("=== FIN DE LA PRUEBA ===");
+        // ADVERTENCIA: Este método usa un DELETE, lo que significa que borrará la fila por completo.
+        // Usa un ID de algún usuario de pruebas que no te importe perder (por ejemplo, el ID 6).
+        int idAEliminar = 1; 
+        
+        System.out.println("Borrando permanentemente de la base de datos el ID: " + idAEliminar);
+        misConsultas.eliminarUsuario(idAEliminar);
+        
+        System.out.println("=== FIN DE LA PRUEBA DE ELIMINACIÓN ===");
     }
 }
