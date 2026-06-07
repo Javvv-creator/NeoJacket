@@ -1,21 +1,23 @@
-package main;
+package main.Conexion;
 
 import java.sql.*;
 
 public class conexion {
+    // Al ser static, estas variables le pertenecen a la clase y no a un objeto
+    private static Connection con;
+    private static final String URL = "jdbc:mysql://localhost:3306/neojacket_db";          
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
 
-    Connection con;
-    String url = "jdbc:mysql://localhost:3306/neo_jacket";
-    String user = "root";
-    String password = "123456789";
-
-    public Connection getConexion() {
+    // Modificamos el método a static para poder llamarlo directamente
+    public static Connection getConexion() {
         try {
-            con = DriverManager.getConnection(url, user, password);
-        } catch (SQLException e) {
-            System.out.println("Error de conexión: " + e.getMessage());
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con = DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (Exception e) {
+            System.out.println("Error al conectar a la base de datos: " + e.getMessage());
+            e.printStackTrace();    
         }
         return con;
     }
-    
 }
