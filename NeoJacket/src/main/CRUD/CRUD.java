@@ -92,6 +92,30 @@ public class CRUD {
     }
 
     // eliminar
-
+      public void eliminarUsuario(int idUsuario) {
+        // 1. Instrucción SQL para eliminar físicamente el registro
+        String sql = "DELETE FROM usuarios WHERE id_usuario = ?";
+        
+        // 2. Bloque try-catch utilizando tu misma estructura de conexión
+        try {
+            Connection con = conexion.getConexion();
+            PreparedStatement ps = con.prepareStatement(sql);
+            
+            // 3. Asignamos el ID del usuario al parámetro '?'
+            ps.setInt(1, idUsuario);
+            
+            // 4. Ejecutamos la eliminación en la base de datos
+            ps.executeUpdate();
+            
+            System.out.println("El usuario con ID " + idUsuario + " fue eliminado con éxito de Neo Jacket.");
+            
+            // Cerramos recursos de forma ordenada
+            ps.close();
+            con.close();
+            
+        } catch (SQLException e) {
+            System.out.println("Error de SQL al eliminar el usuario: " + e.getMessage());
+            e.printStackTrace();
+        }
     // buscar
-}
+}  
