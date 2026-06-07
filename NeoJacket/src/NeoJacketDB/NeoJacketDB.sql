@@ -29,6 +29,14 @@ CREATE TABLE usuarios (
     CONSTRAINT fk_usuarios_roles FOREIGN KEY (id_rol) REFERENCES roles(id_rol)
 );
 
+	INSERT INTO roles (id_rol, nombre_rol, descripcion) 
+VALUES (1, 'Administrador', 'Control total del sistema Neo Jacket');
+
+INSERT INTO roles (id_rol, nombre_rol, descripcion) 
+VALUES (2, 'Cliente', 'Usuario final que utiliza los servicios bancarios');
+
+
+
 CREATE TABLE login (
     id_log INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT UNSIGNED NULL, 
@@ -195,3 +203,5 @@ CREATE INDEX idx_trans_origen ON transacciones(id_cuenta_origen);
 CREATE INDEX idx_trans_destino ON transacciones(id_cuenta_destino);
 CREATE INDEX idx_trans_usuario ON transacciones(id_usuario_realizador);
 CREATE INDEX idx_auditoria_admin ON auditoria_logs(id_admin);
+
+select * from Usuarios;
