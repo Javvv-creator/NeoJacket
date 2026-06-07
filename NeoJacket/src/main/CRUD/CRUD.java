@@ -55,6 +55,41 @@ public class CRUD {
     }
 
     // editar
+    // editar
+    public void editarUsuario(int idUsuario, String nombre, String apellido, String correo, 
+                              String telefono, String genero, String estado) {
+        
+        // 1. Instrucción SQL adaptada a las columnas de tu tabla usuarios
+        String sql = "UPDATE usuarios SET nombre = ?, apellido = ?, correo = ?, telefono = ?, genero = ?, estado = ? WHERE id_usuario = ?";
+        
+        // 2. Bloque try-catch usando tu conexión estática
+        try {
+            Connection con = conexion.getConexion();
+            PreparedStatement ps = con.prepareStatement(sql);
+            
+            // 3. Mapeo de los '?' en el orden exacto de la consulta SQL
+            ps.setString(1, nombre);
+            ps.setString(2, apellido);
+            ps.setString(3, correo);
+            ps.setString(4, telefono);
+            ps.setString(5, genero); 
+            ps.setString(6, estado); 
+            ps.setInt(7, idUsuario); 
+            
+            // 4. Ejecutar la actualización en MySQL
+            ps.executeUpdate();
+            
+            System.out.println("El usuario con ID " + idUsuario + " fue actualizado con éxito en Neo Jacket.");
+            
+            // Cerramos recursos
+            ps.close();
+            con.close();
+            
+        } catch (SQLException e) {
+            System.out.println("Error de SQL al editar el usuario: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     // eliminar
 
