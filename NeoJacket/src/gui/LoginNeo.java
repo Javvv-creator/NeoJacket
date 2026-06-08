@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.*;
 import javax.swing.*;
+import funcionalidades.IniciarSesion;
 
 public class LoginNeo extends JFrame {
 
@@ -152,7 +153,7 @@ public class LoginNeo extends JFrame {
             panelLogin.add(subtitulo);
 
             // CAMPOS
-            JLabel lblUsuario = new JLabel("Usuario");
+            JLabel lblUsuario = new JLabel("Nombre");
             lblUsuario.setForeground(Color.WHITE);
             lblUsuario.setFont(new Font("Segoe UI", Font.PLAIN, 18));
             lblUsuario.setBounds(40, 120, 200, 30);
@@ -179,16 +180,32 @@ public class LoginNeo extends JFrame {
 
             // ACCIÓN
             btnLogin.addActionListener(e -> {
+                String nombre = txtUsuario.getText().trim();
+                String password = new String(txtPass.getPassword());
 
-                String user = txtUsuario.getText().trim();
+                try {
+                    IniciarSesion iniciar = new IniciarSesion();
+                    String rol = iniciar.iniciarSesion(nombre, password);
 
-                if (user.equals("1234")) {
-                    new PanelControlAdmin();
+                    if (rol == null) {
+                        JOptionPane.showMessageDialog(null,
+                                "Nombre o contraseña incorrectos.",
+                                "Error de inicio de sesión",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    if (rol.equals("ADMIN")) {
+                        new PanelControlAdmin();
+                    } else {
+                        new DatosPersonales();
+                    }
                     dispose();
-                } else {
+
+                } catch (IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(null,
-                            "Usuario incorrecto",
-                            "Error",
+                            ex.getMessage(),
+                            "Error de validación",
                             JOptionPane.ERROR_MESSAGE);
                 }
             });
@@ -201,3 +218,4 @@ public class LoginNeo extends JFrame {
         }
     }
 }
+

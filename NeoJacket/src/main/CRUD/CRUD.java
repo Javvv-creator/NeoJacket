@@ -1,19 +1,27 @@
 package main.CRUD;
 
 import java.sql.*;
+import javax.swing.JOptionPane;
 // Importamos la clase conexion desde su paquete
 import main.Conexion.conexion; 
 
 public class CRUD {
 
     // Metodo Crear - Javier
-    public void nuevoUsuario(String nombre, String apellido, String correo, String telefono,
+    public boolean nuevoUsuario(String nombre, String apellido, String correo, String telefono,
             String fechaNacimiento, String genero, String password, String dpiNumero) {
 
         String sql = "INSERT INTO usuarios (id_rol, nombre, apellido, correo, telefono, fecha_nacimiento, genero, password_hash, dpi_numero, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try {
             Connection con = conexion.getConexion();
+            if (con == null) {
+                JOptionPane.showMessageDialog(null,
+                        "No se pudo establecer conexión con la base de datos.",
+                        "Error de conexión",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
             PreparedStatement ps = con.prepareStatement(sql);
 
             ps.setInt(1, 2); // Cliente fijo
@@ -32,10 +40,15 @@ public class CRUD {
 
             ps.close();
             con.close();
+            return true;
 
         } catch (SQLException e) {
-            System.out.println("Error al crear el usuario: " + e.getMessage());
+            JOptionPane.showMessageDialog(null,
+                    "Error al crear el usuario: " + e.getMessage(),
+                    "Error de base de datos",
+                    JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -148,6 +161,13 @@ public class CRUD {
       
         try {
             Connection con = conexion.getConexion();
+            if (con == null) {
+                JOptionPane.showMessageDialog(null,
+                        "No se pudo establecer conexión con la base de datos.",
+                        "Error de conexión",
+                        JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
             PreparedStatement ps = con.prepareStatement(sql);
             
             ps.setString(1, dpiNumero); 
@@ -165,7 +185,10 @@ public class CRUD {
             con.close();
             
         } catch (SQLException e) {
-            System.out.println("Error de SQL al buscar el usuario por DPI: " + e.getMessage());
+            JOptionPane.showMessageDialog(null,
+                    "Error de SQL al buscar el usuario por DPI: " + e.getMessage(),
+                    "Error de base de datos",
+                    JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
         return dpiEncontrado; // Devuelve el DPI encontrado o null
