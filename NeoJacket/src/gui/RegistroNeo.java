@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.*;
 import javax.swing.*;
+import funcionalidades.CrearUsuario;
 
 public class RegistroNeo extends JFrame {
 
@@ -137,7 +138,7 @@ public class RegistroNeo extends JFrame {
             JPanel panelReg = new JPanel();
             panelReg.setLayout(null);
             panelReg.setBackground(new Color(25, 38, 35, 180));
-            panelReg.setBounds(700, 120, 500, 650);
+            panelReg.setBounds(620, 120, 600, 760);
             panelReg.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2, true));
             add(panelReg);
 
@@ -145,72 +146,130 @@ public class RegistroNeo extends JFrame {
             JLabel titulo = new JLabel("NEO JACKET - BANCA EN LÍNEA");
             titulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
             titulo.setForeground(Color.WHITE);
-            titulo.setBounds(40, 20, 400, 40);
+            titulo.setBounds(40, 20, 520, 40);
             panelReg.add(titulo);
 
-            // CAMPOS
-            JLabel lblUsuario = new JLabel("Usuario");
+            // CAMPOS COL1
+            JLabel lblUsuario = new JLabel("Nombre");
             lblUsuario.setForeground(Color.WHITE);
             lblUsuario.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            lblUsuario.setBounds(40, 90, 200, 30);
+            lblUsuario.setBounds(40, 80, 220, 30);
             panelReg.add(lblUsuario);
 
             RoundedTextField txtUsuario = new RoundedTextField(20);
-            txtUsuario.setBounds(40, 125, 400, 50);
+            txtUsuario.setBounds(40, 115, 240, 45);
             panelReg.add(txtUsuario);
 
             JLabel lblPass = new JLabel("Contraseña");
             lblPass.setForeground(Color.WHITE);
             lblPass.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            lblPass.setBounds(40, 190, 200, 30);
+            lblPass.setBounds(40, 175, 220, 30);
             panelReg.add(lblPass);
 
             RoundedPassField txtPass = new RoundedPassField(20);
-            txtPass.setBounds(40, 225, 400, 50);
+            txtPass.setBounds(40, 210, 240, 45);
             panelReg.add(txtPass);
-
-            JLabel lblTipoCuenta = new JLabel("Tipo de cuenta");
-            lblTipoCuenta.setForeground(Color.WHITE);
-            lblTipoCuenta.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            lblTipoCuenta.setBounds(40, 290, 200, 30);
-            panelReg.add(lblTipoCuenta);
-
-            JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Monetaria"});
-            cbTipo.setBounds(40, 325, 400, 50);
-            panelReg.add(cbTipo);
 
             JLabel lblPerfil = new JLabel("Tipo de perfil");
             lblPerfil.setForeground(Color.WHITE);
             lblPerfil.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            lblPerfil.setBounds(40, 390, 200, 30);
+            lblPerfil.setBounds(40, 270, 220, 30);
             panelReg.add(lblPerfil);
 
             JRadioButton rbAdulto = new JRadioButton("Adulto");
-            rbAdulto.setBounds(40, 425, 100, 30);
+            rbAdulto.setBounds(40, 305, 100, 30);
             rbAdulto.setOpaque(false);
             rbAdulto.setForeground(Color.WHITE);
 
             JRadioButton rbMenor = new JRadioButton("Menor supervisado");
-            rbMenor.setBounds(150, 425, 200, 30);
+            rbMenor.setBounds(150, 305, 180, 30);
             rbMenor.setOpaque(false);
             rbMenor.setForeground(Color.WHITE);
 
             ButtonGroup grupo = new ButtonGroup();
             grupo.add(rbAdulto);
             grupo.add(rbMenor);
+            rbAdulto.setSelected(true);
 
             panelReg.add(rbAdulto);
             panelReg.add(rbMenor);
 
+            JLabel lblCorreo = new JLabel("Correo electrónico");
+            lblCorreo.setForeground(Color.WHITE);
+            lblCorreo.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            lblCorreo.setBounds(40, 345, 220, 30);
+            panelReg.add(lblCorreo);
+
+            RoundedTextField txtCorreo = new RoundedTextField(20);
+            txtCorreo.setBounds(40, 380, 240, 45);
+            panelReg.add(txtCorreo);
+
+            JLabel lblFecha = new JLabel("Fecha de nacimiento");
+            lblFecha.setForeground(Color.WHITE);
+            lblFecha.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            lblFecha.setBounds(40, 440, 220, 30);
+            panelReg.add(lblFecha);
+
+            RoundedTextField txtFecha = new RoundedTextField(20);
+            txtFecha.setBounds(40, 475, 240, 45);
+            panelReg.add(txtFecha);
+
+            // CAMPOS COL2
+            JLabel lblApellido = new JLabel("Apellidos");
+            lblApellido.setForeground(Color.WHITE);
+            lblApellido.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            lblApellido.setBounds(320, 80, 220, 30);
+            panelReg.add(lblApellido);
+
+            RoundedTextField txtApellido = new RoundedTextField(20);
+            txtApellido.setBounds(320, 115, 240, 45);
+            panelReg.add(txtApellido);
+
+            JLabel lblTipoCuenta = new JLabel("Tipo de cuenta");
+            lblTipoCuenta.setForeground(Color.WHITE);
+            lblTipoCuenta.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            lblTipoCuenta.setBounds(320, 175, 220, 30);
+            panelReg.add(lblTipoCuenta);
+
+            JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Monetaria"});
+            cbTipo.setBounds(320, 210, 240, 45);
+            panelReg.add(cbTipo);
+
+            JLabel lblGenero = new JLabel("Género");
+            lblGenero.setForeground(Color.WHITE);
+            lblGenero.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            lblGenero.setBounds(320, 270, 220, 30);
+            panelReg.add(lblGenero);
+
+            JComboBox<String> cbGenero = new JComboBox<>(new String[]{"Masculino", "Femenino", "Otro"});
+            cbGenero.setBounds(320, 305, 240, 45);
+            panelReg.add(cbGenero);
+
+            JLabel lblTelefono = new JLabel("Teléfono");
+            lblTelefono.setForeground(Color.WHITE);
+            lblTelefono.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            lblTelefono.setBounds(320, 365, 220, 30);
+            panelReg.add(lblTelefono);
+
+            RoundedTextField txtTelefono = new RoundedTextField(20);
+            txtTelefono.setBounds(320, 400, 240, 45);
+            panelReg.add(txtTelefono);
+
             JLabel lblIdent = new JLabel("Número de identificación");
             lblIdent.setForeground(Color.WHITE);
             lblIdent.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            lblIdent.setBounds(40, 470, 300, 30);
+            lblIdent.setBounds(320, 460, 240, 30);
             panelReg.add(lblIdent);
 
             RoundedTextField txtIdent = new RoundedTextField(20);
-            txtIdent.setBounds(40, 505, 400, 50);
+            txtIdent.setBounds(320, 495, 240, 45);
             panelReg.add(txtIdent);
+
+            JLabel lblFechaHint = new JLabel("(YYYY-MM-DD)");
+            lblFechaHint.setForeground(new Color(200, 200, 200));
+            lblFechaHint.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            lblFechaHint.setBounds(40, 525, 220, 20);
+            panelReg.add(lblFechaHint);
 
             // BOTÓN AGREGAR TUTOR (más pequeño)
             Color verde = new Color(94, 116, 73, 200);
@@ -218,26 +277,47 @@ public class RegistroNeo extends JFrame {
 
             BotonNeo btnTutor = new BotonNeo("Agregar cuenta tutor", verde, verdeHover);
             btnTutor.setForeground(Color.WHITE);
-            btnTutor.setBounds(40, 565, 250, 45);
+            btnTutor.setBounds(40, 560, 240, 45);
             panelReg.add(btnTutor);
-            
-            btnTutor.addActionListener(e -> {
-    new RegistroTutor();
-    dispose();
-});
 
-            // BOTÓN INGRESAR
+            btnTutor.addActionListener(e -> {
+                new RegistroTutor();
+                dispose();
+            });
+
+            // BOTÓN REGISTRARSE
             Color amarillo = new Color(251, 232, 138);
             Color amarilloHover = new Color(255, 245, 180);
 
-            BotonNeo btnIngresar = new BotonNeo("Ingresar", amarillo, amarilloHover);
-            btnIngresar.setBounds(40, 620, 400, 55);
+            BotonNeo btnIngresar = new BotonNeo("Registrarse", amarillo, amarilloHover);
+            btnIngresar.setBounds(320, 560, 240, 45);
             panelReg.add(btnIngresar);
 
             btnIngresar.addActionListener(e -> {
-    new DatosPersonales();
-    dispose();
-});
+                String nombre = txtUsuario.getText();
+                String apellido = txtApellido.getText();
+                String password = new String(txtPass.getPassword());
+                String correo = txtCorreo.getText();
+                String telefono = txtTelefono.getText();
+                String fechaNacimiento = txtFecha.getText();
+                String dpiNumero = txtIdent.getText();
+                String generoSeleccionado = cbGenero.getSelectedItem() != null ? cbGenero.getSelectedItem().toString() : "Otro";
+                String genero = "Otro";
+                if ("Masculino".equalsIgnoreCase(generoSeleccionado)) {
+                    genero = "M";
+                } else if ("Femenino".equalsIgnoreCase(generoSeleccionado)) {
+                    genero = "F";
+                }
+                String perfil = rbAdulto.isSelected() ? "Adulto" : rbMenor.isSelected() ? "Menor supervisado" : "Adulto";
+                String tipoCuenta = cbTipo.getSelectedItem() != null ? cbTipo.getSelectedItem().toString() : "Monetaria";
+
+                CrearUsuario crearUsuario = new CrearUsuario();
+                boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
+                if (creado) {
+                    new DatosPersonales();
+                    dispose();
+                }
+            });
         }
 
         @Override
