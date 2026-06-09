@@ -83,7 +83,7 @@ public class RegistroNeo extends JFrame {
             setBorderPainted(false);
             setFocusPainted(false);
             setForeground(Color.BLACK);
-            setFont(new Font("Segoe UI", Font.BOLD, 20));
+            setFont(new Font("Segoe UI", Font.BOLD, 16)); // Reducido un toque a 16 para que quepa bien el texto
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
@@ -134,7 +134,7 @@ public class RegistroNeo extends JFrame {
             lblLogo.setBounds(50, 40, 260, 120);
             add(lblLogo);
 
-            // PANEL SEMITRANSPARENTE CENTRADO
+            // PANEL SEMITRANSPARENTE CENTRADO (LA ENCUESTA)
             JPanel panelReg = new JPanel();
             panelReg.setLayout(null);
             panelReg.setBackground(new Color(25, 38, 35, 180));
@@ -159,6 +159,10 @@ public class RegistroNeo extends JFrame {
             RoundedTextField txtUsuario = new RoundedTextField(20);
             txtUsuario.setBounds(40, 115, 240, 45);
             panelReg.add(txtUsuario);
+
+            // PALETA DE COLORES REUTILIZABLES
+            Color amarillo = new Color(251, 232, 138);
+            Color amarilloHover = new Color(255, 245, 180);
 
             JLabel lblPass = new JLabel("Contraseña");
             lblPass.setForeground(Color.WHITE);
@@ -271,13 +275,16 @@ public class RegistroNeo extends JFrame {
             lblFechaHint.setBounds(40, 525, 220, 20);
             panelReg.add(lblFechaHint);
 
-            // BOTÓN AGREGAR TUTOR (más pequeño)
+            // ====================================================================
+            // SECCIÓN NUEVA: 3 BOTONES ALINEADOS ADENTRO DE LA ENCUESTA (Y = 600)
+            // ====================================================================
             Color verde = new Color(94, 116, 73, 200);
             Color verdeHover = new Color(120, 150, 90);
 
-            BotonNeo btnTutor = new BotonNeo("Agregar cuenta tutor", verde, verdeHover);
+            // 1. Botón Agregar Tutor (Izquierda)
+            BotonNeo btnTutor = new BotonNeo("Cuenta tutor", verde, verdeHover);
             btnTutor.setForeground(Color.WHITE);
-            btnTutor.setBounds(40, 560, 240, 45);
+            btnTutor.setBounds(40, 600, 160, 50);
             panelReg.add(btnTutor);
 
             btnTutor.addActionListener(e -> {
@@ -285,13 +292,21 @@ public class RegistroNeo extends JFrame {
                 dispose();
             });
 
-            // BOTÓN REGISTRARSE
-            Color amarillo = new Color(251, 232, 138);
-            Color amarilloHover = new Color(255, 245, 180);
+            // 2. Botón Regresar (Centro)
+            BotonNeo btnRegresar = new BotonNeo("Regresar", amarillo, amarilloHover);
+            btnRegresar.setBounds(220, 600, 160, 50);
+            panelReg.add(btnRegresar); // Se agrega a panelReg
 
+            btnRegresar.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+
+            // 3. Botón Registrarse (Derecha)
             BotonNeo btnIngresar = new BotonNeo("Registrarse", amarillo, amarilloHover);
-            btnIngresar.setBounds(320, 560, 240, 45);
+            btnIngresar.setBounds(400, 600, 160, 50);
             panelReg.add(btnIngresar);
+            // ====================================================================
 
             btnIngresar.addActionListener(e -> {
                 String nombre = txtUsuario.getText();

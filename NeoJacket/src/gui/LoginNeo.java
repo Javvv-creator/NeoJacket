@@ -145,6 +145,7 @@ public class LoginNeo extends JFrame {
             titulo.setBounds(40, 20, 400, 40);
             panelLogin.add(titulo);
 
+            // SUBTÍTULO
             JLabel subtitulo = new JLabel("EL FUTURO BANCARIO EN TUS MANOS");
             subtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
             subtitulo.setForeground(Color.WHITE);
@@ -172,10 +173,27 @@ public class LoginNeo extends JFrame {
             txtPass.setBounds(40, 260, 330, 50);
             panelLogin.add(txtPass);
 
-            // BOTÓN
+            // BOTÓN INICIAR SESIÓN
             BotonNeo btnLogin = new BotonNeo("→ Iniciar sesión");
             btnLogin.setBounds(40, 340, 330, 55);
             panelLogin.add(btnLogin);
+
+            // =========================================================
+            // BOTÓN REGRESAR EN LA PARTE INFERIOR DE LA PANTALLA
+            // =========================================================
+            BotonNeo btnRegresar = new BotonNeo("← Regresar");
+            // Obtenemos el alto de la pantalla actual para colocarlo abajo de forma segura
+            int altoPantalla = Toolkit.getDefaultToolkit().getScreenSize().height;
+            // Lo posicionamos a 50px de la izquierda y restamos unos 140px para que libre la barra de tareas
+            btnRegresar.setBounds(50, altoPantalla - 140, 180, 50);
+            add(btnRegresar);
+
+            // Acción asignada de manera funcional para regresar al InicioNeo
+            btnRegresar.addActionListener(e -> {
+                new InicioNeo(); // Crea y muestra la ventana de inicio anterior
+                dispose();       // Cierra y destruye la ventana de login actual
+            });
+            // =========================================================
 
             // ACCIÓN / LOGIN: Usar la lógica de autenticación del backend
             btnLogin.addActionListener(e -> {
@@ -220,4 +238,3 @@ public class LoginNeo extends JFrame {
         }
     }
 }
-
