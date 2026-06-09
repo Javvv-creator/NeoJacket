@@ -2,7 +2,6 @@ package gui;
 
 import java.awt.*;
 import javax.swing.*;
-import funcionalidades.IniciarSesion;
 
 public class LoginNeo extends JFrame {
 
@@ -178,35 +177,38 @@ public class LoginNeo extends JFrame {
             btnLogin.setBounds(40, 340, 330, 55);
             panelLogin.add(btnLogin);
 
-            // ACCIÓN
+            // ACCIÓN / LOGIN: Usar la lógica de autenticación del backend
             btnLogin.addActionListener(e -> {
                 String nombre = txtUsuario.getText().trim();
                 String password = new String(txtPass.getPassword());
 
                 try {
-                    IniciarSesion iniciar = new IniciarSesion();
-                    String rol = iniciar.iniciarSesion(nombre, password);
+                    funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
+                    String rol = auth.iniciarSesion(nombre, password);
 
                     if (rol == null) {
                         JOptionPane.showMessageDialog(null,
-                                "Nombre o contraseña incorrectos.",
-                                "Error de inicio de sesión",
+                                "Credenciales incorrectas o cuenta inactiva.",
+                                "Error de autenticación",
                                 JOptionPane.ERROR_MESSAGE);
                         return;
                     }
 
-                    if (rol.equals("ADMIN")) {
-                        new PanelControlAdmin();
+                    if ("ADMIN".equals(rol)) {
+                        PanelControlAdmin adminWin = new PanelControlAdmin();
+                        adminWin.setVisible(true);
+                        dispose();
                     } else {
-                        new DatosPersonales();
+                        Dashboard dashWin = new Dashboard();
+                        dashWin.setVisible(true);
+                        dispose();
                     }
-                    dispose();
 
                 } catch (IllegalArgumentException ex) {
-                    JOptionPane.showMessageDialog(null,
-                            ex.getMessage(),
-                            "Error de validación",
-                            JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Error al iniciar sesión: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
                 }
             });
         }
