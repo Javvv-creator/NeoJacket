@@ -2,7 +2,6 @@ package gui;
 
 import java.awt.*;
 import javax.swing.*;
-import funcionalidades.IniciarSesion;
 
 public class LoginNeo extends JFrame {
 
@@ -178,7 +177,7 @@ public class LoginNeo extends JFrame {
             btnLogin.setBounds(40, 340, 330, 55);
             panelLogin.add(btnLogin);
 
-            // ACCIÓN
+            // ACCIÓN / LOGIN de usario poblema de git 
             btnLogin.addActionListener(e -> {
                 String nombre = txtUsuario.getText().trim();
                 String password = new String(txtPass.getPassword());
