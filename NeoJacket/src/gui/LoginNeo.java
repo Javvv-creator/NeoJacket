@@ -177,37 +177,40 @@ public class LoginNeo extends JFrame {
             btnLogin.setBounds(40, 340, 330, 55);
             panelLogin.add(btnLogin);
 
-            // ACCIÓN / LOGIN de usario poblema de git 
+            // ACCIÓN / LOGIN: Usar la lógica de autenticación del backend
             btnLogin.addActionListener(e -> {
                 String nombre = txtUsuario.getText().trim();
                 String password = new String(txtPass.getPassword());
 
-            String user = txtUsuario.getText().trim();
-            // Recuerda que aquí también deberías validar txtPass para la contraseña
+                try {
+                    funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
+                    String rol = auth.iniciarSesion(nombre, password);
 
-            if (user.equals("1234")) {
-                // 1. Creamos la ventana de Admin
-                PanelControlAdmin adminWin = new PanelControlAdmin();
-                // 2. La hacemos visible explícitamente
-                adminWin.setVisible(true); 
-                // 3. Cerramos el Login
-                dispose(); 
-                
-            } else if (user.equals("Usuario")) {
-                // 1. Creamos el Dashboard
-                Dashboard dashWin = new Dashboard();
-                // 2. Lo hacemos visible
-                dashWin.setVisible(true); 
-                // 3. Cerramos el Login
-                dispose();
-                
-            } else {
-                JOptionPane.showMessageDialog(null, 
-                    "Usuario incorrecto", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        });
+                    if (rol == null) {
+                        JOptionPane.showMessageDialog(null,
+                                "Credenciales incorrectas o cuenta inactiva.",
+                                "Error de autenticación",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    if ("ADMIN".equals(rol)) {
+                        PanelControlAdmin adminWin = new PanelControlAdmin();
+                        adminWin.setVisible(true);
+                        dispose();
+                    } else {
+                        Dashboard dashWin = new Dashboard();
+                        dashWin.setVisible(true);
+                        dispose();
+                    }
+
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Error al iniciar sesión: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            });
         }
 
         @Override
