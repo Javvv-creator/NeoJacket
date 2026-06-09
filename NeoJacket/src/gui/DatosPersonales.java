@@ -8,6 +8,12 @@ public class DatosPersonales extends JFrame {
     private Image fondo;
     private Image logo;
 
+    private RoundedTextField txtNombreCompleto;
+    private RoundedTextField txtDpiCui;
+    private RoundedTextField txtFechaNacimiento;
+    private RoundedTextField txtCorreoElectronico;
+    private RoundedTextField txtTelefono;
+
     // ============================
     // TEXTFIELD REDONDEADO
     // ============================
@@ -120,19 +126,24 @@ public class DatosPersonales extends JFrame {
 
             // CAMPOS
             panel.add(crearLabel("Nombre Completo *", 40, 90));
-            panel.add(crearField(40, 125));
+            txtNombreCompleto = crearField(40, 125);
+            panel.add(txtNombreCompleto);
 
             panel.add(crearLabel("DPI / CUI *", 40, 190));
-            panel.add(crearField(40, 225));
+            txtDpiCui = crearField(40, 225);
+            panel.add(txtDpiCui);
 
             panel.add(crearLabel("Fecha de nacimiento", 40, 290));
-            panel.add(crearField(40, 325));
+            txtFechaNacimiento = crearField(40, 325);
+            panel.add(txtFechaNacimiento);
 
             panel.add(crearLabel("Correo electrónico", 40, 390));
-            panel.add(crearField(40, 425));
+            txtCorreoElectronico = crearField(40, 425);
+            panel.add(txtCorreoElectronico);
 
             panel.add(crearLabel("Teléfono", 40, 490));
-            panel.add(crearField(40, 525));
+            txtTelefono = crearField(40, 525);
+            panel.add(txtTelefono);
 
             // BOTÓN SIGUIENTE
             Color amarillo = new Color(251, 232, 138);
@@ -144,7 +155,19 @@ public class DatosPersonales extends JFrame {
             
 
             btnSiguiente.addActionListener(e -> {
-                new DatosTarjeta();
+                String nombre = txtNombreCompleto.getText().trim();
+                String dpi = txtDpiCui.getText().trim();
+                String correo = txtCorreoElectronico.getText().trim();
+
+                if (nombre.isEmpty() || dpi.isEmpty() || correo.isEmpty()) {
+                    JOptionPane.showMessageDialog(null,
+                            "Por favor complete los campos Nombre, DPI/CUI y Correo electrónico.",
+                            "Campos obligatorios",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                new DatosTarjeta(correo, dpi);
                 dispose();
             });
         }

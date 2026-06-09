@@ -1,5 +1,6 @@
 package gui;
 
+import funcionalidades.AgregarTarjeta;
 import java.awt.*;
 import javax.swing.*;
 
@@ -7,6 +8,8 @@ public class DatosTarjeta extends JFrame {
 
     private Image fondo;
     private Image logo;
+    private String correoUsuario;
+    private String dpiUsuario;
 
     // ============================
     // TEXTFIELD REDONDEADO
@@ -73,7 +76,9 @@ public class DatosTarjeta extends JFrame {
     // ============================
     // CONSTRUCTOR
     // ============================
-    public DatosTarjeta() {
+    public DatosTarjeta(String correoUsuario, String dpiUsuario) {
+        this.correoUsuario = correoUsuario;
+        this.dpiUsuario = dpiUsuario;
 
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
@@ -118,26 +123,61 @@ public class DatosTarjeta extends JFrame {
             titulo.setBounds(40, 20, 400, 40);
             panel.add(titulo);
 
-            // CAMPOS
+            // CAMPOS EDITABLES
             panel.add(crearLabel("Tipo de tarjeta", 40, 90));
-            panel.add(crearField(40, 125));
+            JTextField txtTipo = crearField(40, 125);
+            panel.add(txtTipo);
 
             panel.add(crearLabel("País de su cuenta o tarjeta", 40, 190));
-            panel.add(crearField(40, 225));
+            JTextField txtPais = crearField(40, 225);
+            panel.add(txtPais);
 
             panel.add(crearLabel("Número de cuenta o tarjeta *", 40, 290));
-            panel.add(crearField(40, 325));
+            JTextField txtNumero = crearField(40, 325);
+            panel.add(txtNumero);
 
             panel.add(crearLabel("Seleccione el banco", 40, 390));
-            panel.add(crearField(40, 425));
+            JTextField txtBanco = crearField(40, 425);
+            panel.add(txtBanco);
 
-            // BOTÓN GUARDAR (NO HACE NADA)
+            // BOTÓN GUARDAR
             Color amarillo = new Color(251, 232, 138);
             Color amarilloHover = new Color(255, 245, 180);
 
             BotonNeo btnGuardar = new BotonNeo("Guardar", amarillo, amarilloHover);
             btnGuardar.setBounds(40, 500, 400, 55);
             panel.add(btnGuardar);
+
+            btnGuardar.addActionListener(e -> {
+                String tipo = txtTipo.getText().trim();
+                String pais = txtPais.getText().trim();
+                String numero = txtNumero.getText().trim();
+                String banco = txtBanco.getText().trim();
+
+                try {
+                    AgregarTarjeta servicio = new AgregarTarjeta();
+                    boolean guardado = servicio.registrarTarjeta(correoUsuario, dpiUsuario, tipo, pais, numero, banco);
+                    if (guardado) {
+                        JOptionPane.showMessageDialog(null,
+                                "✅ Tarjeta registrada correctamente.",
+                                "Éxito",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        new InicioNeo().setVisible(true);
+                        dispose();
+                    }
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(null,
+                            "❌ " + ex.getMessage(),
+                            "Validación",
+                            JOptionPane.WARNING_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null,
+                            "Error al guardar los datos de la tarjeta: " + ex.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            });
 
             // BOTÓN VOLVER AL INICIO
             Color verde = new Color(94, 116, 73, 200);
@@ -149,7 +189,7 @@ public class DatosTarjeta extends JFrame {
             panel.add(btnVolver);
 
             btnVolver.addActionListener(e -> {
-                new InicioNeo();
+                new InicioNeo().setVisible(true);
                 dispose();
             });
         }

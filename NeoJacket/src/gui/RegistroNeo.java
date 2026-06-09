@@ -1,8 +1,8 @@
 package gui;
 
+import funcionalidades.CrearUsuario;
 import java.awt.*;
 import javax.swing.*;
-import funcionalidades.CrearUsuario;
 
 public class RegistroNeo extends JFrame {
 
@@ -281,7 +281,7 @@ public class RegistroNeo extends JFrame {
             panelReg.add(btnTutor);
 
             btnTutor.addActionListener(e -> {
-                new RegistroTutor();
+                new RegistroTutor().setVisible(true);
                 dispose();
             });
 
@@ -314,7 +314,7 @@ public class RegistroNeo extends JFrame {
                 CrearUsuario crearUsuario = new CrearUsuario();
                 boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
                 if (creado) {
-                    new DatosPersonales();
+                    new InicioNeo().setVisible(true);
                     dispose();
                 }
             });

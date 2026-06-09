@@ -130,6 +130,21 @@ CREATE TABLE cuentas_bancarias (
     UNIQUE (id_banco, numero_cuenta) 
 );
 
+CREATE TABLE tarjetas_bancarias (
+    id_tarjeta INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT UNSIGNED NOT NULL,
+    id_cuenta INT UNSIGNED NULL,
+    id_banco SMALLINT UNSIGNED NOT NULL,
+    tipo_tarjeta VARCHAR(80) NOT NULL,
+    pais VARCHAR(100) NOT NULL,
+    numero_tarjeta VARCHAR(50) NOT NULL UNIQUE,
+    estado ENUM('activa','bloqueada','cancelada') DEFAULT 'activa',
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_tarjetas_usuarios FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+    CONSTRAINT fk_tarjetas_cuentas FOREIGN KEY (id_cuenta) REFERENCES cuentas_bancarias(id_cuenta) ON DELETE SET NULL,
+    CONSTRAINT fk_tarjetas_bancos FOREIGN KEY (id_banco) REFERENCES bancos(id_banco)
+);
+
 CREATE TABLE limites (
     id_limite INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     id_supervision INT UNSIGNED NOT NULL,
