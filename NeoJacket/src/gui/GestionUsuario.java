@@ -480,7 +480,7 @@ header.setFont(
                 "Editar usuario");
 
             btnEditar.setBounds(
-                    500,
+                    320,
                     620,    
                     220,
                     50);
@@ -491,14 +491,29 @@ header.setFont(
     new GestionUsuarioEditar();
     dispose();
 });
+            
+            BotonNeo btnBuscar = 
+         new BotonNeo("Buscar usuario");
+            
+            btnBuscar.setBounds(
+                    860, 
+                    620, 
+                    220, 
+                    50);
+            
+            panel.add(btnBuscar);
+            
+            btnBuscar.addActionListener(e -> {
+    new GestionUsuarioBuscar();
+    dispose();
 
-
+});
             BotonNeo btnDesactivar =
         new BotonNeo(
                 "Desactivar usuario");
 
             btnDesactivar.setBounds(
-                    950,
+                    590,
                     620,
                     220,
                     50);
