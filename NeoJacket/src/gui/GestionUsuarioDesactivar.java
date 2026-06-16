@@ -1,5 +1,3 @@
-
-
 package gui;
 
 import java.awt.*;
@@ -152,6 +150,17 @@ public class GestionUsuarioDesactivar extends JFrame {
             txtId.setBounds(150, 20, 200, 35);
             panelId.add(txtId);
 
+            //  agregue el camo dpi 
+            JLabel lblDpi = new JLabel("DPI de Usuario");
+            lblDpi.setForeground(Color.WHITE);
+            lblDpi.setBounds(400, 25, 150, 25);
+            panelId.add(lblDpi);
+
+            JTextField txtDpi = new JTextField();
+            txtDpi.setBounds(520, 20, 200, 35);
+            panelId.add(txtDpi);
+            // ================================================================
+
             // PANEL 2 — TABLA (con borde blanco)
             JPanel panelTabla = new JPanel();
             panelTabla.setLayout(null);
@@ -211,6 +220,39 @@ public class GestionUsuarioDesactivar extends JFrame {
             BotonNeo btnDesactivar = new BotonNeo("Desactivar usuario");
             btnDesactivar.setBounds(780, 580, 220, 50);
             panel.add(btnDesactivar);
+
+            // === sccion psrws rl boton  ===
+            btnDesactivar.addActionListener(e -> {
+                String idText = txtId.getText().trim();
+                String dpiText = txtDpi.getText().trim();
+
+                // Validación  del campo DPI no esté vacío
+                if (dpiText.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Por favor, ingrese el DPI del usuario que desea desactivar.", 
+                        "Campo requerido", 
+                        JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                int confirmacion = JOptionPane.showConfirmDialog(this, 
+                    "¿Está seguro de que desea desactivar al usuario con DPI: " + dpiText + "?", 
+                    "Confirmar Desactivación", 
+                    JOptionPane.YES_NO_OPTION);
+
+                if (confirmacion == JOptionPane.YES_OPTION) {
+                    // Lógica para cambiar el estado BD/Sistema...
+                    
+                    JOptionPane.showMessageDialog(this, 
+                        "Usuario con DPI " + dpiText + " desactivado correctamente.", 
+                        "Éxito", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    
+                    
+                    txtId.setText("");
+                    txtDpi.setText("");
+                }
+            });
 
             JButton btnVolver = new JButton("Volver");
             btnVolver.setBounds(1080, 20, 120, 40);
