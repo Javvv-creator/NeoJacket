@@ -1,17 +1,21 @@
 package gui;
 
 import java.awt.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import funcionalidades.API;
 
 public class GestionDivisas extends JFrame {
 
     private Image fondo;
     private Image logo;
+    private DefaultTableModel modeloTabla;
 
-    // ============================
-    // TEXTFIELD REDONDEADO
-    // ============================
+    // Campo de texto con diseño redondeado
     class RoundedTextField extends JTextField {
         public RoundedTextField(int size) {
             super(size);
@@ -25,18 +29,16 @@ public class GestionDivisas extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(25, 38, 35, 200));
+            g2.setColor(new Color(25, 38, 35, 200)); // Fondo oscuro
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-            g2.setColor(new Color(251, 232, 138));
+            g2.setColor(new Color(251, 232, 138)); // Borde dorado
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
             super.paintComponent(g);
             g2.dispose();
         }
     }
 
-    // ============================
-    // BOTÓN NEO
-    // ============================
+    // Botón personalizado con efecto Hover
     class BotonNeo extends JButton {
         public BotonNeo(String texto) {
             super(texto);
@@ -62,38 +64,32 @@ public class GestionDivisas extends JFrame {
         }
     }
 
-    // ============================
-    // CONSTRUCTOR
-    // ============================
+    // Constructor de la ventana
     public GestionDivisas() {
-
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
         setTitle("Gestión de Divisas");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Pantalla completa
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
         setVisible(true);
+
+        cargarDatosDesdeAPI(); // Carga inicial
     }
 
-    // ============================
-    // PANEL PRINCIPAL
-    // ============================
+    // Panel principal
     class FondoPanel extends JPanel {
 
         public FondoPanel() {
-            setLayout(null);
+            setLayout(null); // Coordenadas libres x, y
             crearSidebar();
             crearContenido();
         }
 
-        // ============================
-        // SIDEBAR
-        // ============================
+        // Barra lateral izquierda
         private void crearSidebar() {
-
             JPanel sidebar = new JPanel();
             sidebar.setLayout(null);
             sidebar.setBackground(new Color(25, 38, 35, 220));
@@ -105,22 +101,17 @@ public class GestionDivisas extends JFrame {
             sidebar.add(lblLogo);
 
             String[] botones = {
-                "Gestión de Usuarios",
-                "Gestión de Menores Supervisados",
-                "Gestión de Cuentas",
-                "Gestión de Tarjetas",
-                "Gestión de Divisas",
-                "Gestión de Transacciones"
+                "Gestión de Usuarios", "Gestión de Menores Supervisados",
+                "Gestión de Cuentas", "Gestión de Tarjetas",
+                "Gestión de Divisas", "Gestión de Transacciones"
             };
 
             int y = 140;
-
             for (String texto : botones) {
                 JButton btn = new JButton(texto);
                 btn.setBounds(20, y, 250, 55);
                 btn.setFocusPainted(false);
                 btn.setBorderPainted(false);
-
                 btn.setBackground(new Color(94, 116, 73));
                 btn.setForeground(Color.WHITE);
 
@@ -129,40 +120,14 @@ public class GestionDivisas extends JFrame {
                     btn.setForeground(Color.BLACK);
                 }
 
-                // VIAJES
-                if (texto.equals("Gestión de Cuentas")) {
-                    btn.addActionListener(e -> {
-                        new GestionCuentas();
-                        dispose();
-                    });
-                }
-
-                if (texto.equals("Gestión de Tarjetas")) {
-                    btn.addActionListener(e -> {
-                        new GestionTarjeta();
-                        dispose();
-                    });
-                }
-
-                if (texto.equals("Gestión de Divisas")) {
-                    btn.addActionListener(e -> {
-                        new GestionDivisas();
-                        dispose();
-                    });
-                }
-
                 sidebar.add(btn);
                 y += 70;
             }
-
             add(sidebar);
         }
 
-        // ============================
-        // CONTENIDO PRINCIPAL
-        // ============================
+        // Contenedor central
         private void crearContenido() {
-
             JPanel panel = new JPanel();
             panel.setLayout(null);
             panel.setBackground(new Color(25, 38, 35, 150));
@@ -180,11 +145,7 @@ public class GestionDivisas extends JFrame {
             subtitulo.setBounds(30, 65, 600, 20);
             panel.add(subtitulo);
 
-            Color amarillo = new Color(251, 232, 138);
-
-            // ============================
-            // TABLA
-            // ============================
+            // Contenedor de la tabla
             JPanel panelTabla = new JPanel();
             panelTabla.setLayout(null);
             panelTabla.setBackground(new Color(25, 38, 35, 180));
@@ -192,15 +153,17 @@ public class GestionDivisas extends JFrame {
             panelTabla.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1, true));
             panel.add(panelTabla);
 
-            String[] columnas = {"MONEDA", "TIPO DE CAMBIO", "ÚLTIMA ACTUALIZACIÓN", "ESTADO", "ACCIONES"};
-
-            Object[][] datos = {
-                {"", "", "", "", ""},
-                {"", "", "", "", ""},
-                {"", "", "", "", ""}
+            // encabezado
+            String[] columnas = {"MONEDA", "TIPO DE CAMBIO (BASE: GTQ)", "ÚLTIMA ACTUALIZACIÓN", "ESTADO", "ACCIONES"};
+            
+            modeloTabla = new DefaultTableModel(null, columnas) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
             };
 
-            JTable tabla = new JTable(datos, columnas);
+            JTable tabla = new JTable(modeloTabla);
             tabla.setRowHeight(40);
             tabla.setBackground(new Color(25, 38, 35));
             tabla.setForeground(Color.WHITE);
@@ -219,41 +182,16 @@ public class GestionDivisas extends JFrame {
             scroll.setBounds(10, 10, 1160, 430);
             panelTabla.add(scroll);
 
-            // ============================
-            // BOTONES ABAJO
-            // ============================
-            int bx = 40;
-            int by = 620;
-            int bw = 300;
-            int bh = 50;
-
-            BotonNeo btnHistorial = new BotonNeo("Ver historial de cambios");
-            btnHistorial.setBounds(bx, by, bw, bh);
-            btnHistorial.addActionListener(e -> {
-                new HistorialDivisas();
-                dispose();
-            });
-            panel.add(btnHistorial);
+            int bx = 40; int by = 620; int bw = 250; int bh = 50;
 
             BotonNeo btnActualizar = new BotonNeo("Actualizar tipo de cambio");
-            btnActualizar.setBounds(bx + 330, by, bw, bh);
-            btnActualizar.addActionListener(e -> {
-                new AgregarDivisa();
-                dispose();
-            });
+            btnActualizar.setBounds(bx, by, bw, bh);
+            btnActualizar.addActionListener(e -> cargarDatosDesdeAPI());
             panel.add(btnActualizar);
 
-            
 
-            // ============================
-            // BOTÓN VOLVER
-            // ============================
             JButton btnVolver = new JButton("Volver");
             btnVolver.setBounds(1080, 20, 120, 40);
-            btnVolver.addActionListener(e -> {
-                new PanelControlAdmin();
-                dispose();
-            });
             panel.add(btnVolver);
         }
 
@@ -263,5 +201,40 @@ public class GestionDivisas extends JFrame {
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
     }
-}
 
+    // Carga de datos usando GTQ como base
+    private void cargarDatosDesdeAPI() {
+        modeloTabla.setRowCount(0);
+        modeloTabla.addRow(new Object[]{"Cargando...", "Por favor espere...", "", "", ""});
+
+        new Thread(() -> {
+            try {
+                // Incluye USD y otras divisas globales de interés
+                String[] monedasAInteresar = {"EUR", "MXN", "COP", "ARS", "GBP", "BRL", "USD"};
+                String fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+                // Petición a la API usando GTQ como base original
+                Map<String, String> tasasObtenidas = API.obtenerTasas("GTQ", monedasAInteresar);
+
+                SwingUtilities.invokeLater(() -> {
+                    modeloTabla.setRowCount(0); 
+                    for (String moneda : monedasAInteresar) {
+                        String tasa = tasasObtenidas.getOrDefault(moneda, "N/A");
+                        modeloTabla.addRow(new Object[]{
+                            "GTQ a " + moneda, // Texto dinámico corregido para base GTQ
+                            tasa, 
+                            fechaActual, 
+                            "Activo", 
+                            "Disponibilizado"
+                        });
+                    }
+                });
+            } catch (Exception e) {
+                SwingUtilities.invokeLater(() -> {
+                    modeloTabla.setRowCount(0);
+                    modeloTabla.addRow(new Object[]{"ERROR", "No se pudo actualizar: " + e.getMessage(), "", "", ""});
+                });
+            }
+        }).start();
+    }
+    }
