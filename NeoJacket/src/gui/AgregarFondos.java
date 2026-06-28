@@ -3,22 +3,14 @@ package gui;
 import javax.swing.*;
 import java.awt.*;
 
-public class AgregarFondos extends javax.swing.JFrame {
+public class AgregarFondos extends JFrame {
 
-    // ==========================================
-    // VARIABLES DE CONFIGURACIÓN ESTÉTICA
-    // ==========================================
     private Image fondo;
     private Image logo;
     Font tituloCampos = new Font("Segoe UI", Font.BOLD, 15);
     Font textoInputs = new Font("Segoe UI", Font.PLAIN, 14);
 
-    // ==========================================
-    // CONSTRUCTOR
-    // ==========================================
     public AgregarFondos() {
-        initComponents();
-        
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
@@ -26,23 +18,25 @@ public class AgregarFondos extends javax.swing.JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
+
         setContentPane(new FondoPanel());
     }
 
-    // ==========================================
-    // PANEL DE CAPA PRINCIPAL (CON FONDO REUTILIZADO)
-    // ==========================================
+    // ============================
+    // PANEL PRINCIPAL CON FONDO
+    // ============================
     class FondoPanel extends JPanel {
-
         public FondoPanel() {
             setLayout(null);
             crearSidebar();
             crearContenido();
         }
+        
+        
+        
 
         // ==========================================
-        // DISEÑO DEL MENÚ LATERAL (SIDEBAR MATCHING)
+        // DISEÑO DEL MENÚ LATERAL (SIDEBAR)
         // ==========================================
         private void crearSidebar() {
             JPanel sidebar = new JPanel();
@@ -55,18 +49,14 @@ public class AgregarFondos extends javax.swing.JFrame {
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            JButton btnSaldos = new JButton("Saldos");
-            btnSaldos.setBounds(20, 140, 250, 55);
-            btnSaldos.setFocusPainted(false);
-            btnSaldos.setBorderPainted(false);
-            btnSaldos.setBackground(new Color(251, 232, 138));
-            btnSaldos.setForeground(Color.BLACK);
-            btnSaldos.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnSaldos.addActionListener(e -> {
-                new Saldos().setVisible(true);
-                dispose();
-            });
-            sidebar.add(btnSaldos);
+            JButton btnSaldosActivo = new JButton("Saldos");
+            btnSaldosActivo.setBounds(20, 140, 250, 55);
+            btnSaldosActivo.setFocusPainted(false);
+            btnSaldosActivo.setBorderPainted(false);
+            btnSaldosActivo.setBackground(new Color(251, 232, 138));
+            btnSaldosActivo.setForeground(Color.BLACK);
+            btnSaldosActivo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            sidebar.add(btnSaldosActivo);
 
             String[] botonesMenu = {"Bancos conectados", "Transferencias", "Divisas", "Historial"};
             int y = 210;
@@ -91,139 +81,81 @@ public class AgregarFondos extends javax.swing.JFrame {
             add(sidebar);
         }
 
-        // ==========================================
-        // DISEÑO DEL PANEL DE CONTENIDO CENTRAL
-        // ==========================================
         private void crearContenido() {
             JPanel contenedor = new JPanel();
             contenedor.setLayout(null);
-            contenedor.setBackground(new Color(25, 38, 35, 150));
+            contenedor.setBackground(new Color(25, 38, 35, 180));
             contenedor.setBounds(350, 60, 1300, 760);
             add(contenedor);
 
-            JPanel barraSuperior = new JPanel();
-            barraSuperior.setBounds(0, 0, 1300, 55);
-            barraSuperior.setBackground(new Color(94, 116, 73, 200));
-            barraSuperior.setLayout(null);
-            contenedor.add(barraSuperior);
-
-            JButton btnTab1 = new JButton("Agregar Fondos");
-            btnTab1.setBounds(0, 0, 434, 55);
-            btnTab1.setBackground(new Color(251, 232, 138, 200)); 
-            btnTab1.setForeground(Color.BLACK);
-            btnTab1.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnTab1.setFocusPainted(false);
-            btnTab1.setBorder(BorderFactory.createEmptyBorder());
-            barraSuperior.add(btnTab1);
-
-            JButton btnTab2 = crearBotonPestaña("Actualizar Saldos", 433);
-            barraSuperior.add(btnTab2);
-
-            JButton btnTab3 = crearBotonPestaña("Consultar Saldos", 866);
-            barraSuperior.add(btnTab3);
-
-            // ==========================================
-            // FORMULARIO DE RECAUDACIÓN (CENTRADO EN PANEL)
-            // ==========================================
-            PanelFormularioRedondeado panelForm = new PanelFormularioRedondeado();
-            panelForm.setBounds(440, 120, 420, 490);
-            panelForm.setLayout(null);
-            contenedor.add(panelForm);
-
+            // Formulario
             JLabel lblBanco = new JLabel("Selecciona tu banco");
             lblBanco.setForeground(Color.WHITE);
             lblBanco.setFont(tituloCampos);
-            lblBanco.setBounds(25, 20, 370, 25);
-            panelForm.add(lblBanco);
+            lblBanco.setBounds(50, 40, 400, 25);
+            contenedor.add(lblBanco);
 
-            String[] opcionesBancos = {" -- Elige un banco disponible -- ", "Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"};
+            String[] opcionesBancos = {"Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"};
             JComboBox<String> cbBancos = new JComboBox<>(opcionesBancos);
-            cbBancos.setBounds(25, 50, 370, 45);
+            cbBancos.setBounds(50, 70, 400, 40);
             cbBancos.setFont(textoInputs);
-            cbBancos.setBackground(Color.WHITE);
-            panelForm.add(cbBancos);
+            cbBancos.setBackground(new Color(25, 38, 35));
+            cbBancos.setForeground(Color.WHITE);
+            contenedor.add(cbBancos);
 
             JLabel lblMonto = new JLabel("Monto a ingresar");
             lblMonto.setForeground(Color.WHITE);
             lblMonto.setFont(tituloCampos);
-            lblMonto.setBounds(25, 115, 370, 25);
-            panelForm.add(lblMonto);
+            lblMonto.setBounds(50, 130, 400, 25);
+            contenedor.add(lblMonto);
 
-            JTextFieldRedondeado txtMonto = new JTextFieldRedondeado();
-            txtMonto.setBounds(25, 145, 370, 45);
+            JTextFieldBordeAmarillo txtMonto = new JTextFieldBordeAmarillo();
+            txtMonto.setBounds(50, 160, 400, 40);
             txtMonto.setFont(textoInputs);
-            panelForm.add(txtMonto);
+            contenedor.add(txtMonto);
 
             JLabel lblTarjeta = new JLabel("Número de tarjeta");
             lblTarjeta.setForeground(Color.WHITE);
             lblTarjeta.setFont(tituloCampos);
-            lblTarjeta.setBounds(25, 210, 370, 25);
-            panelForm.add(lblTarjeta);
+            lblTarjeta.setBounds(50, 220, 400, 25);
+            contenedor.add(lblTarjeta);
 
-            JTextFieldRedondeado txtTarjeta = new JTextFieldRedondeado();
-            txtTarjeta.setBounds(25, 240, 370, 45);
+            JTextFieldBordeAmarillo txtTarjeta = new JTextFieldBordeAmarillo();
+            txtTarjeta.setBounds(50, 250, 400, 40);
             txtTarjeta.setFont(textoInputs);
-            panelForm.add(txtTarjeta);
+            contenedor.add(txtTarjeta);
 
             JLabel lblDescripcion = new JLabel("Descripción");
             lblDescripcion.setForeground(Color.WHITE);
             lblDescripcion.setFont(tituloCampos);
-            lblDescripcion.setBounds(25, 305, 370, 25);
-            panelForm.add(lblDescripcion);
+            lblDescripcion.setBounds(50, 310, 400, 25);
+            contenedor.add(lblDescripcion);
 
-            JTextFieldRedondeado txtDescripcion = new JTextFieldRedondeado();
-            txtDescripcion.setBounds(25, 335, 370, 45); 
+            JTextFieldBordeAmarillo txtDescripcion = new JTextFieldBordeAmarillo();
+            txtDescripcion.setBounds(50, 340, 400, 40);
             txtDescripcion.setFont(textoInputs);
-            panelForm.add(txtDescripcion);
+            contenedor.add(txtDescripcion);
 
-            // Botón integrado estéticamente abajo del formulario
             JButton btnGuardar = new JButton("Guardar") {
                 @Override
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(getBackground());
+                    g2.setColor(new Color(251, 232, 138));
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
                     g2.dispose();
                     super.paintComponent(g);
                 }
             };
-            btnGuardar.setBounds(25, 410, 370, 50);
-            btnGuardar.setBackground(new Color(251, 232, 138)); 
+            btnGuardar.setBounds(50, 410, 400, 50);
             btnGuardar.setForeground(Color.BLACK);
             btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 16));
             btnGuardar.setFocusPainted(false);
             btnGuardar.setContentAreaFilled(false);
             btnGuardar.setBorderPainted(false);
             btnGuardar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            
-            btnGuardar.addActionListener(e -> {
-                JOptionPane.showMessageDialog(this, "¡Fondos registrados con éxito!");
-            });
-            panelForm.add(btnGuardar);
-        }
 
-        // ==========================================
-        // MÉTODOS COMPLEMENTARIOS
-        // ==========================================
-        private JButton crearBotonPestaña(String texto, int xPos) {
-            JButton btn = new JButton(texto);
-            btn.setBounds(xPos, 0, 434, 55);
-            btn.setBackground(new Color(25, 38, 35, 100));
-            btn.setForeground(Color.WHITE);
-            btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btn.setFocusPainted(false);
-            btn.setBorder(BorderFactory.createEmptyBorder());
-            btn.setContentAreaFilled(false);
-            btn.setOpaque(true);
-            
-            btn.addActionListener(e -> {
-                if (texto.equals("Actualizar Saldos") || texto.equals("Consultar Saldos")) {
-                    new Saldos().setVisible(true); 
-                    dispose();
-                }
-            });
-            return btn;
+            contenedor.add(btnGuardar);
         }
 
         @Override
@@ -233,66 +165,38 @@ public class AgregarFondos extends javax.swing.JFrame {
         }
     }
 
-    // ==========================================
-    // CLASES INTERNAS (ESTILIZADO PERSONALIZADO)
-    // ==========================================
-    class PanelFormularioRedondeado extends JPanel {
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(new Color(94, 116, 73, 190));
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
-
-            g2.setColor(new Color(255, 255, 255, 80));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
-
-            g2.dispose();
-        }
-    }
-
-    class JTextFieldRedondeado extends JTextField {
-        public JTextFieldRedondeado() {
+    // ============================
+    // CAMPO DE TEXTO CON BORDE AMARILLO
+    // ============================
+    class JTextFieldBordeAmarillo extends JTextField {
+        public JTextFieldBordeAmarillo() {
             setOpaque(false);
-            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15)); 
+            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+            setForeground(Color.WHITE);
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(Color.WHITE);
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+
+            // Fondo oscuro
+            g2.setColor(new Color(25, 38, 35));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+
+            // Borde amarillo
+            g2.setColor(new Color(251, 232, 138));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+
             g2.dispose();
             super.paintComponent(g);
         }
     }
 
-    // ==========================================
-    // CONSTRUCCIÓN INTERNA DE RESPALDO (IDE)
-    // ==========================================
-    @SuppressWarnings("unchecked")
-    private void initComponents() {
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
-        );
-        pack();
-    }
-
-    // ==========================================
-    // EJECUCIÓN PRINCIPAL
-    // ==========================================
-    public static void main(String args[]) {
+    // ============================
+    // MAIN
+    // ============================
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             new AgregarFondos().setVisible(true);
         });

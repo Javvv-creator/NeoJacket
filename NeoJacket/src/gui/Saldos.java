@@ -16,31 +16,33 @@ public class Saldos extends javax.swing.JFrame {
     // CLASE INTERNA: BOTÓN PERSONALIZADO NEO
     // ==========================================
     class BotonNeo extends JButton {
-        public BotonNeo(String texto) {
-            super(texto);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setForeground(Color.WHITE);
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            g2.setColor(getModel().isRollover()
-                    ? new Color(251, 232, 138, 220)
-                    : new Color(94, 116, 73, 190));
-            
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-            g2.setColor(new Color(255, 255, 255, 80));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
-            super.paintComponent(g);
-            g2.dispose();
-        }
+    public BotonNeo(String texto) {
+        super(texto);
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setForeground(Color.WHITE);
+        setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2.setColor(getModel().isRollover()
+                ? new Color(251, 232, 138, 220) // Hover amarillo
+                : new Color(25, 38, 35, 200));  // Fondo oscuro
+
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+
+        g2.setColor(new Color(251, 232, 138)); // Línea amarilla delgada
+        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+
+        super.paintComponent(g);
+        g2.dispose();
+    }
+}
 
     // ==========================================
     // CONSTRUCTOR DE LA VENTANA
@@ -48,7 +50,7 @@ public class Saldos extends javax.swing.JFrame {
     public Saldos() {
         initComponents();
         
-        fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
+        fondo = new ImageIcon(getClass().getResource("/gui/image/fondoUsuario.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
         setTitle("Neo Jacket - Saldos");
@@ -132,11 +134,20 @@ public class Saldos extends javax.swing.JFrame {
             add(contenedor);
 
             // Sub-Panel: Pestañas de Navegación Superior
-            JPanel barraSuperior = new JPanel();
-            barraSuperior.setBounds(0, 0, 1300, 55);
-            barraSuperior.setBackground(new Color(94, 116, 73, 200));
-            barraSuperior.setLayout(null);
-            contenedor.add(barraSuperior);
+            JPanel barraSuperior = new JPanel() {
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(new Color(94, 116, 73, 200));
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+        g2.dispose();
+    }
+};
+barraSuperior.setBounds(0, 0, 1300, 55);
+barraSuperior.setLayout(null);
+contenedor.add(barraSuperior);
 
             // Pestaña superior 1: Agregar fondos
             JButton btnTab1 = crearBotonPestaña("Agregar Fondos", 0);
@@ -163,7 +174,8 @@ public class Saldos extends javax.swing.JFrame {
             barraSuperior.add(btnTab3);
 
             // Etiquetas de Encabezado Principal
-            JLabel lblControlSaldos = new JLabel("Control de Saldos");
+            JLabel lblControlSaldos = new JLabel("CONTROL DE SALDOS");
+            lblControlSaldos.setFont(new Font("Segoe UI", Font.PLAIN, 16));
             lblControlSaldos.setForeground(Color.WHITE);
             lblControlSaldos.setFont(tituloSeccion);
             lblControlSaldos.setBounds(40, 85, 500, 45);
@@ -172,16 +184,17 @@ public class Saldos extends javax.swing.JFrame {
             JLabel lblDescripcion = new JLabel("En este apartado puedes gestionar y mantener al día el dinero de tu cuenta a través de tres funciones principales:");
             lblDescripcion.setForeground(Color.WHITE);
             lblDescripcion.setFont(subTitulo);
-            lblDescripcion.setBounds(40, 135, 900, 25);
+            lblDescripcion.setBounds(40, 135, 1000, 35);
             contenedor.add(lblDescripcion);
 
-            int cardWidth = 370;
-            int cardHeight = 250;
-            int cardY = 200;
+            int cardWidth = 330;
+            int cardHeight = 280;
+            int cardY = 250;
+
 
             // Tarjeta 1: Sección de Ingreso de Capital (Lleva a AgregarFondos)
             BotonNeo cardAgregar = new BotonNeo("");
-            cardAgregar.setBounds(40, cardY, cardWidth, cardHeight);
+            cardAgregar.setBounds(80, cardY, cardWidth, cardHeight);
             cardAgregar.setLayout(null);
             contenedor.add(cardAgregar);
 
@@ -192,8 +205,17 @@ public class Saldos extends javax.swing.JFrame {
             cardAgregar.add(t1Titulo);
 
             JTextArea t1Texto = crearAreaTexto("Utiliza esta opción cada vez que realices una recarga con tu tarjeta o desees inyectar nuevo capital a tu cuenta.");
-            t1Texto.setBounds(20, 60, 330, 160);
+            t1Texto.setBounds(10, 50, 320, 150);
             cardAgregar.add(t1Texto);
+            
+            Image img = new ImageIcon(getClass().getResource("/gui/image/agregarFondos.png")).getImage();
+Image imgEscalada = img.getScaledInstance(220, 190, Image.SCALE_SMOOTH); // más grande
+JLabel iconAgregar = new JLabel(new ImageIcon(imgEscalada));
+iconAgregar.setBounds(60, 130, 180, 150); // centrado dentro del cuadro
+cardAgregar.add(iconAgregar);
+
+
+
             
             cardAgregar.addActionListener(e -> {
                 new AgregarFondos().setVisible(true);
@@ -202,7 +224,7 @@ public class Saldos extends javax.swing.JFrame {
 
             // Tarjeta 2: Sección de Modificación Manual
             BotonNeo cardActualizar = new BotonNeo("");
-            cardActualizar.setBounds(450, cardY, cardWidth, cardHeight);
+            cardActualizar.setBounds(490, cardY, cardWidth, cardHeight);
             cardActualizar.setLayout(null);
             contenedor.add(cardActualizar);
 
@@ -215,6 +237,13 @@ public class Saldos extends javax.swing.JFrame {
             JTextArea t2Texto = crearAreaTexto("Para mantener tu información financiera al día, registra aquí de forma manual cada uno de los gastos o compras que vayas realizando.");
             t2Texto.setBounds(20, 60, 330, 160);
             cardActualizar.add(t2Texto);
+            
+           Image imgActualizar = new ImageIcon(getClass().getResource("/gui/image/actualizarSaldos.png")).getImage();
+Image imgEscaladaActualizar = imgActualizar.getScaledInstance(220, 190, Image.SCALE_SMOOTH);
+JLabel iconActualizar = new JLabel(new ImageIcon(imgEscaladaActualizar));
+iconActualizar.setBounds(60, 130, 180, 150);
+cardActualizar.add(iconActualizar);
+
 
             cardActualizar.addActionListener(e -> {
                 new ActualizarSaldos().setVisible(true);
@@ -223,7 +252,7 @@ public class Saldos extends javax.swing.JFrame {
 
             // Tarjeta 3: Sección de Historial e Informes
             BotonNeo cardConsultar = new BotonNeo("");
-            cardConsultar.setBounds(860, cardY, cardWidth, cardHeight);
+            cardConsultar.setBounds(900, cardY, cardWidth, cardHeight);
             cardConsultar.setLayout(null);
             contenedor.add(cardConsultar);
 
@@ -237,11 +266,32 @@ public class Saldos extends javax.swing.JFrame {
             t3Texto.setBounds(20, 60, 330, 160);
             cardConsultar.add(t3Texto);
             
+            Image imgConsultar = new ImageIcon(getClass().getResource("/gui/image/consultarSaldo.png")).getImage();
+Image imgEscaladaConsultar = imgConsultar.getScaledInstance(220, 190, Image.SCALE_SMOOTH);
+JLabel iconConsultar = new JLabel(new ImageIcon(imgEscaladaConsultar));
+iconConsultar.setBounds(60, 130, 180, 150);
+cardConsultar.add(iconConsultar);
+            
             cardConsultar.addActionListener(e -> {
                 new ConsultarSaldos().setVisible(true);
                 dispose();
             });
+            
+            // =========================================================
+// BOTÓN REGRESAR EN LA PARTE INFERIOR DE LA PANTALLA
+// =========================================================
+Saldos.BotonNeo btnRegresar = new Saldos.BotonNeo("← Regresar");
+    int altoPantalla = Toolkit.getDefaultToolkit().getScreenSize().height;
+    btnRegresar.setBounds(50, altoPantalla - 140, 180, 50); // abajo a la izquierda
+    contenedor.add(btnRegresar);
+
+    btnRegresar.addActionListener(e -> {
+        new Dashboard().setVisible(true); // abre la ventana anterior
+        dispose();                   // cierra la actual
+});
+
         }
+        
 
         // ==========================================
         // MÉTODOS AUXILIARES Y CONVERSORES
