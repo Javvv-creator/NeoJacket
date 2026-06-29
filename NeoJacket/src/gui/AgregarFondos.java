@@ -22,22 +22,13 @@ public class AgregarFondos extends JFrame {
         setContentPane(new FondoPanel());
     }
 
-    // ============================
-    // PANEL PRINCIPAL CON FONDO
-    // ============================
     class FondoPanel extends JPanel {
         public FondoPanel() {
             setLayout(null);
             crearSidebar();
             crearContenido();
         }
-        
-        
-        
 
-        // ==========================================
-        // DISEÑO DEL MENÚ LATERAL (SIDEBAR)
-        // ==========================================
         private void crearSidebar() {
             JPanel sidebar = new JPanel();
             sidebar.setLayout(null);
@@ -69,12 +60,10 @@ public class AgregarFondos extends JFrame {
                 btn.setBackground(new Color(94, 116, 73));
                 btn.setForeground(Color.WHITE);
                 btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                
                 btn.addActionListener(e -> {
                     new Dashboard().setVisible(true);
                     dispose();
                 });
-                
                 sidebar.add(btn);
                 y += 70;
             }
@@ -85,56 +74,102 @@ public class AgregarFondos extends JFrame {
             JPanel contenedor = new JPanel();
             contenedor.setLayout(null);
             contenedor.setBackground(new Color(25, 38, 35, 180));
-            contenedor.setBounds(350, 60, 1300, 760);
+            contenedor.setBounds(350, 60, 1300, 760); // bajamos todo un poco
             add(contenedor);
 
-            // Formulario
+            // Barra superior con pestañas
+            JPanel barraSuperior = new JPanel();
+            barraSuperior.setBounds(0, 0, 1300, 55);
+            barraSuperior.setBackground(new Color(94, 116, 73, 200));
+            barraSuperior.setLayout(null);
+            contenedor.add(barraSuperior);
+
+            JButton btnTab1 = new JButton("Agregar Fondos");
+            btnTab1.setBounds(0, 0, 434, 55);
+            btnTab1.setBackground(new Color(251, 232, 138, 200));
+            btnTab1.setForeground(Color.WHITE);
+            btnTab1.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            barraSuperior.add(btnTab1);
+
+            JButton btnTab2 = new JButton("Actualizar Saldos");
+            btnTab2.setBounds(433, 0, 434, 55);
+            btnTab2.setBackground(new Color(25, 38, 35, 100));
+            btnTab2.setForeground(Color.BLACK);
+            btnTab2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnTab2.addActionListener(e -> {
+                new ActualizarSaldos().setVisible(true);
+                dispose();
+            });
+            barraSuperior.add(btnTab2);
+
+            JButton btnTab3 = new JButton("Consultar Saldos");
+            btnTab3.setBounds(866, 0, 434, 55);
+            btnTab3.setBackground(new Color(25, 38, 35, 100));
+            btnTab3.setForeground(Color.WHITE);
+            btnTab3.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnTab3.addActionListener(e -> {
+                new ConsultarSaldos().setVisible(true);
+                dispose();
+            });
+            barraSuperior.add(btnTab3);
+
+            // ============================
+            // Carta con el formulario
+            // ============================
+            JPanel cartaCampos = new JPanel();
+            cartaCampos.setLayout(null);
+            cartaCampos.setBounds(400, 100, 500, 500); // centrada y más abajo
+            cartaCampos.setBackground(new Color(25, 38, 35, 150));
+            cartaCampos.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2));
+            contenedor.add(cartaCampos);
+
+            // Formulario dentro de la carta
             JLabel lblBanco = new JLabel("Selecciona tu banco");
             lblBanco.setForeground(Color.WHITE);
             lblBanco.setFont(tituloCampos);
-            lblBanco.setBounds(50, 40, 400, 25);
-            contenedor.add(lblBanco);
+            lblBanco.setBounds(30, 30, 400, 25);
+            cartaCampos.add(lblBanco);
 
             String[] opcionesBancos = {"Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"};
             JComboBox<String> cbBancos = new JComboBox<>(opcionesBancos);
-            cbBancos.setBounds(50, 70, 400, 40);
+            cbBancos.setBounds(30, 60, 400, 40);
             cbBancos.setFont(textoInputs);
             cbBancos.setBackground(new Color(25, 38, 35));
             cbBancos.setForeground(Color.WHITE);
-            contenedor.add(cbBancos);
+            cartaCampos.add(cbBancos);
 
             JLabel lblMonto = new JLabel("Monto a ingresar");
             lblMonto.setForeground(Color.WHITE);
             lblMonto.setFont(tituloCampos);
-            lblMonto.setBounds(50, 130, 400, 25);
-            contenedor.add(lblMonto);
+            lblMonto.setBounds(30, 120, 400, 25);
+            cartaCampos.add(lblMonto);
 
             JTextFieldBordeAmarillo txtMonto = new JTextFieldBordeAmarillo();
-            txtMonto.setBounds(50, 160, 400, 40);
+            txtMonto.setBounds(30, 150, 400, 40);
             txtMonto.setFont(textoInputs);
-            contenedor.add(txtMonto);
+            cartaCampos.add(txtMonto);
 
             JLabel lblTarjeta = new JLabel("Número de tarjeta");
             lblTarjeta.setForeground(Color.WHITE);
             lblTarjeta.setFont(tituloCampos);
-            lblTarjeta.setBounds(50, 220, 400, 25);
-            contenedor.add(lblTarjeta);
+            lblTarjeta.setBounds(30, 210, 400, 25);
+            cartaCampos.add(lblTarjeta);
 
             JTextFieldBordeAmarillo txtTarjeta = new JTextFieldBordeAmarillo();
-            txtTarjeta.setBounds(50, 250, 400, 40);
+            txtTarjeta.setBounds(30, 240, 400, 40);
             txtTarjeta.setFont(textoInputs);
-            contenedor.add(txtTarjeta);
+            cartaCampos.add(txtTarjeta);
 
             JLabel lblDescripcion = new JLabel("Descripción");
             lblDescripcion.setForeground(Color.WHITE);
             lblDescripcion.setFont(tituloCampos);
-            lblDescripcion.setBounds(50, 310, 400, 25);
-            contenedor.add(lblDescripcion);
+            lblDescripcion.setBounds(30, 300, 400, 25);
+            cartaCampos.add(lblDescripcion);
 
             JTextFieldBordeAmarillo txtDescripcion = new JTextFieldBordeAmarillo();
-            txtDescripcion.setBounds(50, 340, 400, 40);
+            txtDescripcion.setBounds(30, 330, 400, 40);
             txtDescripcion.setFont(textoInputs);
-            contenedor.add(txtDescripcion);
+            cartaCampos.add(txtDescripcion);
 
             JButton btnGuardar = new JButton("Guardar") {
                 @Override
@@ -147,15 +182,14 @@ public class AgregarFondos extends JFrame {
                     super.paintComponent(g);
                 }
             };
-            btnGuardar.setBounds(50, 410, 400, 50);
+            btnGuardar.setBounds(30, 400, 400, 50);
             btnGuardar.setForeground(Color.BLACK);
             btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 16));
             btnGuardar.setFocusPainted(false);
             btnGuardar.setContentAreaFilled(false);
             btnGuardar.setBorderPainted(false);
             btnGuardar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-            contenedor.add(btnGuardar);
+            cartaCampos.add(btnGuardar);
         }
 
         @Override
@@ -164,10 +198,7 @@ public class AgregarFondos extends JFrame {
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
     }
-
-    // ============================
-    // CAMPO DE TEXTO CON BORDE AMARILLO
-    // ============================
+    
     class JTextFieldBordeAmarillo extends JTextField {
         public JTextFieldBordeAmarillo() {
             setOpaque(false);
