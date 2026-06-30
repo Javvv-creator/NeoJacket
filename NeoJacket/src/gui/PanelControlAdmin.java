@@ -23,6 +23,7 @@ public class PanelControlAdmin extends JFrame {
 
         setTitle("NeoJacket - Panel de Administración");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 

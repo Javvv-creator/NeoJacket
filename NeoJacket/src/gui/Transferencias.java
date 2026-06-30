@@ -23,6 +23,7 @@ public class Transferencias extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Transferencias");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         

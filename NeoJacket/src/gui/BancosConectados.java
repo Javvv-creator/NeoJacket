@@ -25,6 +25,7 @@ public class BancosConectados extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Bancos Conectados");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         

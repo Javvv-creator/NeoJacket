@@ -73,6 +73,7 @@ public class Dashboard extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Dashboard");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         

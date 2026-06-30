@@ -70,7 +70,8 @@ public class GestionDivisas extends JFrame {
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
         setTitle("Gestión de Divisas");
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // Pantalla completa
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true); // Pantalla completa
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -101,7 +102,7 @@ public class GestionDivisas extends JFrame {
             sidebar.add(lblLogo);
 
             String[] botones = {
-                "Gestión de Usuarios", "Gestión de Menores Supervisados",
+                "Gestión de Usuarios", "Gestión de Menores",
                 "Gestión de Cuentas", "Gestión de Tarjetas",
                 "Gestión de Divisas", "Gestión de Transacciones"
             };
@@ -118,6 +119,38 @@ public class GestionDivisas extends JFrame {
                 if (texto.equals("Gestión de Divisas")) {
                     btn.setBackground(new Color(251, 232, 138));
                     btn.setForeground(Color.BLACK);
+                }
+
+                if (texto.equals("Gestión de Usuarios")) {
+                    btn.addActionListener(e -> {
+                        new GestionUsuario();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Menores")) {
+                    btn.addActionListener(e -> {
+                        new GestionMenores();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Cuentas")) {
+                    btn.addActionListener(e -> {
+                        new GestionCuentas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Tarjetas")) {
+                    btn.addActionListener(e -> {
+                        new GestionTarjeta();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Divisas")) {
+                    btn.addActionListener(e -> {
+                        new GestionDivisas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Transacciones")) {
+                    btn.addActionListener(e -> {
+                        new GestionTransacciones();
+                        dispose();
+                    });
                 }
 
                 sidebar.add(btn);
@@ -192,6 +225,10 @@ public class GestionDivisas extends JFrame {
 
             JButton btnVolver = new JButton("Volver");
             btnVolver.setBounds(1080, 20, 120, 40);
+            btnVolver.addActionListener(e -> {
+                new PanelControlAdmin();
+                dispose();
+            });
             panel.add(btnVolver);
         }
 
@@ -238,3 +275,4 @@ public class GestionDivisas extends JFrame {
         }).start();
     }
     }
+

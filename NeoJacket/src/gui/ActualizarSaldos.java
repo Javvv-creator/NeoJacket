@@ -21,6 +21,7 @@ public class ActualizarSaldos extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Actualizar Saldos");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         

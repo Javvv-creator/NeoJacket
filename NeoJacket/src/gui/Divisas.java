@@ -22,6 +22,7 @@ public class Divisas extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Divisas");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         

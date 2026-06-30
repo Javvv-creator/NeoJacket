@@ -106,6 +106,7 @@ public class RegistroTutor extends JFrame {
 
         setTitle("Neo Jacket - Cuenta Tutor");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -191,3 +192,4 @@ public class RegistroTutor extends JFrame {
         }
     }
 }
+

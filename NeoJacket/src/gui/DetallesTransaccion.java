@@ -61,6 +61,7 @@ public class DetallesTransaccion extends JFrame {
 
         setTitle("Neo Jacket - Detalles de Transacción");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setContentPane(new FondoPanel());
         setVisible(true);
@@ -151,3 +152,4 @@ public class DetallesTransaccion extends JFrame {
         }
     }
 }
+

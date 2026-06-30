@@ -97,6 +97,7 @@ public class DesbloquearTarjeta extends JFrame {
 
         setTitle("Desbloquear Tarjeta");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -285,3 +286,4 @@ public class DesbloquearTarjeta extends JFrame {
         }
     }
 }
+

@@ -85,6 +85,7 @@ public class DatosTarjeta extends JFrame {
 
         setTitle("Neo Jacket - Datos de Tarjeta");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -215,3 +216,4 @@ public class DatosTarjeta extends JFrame {
         }
     }
 }
+

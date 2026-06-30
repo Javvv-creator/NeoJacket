@@ -62,6 +62,7 @@ public class GestionTransacciones extends JFrame {
 
         setTitle("Neo Jacket - Gestión de Transacciones");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setContentPane(new FondoPanel());
         setVisible(true);
@@ -71,16 +72,85 @@ public class GestionTransacciones extends JFrame {
 
         public FondoPanel() {
             setLayout(null);
+            crearSidebar();
             crearInterfaz();
         }
 
-        private void crearInterfaz() {
+        private void crearSidebar() {
+            JPanel sidebar = new JPanel();
+            sidebar.setLayout(null);
+            sidebar.setBackground(new Color(25, 38, 35, 220));
+            sidebar.setBounds(20, 20, 300, 950);
 
-            // LOGO
-            Image logoEscalado = logo.getScaledInstance(260, 120, Image.SCALE_SMOOTH);
+            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
             JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-            lblLogo.setBounds(50, 40, 260, 120);
-            add(lblLogo);
+            lblLogo.setBounds(20, 10, 250, 110);
+            sidebar.add(lblLogo);
+
+            String[] botones = {
+                "Gestión de Usuarios",
+                "Gestión de Menores",
+                "Gestión de Cuentas",
+                "Gestión de Tarjetas",
+                "Gestión de Divisas",
+                "Gestión de Transacciones"
+            };
+
+            int y = 140;
+            for (String texto : botones) {
+                JButton btn = new JButton(texto);
+                btn.setBounds(20, y, 250, 55);
+                btn.setFocusPainted(false);
+                btn.setBorderPainted(false);
+
+                if (texto.equals("Gestión de Transacciones")) {
+                    btn.setBackground(new Color(251, 232, 138));
+                    btn.setForeground(Color.BLACK);
+                } else {
+                    btn.setBackground(new Color(94, 116, 73));
+                    btn.setForeground(Color.WHITE);
+                }
+
+                if (texto.equals("Gestión de Usuarios")) {
+                    btn.addActionListener(e -> {
+                        new GestionUsuario();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Menores")) {
+                    btn.addActionListener(e -> {
+                        new GestionMenores();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Cuentas")) {
+                    btn.addActionListener(e -> {
+                        new GestionCuentas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Tarjetas")) {
+                    btn.addActionListener(e -> {
+                        new GestionTarjeta();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Divisas")) {
+                    btn.addActionListener(e -> {
+                        new GestionDivisas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Transacciones")) {
+                    btn.addActionListener(e -> {
+                        new GestionTransacciones();
+                        dispose();
+                    });
+                }
+
+                sidebar.add(btn);
+                y += 70;
+            }
+
+            add(sidebar);
+        }
+
+        private void crearInterfaz() {
 
             // PANEL
             JPanel panel = new JPanel();
@@ -140,7 +210,14 @@ public class GestionTransacciones extends JFrame {
                 dispose();
             });
 
-            
+            JButton btnVolver = new JButton("Volver");
+            btnVolver.setBounds(1080, 20, 120, 40);
+            btnVolver.addActionListener(e -> {
+                new PanelControlAdmin();
+                dispose();
+            });
+            panel.add(btnVolver);
+
         }
 
         @Override
@@ -150,4 +227,5 @@ public class GestionTransacciones extends JFrame {
         }
     }
 }
+
 

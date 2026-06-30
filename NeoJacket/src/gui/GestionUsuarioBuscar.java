@@ -51,6 +51,7 @@ public class GestionUsuarioBuscar extends JFrame {
  
         setTitle("Buscar Usuario");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());

@@ -110,6 +110,7 @@ public class RegistroNeo extends JFrame {
 
         setTitle("Neo Jacket - Registro");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());

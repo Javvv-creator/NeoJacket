@@ -23,6 +23,7 @@ public class ConsultarSaldos extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Consultar Saldos");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         

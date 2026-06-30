@@ -72,6 +72,7 @@ public class GestionTarjeta extends JFrame {
 
         setTitle("Gestión de Tarjetas");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -106,7 +107,7 @@ public class GestionTarjeta extends JFrame {
 
             String[] botones = {
                 "Gestión de Usuarios",
-                "Gestión de Menores Supervisados",
+                "Gestión de Menores",
                 "Gestión de Cuentas",
                 "Gestión de Tarjetas",
                 "Gestión de Divisas",
@@ -129,17 +130,34 @@ public class GestionTarjeta extends JFrame {
                     btn.setForeground(Color.BLACK);
                 }
 
-                // VIAJES
-                if (texto.equals("Gestión de Cuentas")) {
+                if (texto.equals("Gestión de Usuarios")) {
+                    btn.addActionListener(e -> {
+                        new GestionUsuario();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Menores")) {
+                    btn.addActionListener(e -> {
+                        new GestionMenores();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Cuentas")) {
                     btn.addActionListener(e -> {
                         new GestionCuentas();
                         dispose();
                     });
-                }
-
-                if (texto.equals("Gestión de Tarjetas")) {
+                } else if (texto.equals("Gestión de Tarjetas")) {
                     btn.addActionListener(e -> {
                         new GestionTarjeta();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Divisas")) {
+                    btn.addActionListener(e -> {
+                        new GestionDivisas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Transacciones")) {
+                    btn.addActionListener(e -> {
+                        new GestionTransacciones();
                         dispose();
                     });
                 }
@@ -300,4 +318,5 @@ public class GestionTarjeta extends JFrame {
         }
     }
 }
+
 

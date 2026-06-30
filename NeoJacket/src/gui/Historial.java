@@ -22,6 +22,7 @@ public class Historial extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Historial");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         

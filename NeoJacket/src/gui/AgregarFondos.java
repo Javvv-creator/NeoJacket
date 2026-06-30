@@ -24,6 +24,7 @@ public class AgregarFondos extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Agregar Fondos");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
