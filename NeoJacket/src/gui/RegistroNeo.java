@@ -110,6 +110,7 @@ public class RegistroNeo extends JFrame {
 
         setTitle("Neo Jacket - Registro");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -329,7 +330,7 @@ public class RegistroNeo extends JFrame {
                 CrearUsuario crearUsuario = new CrearUsuario();
                 boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
                 if (creado) {
-                    new InicioNeo().setVisible(true);
+                    new DatosTarjeta(correo, dpiNumero).setVisible(true);
                     dispose();
                 }
             });

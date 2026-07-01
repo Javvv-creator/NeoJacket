@@ -101,6 +101,7 @@ public class GestionUsuarioAgregar extends JFrame {
         setTitle("Agregar de usuarios");
 
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -545,5 +546,6 @@ header.setFont(
         }
     }
 }
+
 
 

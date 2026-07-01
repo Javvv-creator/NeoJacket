@@ -1,13 +1,11 @@
 package main;
 
-import gui.InicioNeo;
-import gui.Saldos;
-import main.CRUD.CRUD;
+import gui.RegistroNeo;
 
 public class Main {
 
     public static void main(String[] args) {
-        InicioNeo ejemplo = new InicioNeo();
+        RegistroNeo ejemplo = new RegistroNeo();
         ejemplo.setVisible(true);
         
     }

@@ -1,7 +1,7 @@
 package gui;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class AgregarFondos extends JFrame {
 
@@ -16,6 +16,7 @@ public class AgregarFondos extends JFrame {
 
         setTitle("Neo Jacket - Agregar Fondos");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -61,12 +62,34 @@ public class AgregarFondos extends JFrame {
                 btn.setForeground(Color.WHITE);
                 btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 btn.addActionListener(e -> {
-                    new Dashboard().setVisible(true);
+                    if (textoBtn.equals("Bancos conectados")) {
+                        new BancosConectados().setVisible(true);
+                    } else if (textoBtn.equals("Transferencias")) {
+                        new Transferencias().setVisible(true);
+                    } else if (textoBtn.equals("Divisas")) {
+                        new Divisas().setVisible(true);
+                    } else if (textoBtn.equals("Historial")) {
+                        new Historial().setVisible(true);
+                    }
                     dispose();
                 });
                 sidebar.add(btn);
                 y += 70;
             }
+
+            JButton btnCerrarSesion = new JButton("Cerrar sesión");
+            btnCerrarSesion.setBounds(20, 880, 250, 55);
+            btnCerrarSesion.setFocusPainted(false);
+            btnCerrarSesion.setBorderPainted(false);
+            btnCerrarSesion.setBackground(new Color(191, 76, 58));
+            btnCerrarSesion.setForeground(Color.WHITE);
+            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
+
             add(sidebar);
         }
 

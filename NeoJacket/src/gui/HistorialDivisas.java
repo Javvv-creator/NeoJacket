@@ -81,6 +81,7 @@ public class HistorialDivisas extends JFrame {
 
         setTitle("Neo Jacket - Historial de Divisas");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -186,3 +187,4 @@ public class HistorialDivisas extends JFrame {
         }
     }
 }
+

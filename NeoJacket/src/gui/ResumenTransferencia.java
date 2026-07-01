@@ -1,9 +1,7 @@
 package gui;
 
-import gui.Dashboard;
-import gui.Saldos;
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class ResumenTransferencia extends javax.swing.JFrame {
 
@@ -22,6 +20,7 @@ public class ResumenTransferencia extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Resumen de Transferencia");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
@@ -68,10 +67,10 @@ public class ResumenTransferencia extends javax.swing.JFrame {
                 
                 btn.addActionListener(e -> {
                     if (nombre.equals("Saldos")) { new Saldos().setVisible(true); dispose(); }
-                    if (nombre.equals("Transferencias")) { new Transferencias().setVisible(true); dispose(); }
-                    if (nombre.equals("Bancos conectados")) { new BancosConectados().setVisible(true); dispose(); }
-                    if (nombre.equals("Divisas")) { new Divisas().setVisible(true); dispose(); }
-                    if (nombre.equals("Historial")) { new Dashboard().setVisible(true); dispose(); }
+                    else if (nombre.equals("Transferencias")) { new Transferencias().setVisible(true); dispose(); }
+                    else if (nombre.equals("Bancos conectados")) { new BancosConectados().setVisible(true); dispose(); }
+                    else if (nombre.equals("Divisas")) { new Divisas().setVisible(true); dispose(); }
+                    else if (nombre.equals("Historial")) { new Historial().setVisible(true); dispose(); }
                 });
 
                 sidebar.add(btn);

@@ -86,6 +86,7 @@ public class DatosPersonales extends JFrame {
 
         setTitle("Neo Jacket - Datos Personales");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -193,3 +194,4 @@ public class DatosPersonales extends JFrame {
         }
     }
 }
+

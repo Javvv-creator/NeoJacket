@@ -1,9 +1,7 @@
 package gui;
 
-import gui.Dashboard;
-import gui.Saldos;
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class Historial extends javax.swing.JFrame {
 
@@ -22,6 +20,7 @@ public class Historial extends javax.swing.JFrame {
 
         setTitle("Neo Jacket - Historial");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
@@ -77,6 +76,20 @@ public class Historial extends javax.swing.JFrame {
                 sidebar.add(btn);
                 y += 70;
             }
+
+            JButton btnCerrarSesion = new JButton("Cerrar sesión");
+            btnCerrarSesion.setBounds(20, 880, 250, 55);
+            btnCerrarSesion.setFocusPainted(false);
+            btnCerrarSesion.setBorderPainted(false);
+            btnCerrarSesion.setBackground(new Color(191, 76, 58));
+            btnCerrarSesion.setForeground(Color.WHITE);
+            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
+
             add(sidebar);
         }
 
