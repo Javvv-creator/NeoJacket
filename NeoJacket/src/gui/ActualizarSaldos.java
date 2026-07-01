@@ -1,10 +1,7 @@
 package gui;
 
-import gui.Dashboard;
-import gui.Saldos;
-import gui.AgregarFondos;
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class ActualizarSaldos extends javax.swing.JFrame {
 
@@ -73,7 +70,15 @@ public class ActualizarSaldos extends javax.swing.JFrame {
                 btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 
                 btn.addActionListener(e -> {
-                    new Dashboard().setVisible(true);
+                    if (textoBtn.equals("Bancos conectados")) {
+                        new BancosConectados().setVisible(true);
+                    } else if (textoBtn.equals("Transferencias")) {
+                        new Transferencias().setVisible(true);
+                    } else if (textoBtn.equals("Divisas")) {
+                        new Divisas().setVisible(true);
+                    } else if (textoBtn.equals("Historial")) {
+                        new Historial().setVisible(true);
+                    }
                     dispose();
                 });
                 

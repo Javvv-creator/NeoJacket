@@ -1,8 +1,16 @@
 package gui;
 
+import funcionalidades.ServicioTarjeta;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
 
 public class GestionTarjeta extends JFrame {
 
@@ -84,10 +92,20 @@ public class GestionTarjeta extends JFrame {
     // ============================
     class FondoPanel extends JPanel {
 
+        private ServicioTarjeta servicio;
+        private DefaultTableModel modeloTabla;
+        private JTable tabla;
+        private TableRowSorter<DefaultTableModel> sorter;
+        private RoundedTextField txtIdFiltro;
+        private JComboBox<String> cbTipo;
+        private JComboBox<String> cbEstado;
+
         public FondoPanel() {
+            servicio = new ServicioTarjeta();
             setLayout(null);
             crearSidebar();
             crearContenido();
+            cargarTarjetas();
         }
 
         // ============================
@@ -208,16 +226,16 @@ public class GestionTarjeta extends JFrame {
             lblId.setBounds(30, 10, 200, 20);
             panelFiltros.add(lblId);
 
-            RoundedTextField txtId = new RoundedTextField(20);
-            txtId.setBounds(30, 40, 250, 40);
-            panelFiltros.add(txtId);
+            txtIdFiltro = new RoundedTextField(20);
+            txtIdFiltro.setBounds(30, 40, 250, 40);
+            panelFiltros.add(txtIdFiltro);
 
             JLabel lblTipo = new JLabel("Tipo");
             lblTipo.setForeground(amarillo);
             lblTipo.setBounds(430, 10, 150, 20);
             panelFiltros.add(lblTipo);
 
-            JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Todos"});
+            cbTipo = new JComboBox<>(new String[]{"Todos"});
             cbTipo.setBounds(430, 40, 250, 40);
             panelFiltros.add(cbTipo);
 
@@ -226,9 +244,19 @@ public class GestionTarjeta extends JFrame {
             lblEstado.setBounds(730, 10, 150, 20);
             panelFiltros.add(lblEstado);
 
-            JComboBox<String> cbEstado = new JComboBox<>(new String[]{"Todos"});
+            cbEstado = new JComboBox<>(new String[]{"Todos"});
             cbEstado.setBounds(730, 40, 250, 40);
             panelFiltros.add(cbEstado);
+
+            BotonNeo btnBuscar = new BotonNeo("Buscar");
+            btnBuscar.setBounds(1010, 40, 120, 40);
+            btnBuscar.addActionListener(e -> filtrarTabla());
+            panelFiltros.add(btnBuscar);
+
+            BotonNeo btnLimpiar = new BotonNeo("Limpiar");
+            btnLimpiar.setBounds(1010, 80, 120, 40);
+            btnLimpiar.addActionListener(e -> limpiarFiltros());
+            panelFiltros.add(btnLimpiar);
 
             // ============================
             // TABLA
@@ -242,13 +270,14 @@ public class GestionTarjeta extends JFrame {
 
             String[] columnas = {"ID", "TARJETA", "PROPIETARIO", "TIPO", "ESTADO"};
 
-            Object[][] datos = {
-                {"", "", "", "", ""},
-                {"", "", "", "", ""},
-                {"", "", "", "", ""}
+            modeloTabla = new DefaultTableModel(columnas, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
             };
 
-            JTable tabla = new JTable(datos, columnas);
+            tabla = new JTable(modeloTabla);
             tabla.setRowHeight(35);
             tabla.setBackground(new Color(25, 38, 35));
             tabla.setForeground(Color.WHITE);
@@ -256,6 +285,10 @@ public class GestionTarjeta extends JFrame {
             tabla.setSelectionBackground(new Color(251, 232, 138));
             tabla.setSelectionForeground(Color.BLACK);
             tabla.setShowGrid(true);
+            tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+            sorter = new TableRowSorter<>(modeloTabla);
+            tabla.setRowSorter(sorter);
 
             JTableHeader header = tabla.getTableHeader();
             header.setBackground(new Color(94, 116, 73));
@@ -278,7 +311,15 @@ public class GestionTarjeta extends JFrame {
             BotonNeo btnDetalles = new BotonNeo("Ver detalles");
             btnDetalles.setBounds(bx, by, bw, bh);
             btnDetalles.addActionListener(e -> {
-                new DetalleTarjeta();
+                int idTarjeta = obtenerIdSeleccionado();
+                if (idTarjeta < 0) {
+                    JOptionPane.showMessageDialog(null,
+                            "Selecciona una tarjeta para ver el detalle.",
+                            "Seleccionar tarjeta",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                new DetalleTarjeta(idTarjeta);
                 dispose();
             });
             panel.add(btnDetalles);
@@ -286,7 +327,15 @@ public class GestionTarjeta extends JFrame {
             BotonNeo btnBloquear = new BotonNeo("Bloquear Tarjeta");
             btnBloquear.setBounds(bx + 300, by, bw, bh);
             btnBloquear.addActionListener(e -> {
-                new BloquearTarjeta();
+                int idTarjeta = obtenerIdSeleccionado();
+                if (idTarjeta < 0) {
+                    JOptionPane.showMessageDialog(null,
+                            "Selecciona una tarjeta para bloquear.",
+                            "Seleccionar tarjeta",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                new BloquearTarjeta(idTarjeta);
                 dispose();
             });
             panel.add(btnBloquear);
@@ -294,7 +343,15 @@ public class GestionTarjeta extends JFrame {
             BotonNeo btnDesbloquear = new BotonNeo("Desbloquear Tarjeta");
             btnDesbloquear.setBounds(bx + 600, by, bw, bh);
             btnDesbloquear.addActionListener(e -> {
-                new DesbloquearTarjeta();
+                int idTarjeta = obtenerIdSeleccionado();
+                if (idTarjeta < 0) {
+                    JOptionPane.showMessageDialog(null,
+                            "Selecciona una tarjeta para desbloquear.",
+                            "Seleccionar tarjeta",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                new DesbloquearTarjeta(idTarjeta);
                 dispose();
             });
             panel.add(btnDesbloquear);
@@ -309,6 +366,70 @@ public class GestionTarjeta extends JFrame {
                 dispose();
             });
             panel.add(btnVolver);
+        }
+
+        private void cargarTarjetas() {
+            modeloTabla.setRowCount(0);
+            Object[][] datos = servicio.listarTarjetas();
+            for (Object[] fila : datos) {
+                modeloTabla.addRow(fila);
+            }
+            actualizarFiltros();
+        }
+
+        private void actualizarFiltros() {
+            Set<String> tipos = new LinkedHashSet<>();
+            Set<String> estados = new LinkedHashSet<>();
+            tipos.add("Todos");
+            estados.add("Todos");
+
+            for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+                tipos.add(String.valueOf(modeloTabla.getValueAt(i, 3)));
+                estados.add(String.valueOf(modeloTabla.getValueAt(i, 4)));
+            }
+
+            cbTipo.setModel(new DefaultComboBoxModel<>(tipos.toArray(new String[0])));
+            cbEstado.setModel(new DefaultComboBoxModel<>(estados.toArray(new String[0])));
+        }
+
+        private void filtrarTabla() {
+            List<RowFilter<Object, Object>> filtros = new ArrayList<>();
+            String idTexto = txtIdFiltro.getText().trim();
+            if (!idTexto.isEmpty()) {
+                filtros.add(RowFilter.regexFilter("^" + Pattern.quote(idTexto) + "$", 0));
+            }
+            if (!"Todos".equals(cbTipo.getSelectedItem())) {
+                filtros.add(RowFilter.regexFilter(String.valueOf(cbTipo.getSelectedItem()), 3));
+            }
+            if (!"Todos".equals(cbEstado.getSelectedItem())) {
+                filtros.add(RowFilter.regexFilter(String.valueOf(cbEstado.getSelectedItem()), 4));
+            }
+
+            sorter.setRowFilter(filtros.isEmpty() ? null : RowFilter.andFilter(filtros));
+        }
+
+        private void limpiarFiltros() {
+            txtIdFiltro.setText("");
+            cbTipo.setSelectedIndex(0);
+            cbEstado.setSelectedIndex(0);
+            sorter.setRowFilter(null);
+        }
+
+        private int obtenerIdSeleccionado() {
+            int fila = tabla.getSelectedRow();
+            if (fila < 0) {
+                return -1;
+            }
+            int modeloFila = tabla.convertRowIndexToModel(fila);
+            Object valor = modeloTabla.getValueAt(modeloFila, 0);
+            if (valor instanceof Integer) {
+                return (Integer) valor;
+            }
+            try {
+                return Integer.parseInt(String.valueOf(valor));
+            } catch (NumberFormatException e) {
+                return -1;
+            }
         }
 
         @Override

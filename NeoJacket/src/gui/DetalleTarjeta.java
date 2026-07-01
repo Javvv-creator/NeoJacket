@@ -1,6 +1,8 @@
 package gui;
 
+import funcionalidades.ServicioTarjeta;
 import java.awt.*;
+import java.util.Map;
 import javax.swing.*;
 
 public class DetalleTarjeta extends JFrame {
@@ -61,13 +63,24 @@ public class DetalleTarjeta extends JFrame {
         }
     }
 
+    private Map<String, Object> detalle;
+
     // ============================
     // CONSTRUCTOR
     // ============================
-    public DetalleTarjeta() {
-
+    public DetalleTarjeta(int idTarjeta) {
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
+
+        ServicioTarjeta servicio = new ServicioTarjeta();
+        detalle = servicio.obtenerDetalleTarjeta(idTarjeta);
+
+        if (detalle.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "No se encontró la tarjeta con ID " + idTarjeta,
+                    "Tarjeta no encontrada",
+                    JOptionPane.WARNING_MESSAGE);
+        }
 
         setTitle("Detalle de Tarjeta");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -173,39 +186,35 @@ public class DetalleTarjeta extends JFrame {
             int y = 120;
 
             panel.add(crearLabel("ID Tarjeta:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            panel.add(crearField(250, y - 5, getTextValue("id_tarjeta")));
 
             y += 60;
             panel.add(crearLabel("Número de tarjeta:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            panel.add(crearField(250, y - 5, getTextValue("numero_tarjeta")));
 
             y += 60;
             panel.add(crearLabel("Propietario:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            panel.add(crearField(250, y - 5, getTextValue("propietario")));
 
             y += 60;
             panel.add(crearLabel("Tipo de tarjeta:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            panel.add(crearField(250, y - 5, getTextValue("tipo_tarjeta")));
 
             y += 60;
             panel.add(crearLabel("Banco:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            panel.add(crearField(250, y - 5, getTextValue("banco")));
 
             y += 60;
             panel.add(crearLabel("Estado:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            panel.add(crearField(250, y - 5, getTextValue("estado")));
+
+            y += 60;
+            panel.add(crearLabel("País:", 30, y, amarillo));
+            panel.add(crearField(250, y - 5, getTextValue("pais")));
 
             y += 60;
             panel.add(crearLabel("Fecha de creación:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Última actualización:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Última transacción:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            panel.add(crearField(250, y - 5, getTextValue("creado_en")));
 
             // ============================
             // BOTÓN REGRESAR
@@ -226,10 +235,17 @@ public class DetalleTarjeta extends JFrame {
             return lbl;
         }
 
-        private RoundedTextField crearField(int x, int y) {
+        private RoundedTextField crearField(int x, int y, String valor) {
             RoundedTextField txt = new RoundedTextField(20);
             txt.setBounds(x, y, 350, 40);
+            txt.setText(valor);
+            txt.setEditable(false);
             return txt;
+        }
+
+        private String getTextValue(String clave) {
+            Object valor = detalle != null ? detalle.get(clave) : null;
+            return valor == null ? "" : String.valueOf(valor);
         }
 
         @Override

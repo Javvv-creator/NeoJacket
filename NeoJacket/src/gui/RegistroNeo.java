@@ -330,7 +330,7 @@ public class RegistroNeo extends JFrame {
                 CrearUsuario crearUsuario = new CrearUsuario();
                 boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
                 if (creado) {
-                    new InicioNeo().setVisible(true);
+                    new DatosTarjeta(correo, dpiNumero).setVisible(true);
                     dispose();
                 }
             });

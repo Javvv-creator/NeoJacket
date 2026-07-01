@@ -1,8 +1,7 @@
 package gui;
 
-import gui.Saldos; // Importación directa de la interfaz de Saldos
+import java.awt.*; // Importación directa de la interfaz de Saldos
 import javax.swing.*;
-import java.awt.*;
 
 public class Dashboard extends javax.swing.JFrame {
 
@@ -107,7 +106,7 @@ public class Dashboard extends javax.swing.JFrame {
 
             String[] botonesMenu = {
                 "Saldos",
-                "Bancos",
+                "Bancos conectados",
                 "Transferencias",
                 "Divisas",
                 "Historial"
@@ -129,7 +128,7 @@ public class Dashboard extends javax.swing.JFrame {
                         dispose(); 
                     });
                 }
-                if (textoBtn.equals("Bancos")) {
+                if (textoBtn.equals("Bancos conectados")) {
                     btn.addActionListener(e -> { 
                         new BancosConectados().setVisible(true);
                         dispose(); 
@@ -143,7 +142,7 @@ public class Dashboard extends javax.swing.JFrame {
                 }
                 if (textoBtn.equals("Divisas")) {
                     btn.addActionListener(e -> { 
-                        new GestionDivisas().setVisible(true);
+                        new Divisas().setVisible(true);
                         dispose(); 
                     });
                 }
@@ -157,6 +156,20 @@ public class Dashboard extends javax.swing.JFrame {
                 sidebar.add(btn);
                 y += 70;
             }
+
+            JButton btnCerrarSesion = new JButton("Cerrar sesión");
+            btnCerrarSesion.setBounds(20, 880, 250, 55);
+            btnCerrarSesion.setFocusPainted(false);
+            btnCerrarSesion.setBorderPainted(false);
+            btnCerrarSesion.setBackground(new Color(191, 76, 58));
+            btnCerrarSesion.setForeground(Color.WHITE);
+            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
+
             add(sidebar);
         }
 
@@ -164,7 +177,8 @@ public class Dashboard extends javax.swing.JFrame {
         // CONTENIDO PRINCIPAL
         // ==========================================
         private void crearContenido() {
-            Font titulo = new Font("Segoe UI", Font.BOLD, 18);
+            Font tituloSeccion = new Font("Segoe UI", Font.BOLD, 34);
+            Font tituloTarjeta = new Font("Segoe UI", Font.BOLD, 16);
             Font texto = new Font("Segoe UI", Font.PLAIN, 14);
             Color amarilloPastel = new Color(251, 232, 138);
 
@@ -179,6 +193,12 @@ public class Dashboard extends javax.swing.JFrame {
             barraSuperior.setBackground(amarilloPastel);
             contenedor.add(barraSuperior);
 
+            JLabel lblTituloDashboard = new JLabel("Panel de Control");
+            lblTituloDashboard.setForeground(Color.WHITE);
+            lblTituloDashboard.setFont(tituloSeccion);
+            lblTituloDashboard.setBounds(40, 15, 400, 45);
+            contenedor.add(lblTituloDashboard);
+
             // TARJETA CUENTAS
             RoundedPanel cuentas = new RoundedPanel();
             cuentas.setBounds(40, 90, 1160, 120);
@@ -189,7 +209,7 @@ public class Dashboard extends javax.swing.JFrame {
 
             JLabel lblCuentas = new JLabel("Tus Cuentas");
             lblCuentas.setForeground(amarilloPastel);
-            lblCuentas.setFont(titulo);
+            lblCuentas.setFont(tituloTarjeta);
             lblCuentas.setBounds(20, 10, 200, 30);
             cuentas.add(lblCuentas);
 
@@ -209,7 +229,7 @@ public class Dashboard extends javax.swing.JFrame {
 
             JLabel lblBancos = new JLabel("Bancos Conectados");
             lblBancos.setForeground(amarilloPastel);
-            lblBancos.setFont(titulo);
+            lblBancos.setFont(tituloTarjeta);
             lblBancos.setBounds(15, 10, 200, 25);
             bancos.add(lblBancos);
 
@@ -235,7 +255,7 @@ public class Dashboard extends javax.swing.JFrame {
 
             JLabel lblTransfer = new JLabel("Transferencias Recientes");
             lblTransfer.setForeground(amarilloPastel);
-            lblTransfer.setFont(titulo);
+            lblTransfer.setFont(tituloTarjeta);
             lblTransfer.setBounds(15, 10, 250, 25);
             transferencias.add(lblTransfer);
 
@@ -261,7 +281,7 @@ public class Dashboard extends javax.swing.JFrame {
 
             JLabel lblHistorial = new JLabel("Historial");
             lblHistorial.setForeground(amarilloPastel);
-            lblHistorial.setFont(titulo);
+            lblHistorial.setFont(tituloTarjeta);
             lblHistorial.setBounds(15, 10, 100, 25);
             historial.add(lblHistorial);
 
@@ -287,7 +307,7 @@ public class Dashboard extends javax.swing.JFrame {
 
             JLabel lblDivisasTarjeta = new JLabel("Cambio de Divisas");
             lblDivisasTarjeta.setForeground(amarilloPastel);
-            lblDivisasTarjeta.setFont(titulo);
+            lblDivisasTarjeta.setFont(tituloTarjeta);
             lblDivisasTarjeta.setBounds(15, 10, 200, 25);
             divisas.add(lblDivisasTarjeta);
 

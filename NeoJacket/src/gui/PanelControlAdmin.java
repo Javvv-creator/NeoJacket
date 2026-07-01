@@ -200,6 +200,19 @@ btn.addMouseListener(
 });
             }
 
+            JButton btnCerrarSesion = new JButton("Cerrar sesión");
+            btnCerrarSesion.setBounds(20, 880, 250, 55);
+            btnCerrarSesion.setFocusPainted(false);
+            btnCerrarSesion.setBorderPainted(false);
+            btnCerrarSesion.setBackground(new Color(191, 76, 58));
+            btnCerrarSesion.setForeground(Color.WHITE);
+            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
+
             add(sidebar);
 
             // ======================
@@ -218,32 +231,23 @@ btn.addMouseListener(
 
             titulo.setForeground(new Color(251, 232, 138));
             titulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
-
             titulo.setBounds(30, 20, 200, 30);
-
             bienvenida.add(titulo);
 
             JLabel subtitulo = new JLabel(
                     "Panel de Administración");
 
             subtitulo.setForeground(Color.WHITE);
-
             subtitulo.setFont(
-                    new Font("Segoe UI",
-                            Font.BOLD,
-                            32));
-
+                    new Font("Segoe UI", Font.BOLD, 32));
             subtitulo.setBounds(30, 50, 450, 40);
-
             bienvenida.add(subtitulo);
 
             JLabel desc = new JLabel(
                     "Resumen general de la plataforma");
 
             desc.setForeground(Color.WHITE);
-
             desc.setBounds(30, 95, 350, 25);
-
             bienvenida.add(desc);
 
             add(bienvenida);

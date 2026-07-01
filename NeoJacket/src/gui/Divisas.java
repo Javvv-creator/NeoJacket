@@ -1,9 +1,7 @@
 package gui;
 
-import gui.Dashboard;
-import gui.Saldos;
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class Divisas extends javax.swing.JFrame {
 
@@ -71,12 +69,26 @@ public class Divisas extends javax.swing.JFrame {
                     if (nombre.equals("Saldos")) { new Saldos().setVisible(true); dispose(); }
                     if (nombre.equals("Transferencias")) { new Transferencias().setVisible(true); dispose(); }
                     if (nombre.equals("Bancos conectados")) { new BancosConectados().setVisible(true); dispose(); }
-                    if (nombre.equals("Historial")) { new Dashboard().setVisible(true); dispose(); }
+                    if (nombre.equals("Historial")) { new Historial().setVisible(true); dispose(); }
                 });
 
                 sidebar.add(btn);
                 y += 70;
             }
+
+            JButton btnCerrarSesion = new JButton("Cerrar sesión");
+            btnCerrarSesion.setBounds(20, 880, 250, 55);
+            btnCerrarSesion.setFocusPainted(false);
+            btnCerrarSesion.setBorderPainted(false);
+            btnCerrarSesion.setBackground(new Color(191, 76, 58));
+            btnCerrarSesion.setForeground(Color.WHITE);
+            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
+
             add(sidebar);
         }
 

@@ -1,14 +1,11 @@
 package main;
 
-import gui.Dashboard;
-import gui.InicioNeo;
-import gui.PanelControlAdmin;
-import main.CRUD.CRUD;
+import gui.RegistroNeo;
 
 public class Main {
 
     public static void main(String[] args) {
-        Dashboard ejemplo = new Dashboard();
+        RegistroNeo ejemplo = new RegistroNeo();
         ejemplo.setVisible(true);
         
     }

@@ -1,6 +1,8 @@
 package gui;
 
+import funcionalidades.ServicioTarjeta;
 import java.awt.*;
+import java.util.Map;
 import javax.swing.*;
 
 public class BloquearTarjeta extends JFrame {
@@ -90,8 +92,9 @@ public class BloquearTarjeta extends JFrame {
     // ============================
     // CONSTRUCTOR
     // ============================
-    public BloquearTarjeta() {
+    private FondoPanel panel;
 
+    public BloquearTarjeta() {
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
@@ -100,14 +103,26 @@ public class BloquearTarjeta extends JFrame {
         setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setContentPane(new FondoPanel());
+
+        panel = new FondoPanel();
+        setContentPane(panel);
         setVisible(true);
+    }
+
+    public BloquearTarjeta(int idTarjeta) {
+        this();
+        panel.cargarDatosTarjeta(idTarjeta);
     }
 
     // ============================
     // PANEL PRINCIPAL
     // ============================
     class FondoPanel extends JPanel {
+
+        private RoundedTextField txtId;
+        private RoundedTextField txtNum;
+        private RoundedTextField txtProp;
+        private RoundedTextField txtTipo;
 
         public FondoPanel() {
             setLayout(null);
@@ -196,8 +211,9 @@ public class BloquearTarjeta extends JFrame {
             lblId.setBounds(30, 100, 200, 25);
             panel.add(lblId);
 
-            RoundedTextField txtId = new RoundedTextField(20);
+            txtId = new RoundedTextField(20);
             txtId.setBounds(250, 95, 300, 40);
+            txtId.setEditable(false);
             panel.add(txtId);
 
             JLabel lblNum = new JLabel("Número de tarjeta:");
@@ -205,8 +221,9 @@ public class BloquearTarjeta extends JFrame {
             lblNum.setBounds(30, 160, 200, 25);
             panel.add(lblNum);
 
-            RoundedTextField txtNum = new RoundedTextField(20);
+            txtNum = new RoundedTextField(20);
             txtNum.setBounds(250, 155, 300, 40);
+            txtNum.setEditable(false);
             panel.add(txtNum);
 
             JLabel lblProp = new JLabel("Propietario:");
@@ -214,8 +231,9 @@ public class BloquearTarjeta extends JFrame {
             lblProp.setBounds(30, 220, 200, 25);
             panel.add(lblProp);
 
-            RoundedTextField txtProp = new RoundedTextField(20);
+            txtProp = new RoundedTextField(20);
             txtProp.setBounds(250, 215, 300, 40);
+            txtProp.setEditable(false);
             panel.add(txtProp);
 
             JLabel lblTipo = new JLabel("Tipo de tarjeta:");
@@ -223,8 +241,9 @@ public class BloquearTarjeta extends JFrame {
             lblTipo.setBounds(30, 280, 200, 25);
             panel.add(lblTipo);
 
-            RoundedTextField txtTipo = new RoundedTextField(20);
+            txtTipo = new RoundedTextField(20);
             txtTipo.setBounds(250, 275, 300, 40);
+            txtTipo.setEditable(false);
             panel.add(txtTipo);
 
             // ============================
@@ -272,7 +291,59 @@ public class BloquearTarjeta extends JFrame {
 
             BotonNeo btnBloquear = new BotonNeo("Bloquear Tarjeta");
             btnBloquear.setBounds(250, 660, 250, 50);
+            btnBloquear.addActionListener(e -> {
+                String idTexto = txtId.getText().trim();
+                if (idTexto.isEmpty()) {
+                    JOptionPane.showMessageDialog(null,
+                            "No hay un ID de tarjeta cargado.",
+                            "ID requerido",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                try {
+                    int idTarjeta = Integer.parseInt(idTexto);
+                    ServicioTarjeta servicio = new ServicioTarjeta();
+                    boolean actualizado = servicio.cambiarEstadoTarjeta(idTarjeta, "bloqueada");
+                    if (actualizado) {
+                        JOptionPane.showMessageDialog(null,
+                                "La tarjeta se bloqueó correctamente.",
+                                "Éxito",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        new GestionTarjeta();
+                        dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(null,
+                                "No se pudo bloquear la tarjeta.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null,
+                            "El ID de tarjeta no es válido.",
+                            "Error de formato",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            });
             panel.add(btnBloquear);
+        }
+
+        private void cargarDatosTarjeta(int idTarjeta) {
+            ServicioTarjeta servicio = new ServicioTarjeta();
+            Map<String, Object> detalle = servicio.obtenerDetalleTarjeta(idTarjeta);
+
+            if (detalle.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "No se encontró la tarjeta con ID " + idTarjeta,
+                        "Tarjeta no encontrada",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            txtId.setText(String.valueOf(detalle.get("id_tarjeta")));
+            txtNum.setText(String.valueOf(detalle.get("numero_tarjeta")));
+            txtProp.setText(String.valueOf(detalle.get("propietario")));
+            txtTipo.setText(String.valueOf(detalle.get("tipo_tarjeta")));
         }
 
         @Override
