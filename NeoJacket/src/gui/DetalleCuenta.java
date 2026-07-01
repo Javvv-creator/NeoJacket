@@ -71,6 +71,7 @@ public class DetalleCuenta extends JFrame {
 
         setTitle("Información de Cuenta");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -246,4 +247,5 @@ public class DetalleCuenta extends JFrame {
         }
     }
 }
+
 

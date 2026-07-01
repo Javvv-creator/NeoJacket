@@ -70,5 +70,29 @@ public class IniciarSesion {
 
         return null;
     }
+    
+    public int obtenerIdUsuario(String nombre, String password) {
+    int idUsuario = -1;
+    try {
+        Connection con = conexion.getConexion();
+        PreparedStatement ps = con.prepareStatement(
+            "SELECT id_usuario FROM usuarios WHERE nombre = ? AND password = ?"
+        );
+        ps.setString(1, nombre);
+        ps.setString(2, password);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            idUsuario = rs.getInt("id_usuario");
+        }
+
+        rs.close();
+        ps.close();
+        con.close();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return idUsuario;
+}
 }
 

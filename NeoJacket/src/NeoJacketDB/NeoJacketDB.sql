@@ -109,6 +109,12 @@ CREATE TABLE bancos (
     activo BOOLEAN DEFAULT TRUE
 );
 
+INSERT IGNORE INTO bancos (nombre, nombre_corto, pais, activo) VALUES
+    ('Bi', 'Bi', 'Guatemala', TRUE),
+    ('bac', 'bac', 'Guatemala', TRUE),
+    ('banrural', 'banrural', 'Guatemala', TRUE),
+    ('gyt', 'gyt', 'Guatemala', TRUE);
+
 CREATE TABLE tipos_cuentas (
     id_tipo TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(80) NOT NULL UNIQUE, 

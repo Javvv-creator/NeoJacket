@@ -1,5 +1,6 @@
 package gui;
 
+import funcionalidades.SesionUsuario;
 import java.awt.*;
 import javax.swing.*;
 
@@ -106,6 +107,7 @@ public class LoginNeo extends JFrame {
 
         setTitle("Neo Jacket - Login");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -177,6 +179,8 @@ public class LoginNeo extends JFrame {
             BotonNeo btnLogin = new BotonNeo("→ Iniciar sesión");
             btnLogin.setBounds(40, 340, 330, 55);
             panelLogin.add(btnLogin);
+            
+            
 
             // =========================================================
             // BOTÓN REGRESAR EN LA PARTE INFERIOR DE LA PANTALLA
@@ -201,26 +205,30 @@ public class LoginNeo extends JFrame {
                 String password = new String(txtPass.getPassword());
 
                 try {
-                    funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
-                    String rol = auth.iniciarSesion(nombre, password);
+                   funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
+String rol = auth.iniciarSesion(nombre, password);
 
-                    if (rol == null) {
-                        JOptionPane.showMessageDialog(null,
-                                "Credenciales incorrectas o cuenta inactiva.",
-                                "Error de autenticación",
-                                JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
+if (rol != null) {
+    int idUsuario = auth.obtenerIdUsuario(nombre, password);
+    if (idUsuario > 0) {
+        SesionUsuario.setIdUsuario(idUsuario); // guardamos el id en sesión
+    }
 
-                    if ("ADMIN".equals(rol)) {
-                        PanelControlAdmin adminWin = new PanelControlAdmin();
-                        adminWin.setVisible(true);
-                        dispose();
-                    } else {
-                        Dashboard dashWin = new Dashboard();
-                        dashWin.setVisible(true);
-                        dispose();
-                    }
+    if ("ADMIN".equals(rol)) {
+        PanelControlAdmin adminWin = new PanelControlAdmin();
+        adminWin.setVisible(true);
+        dispose();
+    } else {
+        Dashboard dashWin = new Dashboard();
+        dashWin.setVisible(true);
+        dispose();
+    }
+} else {
+    JOptionPane.showMessageDialog(null,
+            "Credenciales incorrectas o cuenta inactiva.",
+            "Error de autenticación",
+            JOptionPane.ERROR_MESSAGE);
+}
 
                 } catch (IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);

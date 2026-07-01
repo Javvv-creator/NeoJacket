@@ -51,6 +51,8 @@ public class GestionUsuario extends JFrame {
  
         setTitle("Gestion de Usuario");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -101,7 +103,39 @@ public class GestionUsuario extends JFrame {
                     btn.setBackground(new Color(94, 116, 73));
                     btn.setForeground(Color.WHITE);
                 }
- 
+                
+                if (texto.equals("Gestión de Usuarios")) {
+                    btn.addActionListener(e -> {
+                        new GestionUsuario();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Menores")) {
+                    btn.addActionListener(e -> {
+                        new GestionMenores();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Cuentas")) {
+                    btn.addActionListener(e -> {
+                        new GestionCuentas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Tarjetas")) {
+                    btn.addActionListener(e -> {
+                        new GestionTarjeta();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Divisas")) {
+                    btn.addActionListener(e -> {
+                        new GestionDivisas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Transacciones")) {
+                    btn.addActionListener(e -> {
+                        new GestionTransacciones();
+                        dispose();
+                    });
+                }
+
                 sidebar.add(btn);
                 y += 70;
             }
@@ -661,3 +695,4 @@ public class GestionUsuario extends JFrame {
         }
     }
 }
+

@@ -85,6 +85,7 @@ public class DatosTarjeta extends JFrame {
 
         setTitle("Neo Jacket - Datos de Tarjeta");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -137,8 +138,13 @@ public class DatosTarjeta extends JFrame {
             panel.add(txtNumero);
 
             panel.add(crearLabel("Seleccione el banco", 40, 390));
-            JTextField txtBanco = crearField(40, 425);
-            panel.add(txtBanco);
+            JComboBox<String> cbBanco = new JComboBox<>(new String[]{"Bi", "bac", "banrural", "gyt"});
+            cbBanco.setBounds(40, 425, 450, 50);
+            cbBanco.setBackground(new Color(25, 38, 35, 200));
+            cbBanco.setForeground(Color.WHITE);
+            cbBanco.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            cbBanco.setFocusable(false);
+            panel.add(cbBanco);
 
             // BOTÓN GUARDAR
             Color amarillo = new Color(251, 232, 138);
@@ -152,7 +158,7 @@ public class DatosTarjeta extends JFrame {
                 String tipo = txtTipo.getText().trim();
                 String pais = txtPais.getText().trim();
                 String numero = txtNumero.getText().trim();
-                String banco = txtBanco.getText().trim();
+                String banco = cbBanco.getSelectedItem().toString();
 
                 try {
                     AgregarTarjeta servicio = new AgregarTarjeta();
@@ -215,3 +221,4 @@ public class DatosTarjeta extends JFrame {
         }
     }
 }
+

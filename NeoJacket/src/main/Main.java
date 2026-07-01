@@ -1,8 +1,7 @@
 package main;
 
 import gui.InicioNeo;
-import gui.Saldos;
-import main.CRUD.CRUD;
+import gui.RegistroNeo;
 
 public class Main {
 

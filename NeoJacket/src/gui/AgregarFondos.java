@@ -1,7 +1,14 @@
 package gui;
 
+import funcionalidades.SesionUsuario;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import main.CRUD.CRUD;
+import main.Conexion.conexion;
 
 public class AgregarFondos extends JFrame {
 
@@ -16,6 +23,7 @@ public class AgregarFondos extends JFrame {
 
         setTitle("Neo Jacket - Agregar Fondos");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -25,50 +33,106 @@ public class AgregarFondos extends JFrame {
     class FondoPanel extends JPanel {
         public FondoPanel() {
             setLayout(null);
-            crearSidebar();
+            crearSidebar(this);
             crearContenido();
         }
 
-        private void crearSidebar() {
-            JPanel sidebar = new JPanel();
-            sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
-            sidebar.setBounds(20, 20, 300, 950);
+       private void crearSidebar(JPanel panel) {
 
-            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-            lblLogo.setBounds(20, 10, 250, 110);
-            sidebar.add(lblLogo);
-
-            JButton btnSaldosActivo = new JButton("Saldos");
-            btnSaldosActivo.setBounds(20, 140, 250, 55);
-            btnSaldosActivo.setFocusPainted(false);
-            btnSaldosActivo.setBorderPainted(false);
-            btnSaldosActivo.setBackground(new Color(251, 232, 138));
-            btnSaldosActivo.setForeground(Color.BLACK);
-            btnSaldosActivo.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            sidebar.add(btnSaldosActivo);
-
-            String[] botonesMenu = {"Bancos conectados", "Transferencias", "Divisas", "Historial"};
-            int y = 210;
-
-            for (String textoBtn : botonesMenu) {
-                JButton btn = new JButton(textoBtn);
-                btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                btn.setBackground(new Color(94, 116, 73));
-                btn.setForeground(Color.WHITE);
-                btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btn.addActionListener(e -> {
-                    new Dashboard().setVisible(true);
-                    dispose();
-                });
-                sidebar.add(btn);
-                y += 70;
-            }
-            add(sidebar);
+    JPanel sidebar = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setColor(new Color(25, 38, 35, 220));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+            g2.dispose();
         }
+    };
+
+    sidebar.setOpaque(false);
+    sidebar.setBounds(20, 20, 300, 950);
+    sidebar.setLayout(null);
+
+    // Logo
+    Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+    JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+    lblLogo.setBounds(20, 10, 250, 110);
+    sidebar.add(lblLogo);
+
+    String[] opciones = {
+        "Saldos",
+        "Bancos Conectados",
+        "Transferencias",
+        "Divisas",
+        "Historial"
+    };
+
+    int y = 140;
+
+    for (String texto : opciones) {
+
+        JButton btn = new JButton(texto);
+
+        btn.setBounds(20, y, 250, 50);
+        btn.setFocusPainted(false);
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(25,38,35));
+        btn.setBorderPainted(false);
+
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                btn.setBackground(new Color(251,232,138));
+                btn.setForeground(Color.BLACK);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                btn.setBackground(new Color(25,38,35));
+                btn.setForeground(Color.WHITE);
+            }
+
+        });
+// Enrutador de acciones para la navegación lateral
+                if (texto.equals("Saldos")) {
+                    btn.addActionListener(e -> { 
+                        new Saldos().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Bancos Conectados")) {
+                    btn.addActionListener(e -> { 
+                        new BancosConectados().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Transferencias")) {
+                    btn.addActionListener(e -> { 
+                        new Transferencias().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Divisas")) {
+                    btn.addActionListener(e -> { 
+                        new Divisas().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Historial")) {
+                    btn.addActionListener(e -> { 
+                        new Historial().setVisible(true);
+                        dispose(); 
+                    });
+                }
+
+        sidebar.add(btn);
+        y += 60;
+    }
+
+    // ESTA ES LA ÚNICA LÍNEA QUE DEBE EXISTIR
+    panel.add(sidebar);
+}
 
         private void crearContenido() {
             JPanel contenedor = new JPanel();
@@ -190,6 +254,72 @@ public class AgregarFondos extends JFrame {
             btnGuardar.setBorderPainted(false);
             btnGuardar.setCursor(new Cursor(Cursor.HAND_CURSOR));
             cartaCampos.add(btnGuardar);
+            
+            btnGuardar.addActionListener(e -> {
+    try {
+        CRUD crud = new CRUD();
+
+        
+        String montoTexto = txtMonto.getText().trim();
+if (montoTexto.isEmpty()) {
+    JOptionPane.showMessageDialog(this,
+        "Debes ingresar un monto válido.",
+        "Error",
+        JOptionPane.ERROR_MESSAGE);
+    return; // salir del botón sin ejecutar más
+}
+
+double monto;
+try {
+    monto = Double.parseDouble(montoTexto);
+} catch (NumberFormatException ex) {
+    JOptionPane.showMessageDialog(this,
+        "El monto debe ser un número válido.",
+        "Error",
+        JOptionPane.ERROR_MESSAGE);
+    return;
+}
+
+        // ⚠️ Aquí deberías pasar el idUsuario real del usuario logueado
+        int idUsuario = SesionUsuario.getIdUsuario(); // ejemplo fijo
+        String bancoSeleccionado = (String) cbBancos.getSelectedItem();
+        String descripcion = txtDescripcion.getText();
+
+        // Primero buscamos el id_banco
+        Connection con = conexion.getConexion();
+        PreparedStatement psBanco = con.prepareStatement("SELECT id_banco FROM bancos WHERE nombre = ?");
+        psBanco.setString(1, bancoSeleccionado);
+        ResultSet rsBanco = psBanco.executeQuery();
+
+        if (rsBanco.next()) {
+            int idBanco = rsBanco.getInt("id_banco");
+            
+            System.out.println("Monto: " + monto);
+System.out.println("Usuario: " + idUsuario);
+System.out.println("Banco: " + bancoSeleccionado);
+System.out.println("Descripción: " + descripcion);
+System.out.println("Usuario en sesión: " + idUsuario);
+
+
+
+            boolean ok = crud.agregarFondos(idUsuario, idBanco, monto, descripcion);
+            if (ok) {
+                JOptionPane.showMessageDialog(this, "Fondo agregado con éxito");
+            }
+        }
+
+        rsBanco.close();
+        psBanco.close();
+        con.close();
+
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        ex.printStackTrace();
+    }
+});
+
+
+            
         }
 
         @Override
@@ -221,8 +351,12 @@ public class AgregarFondos extends JFrame {
 
             g2.dispose();
             super.paintComponent(g);
+     
         }
+        
     }
+    
+    
 
     // ============================
     // MAIN

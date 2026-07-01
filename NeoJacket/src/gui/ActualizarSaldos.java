@@ -1,7 +1,13 @@
 package gui;
 
+import funcionalidades.SesionUsuario;
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import main.CRUD.CRUD;
+import main.Conexion.conexion;
 
 public class ActualizarSaldos extends JFrame {
 
@@ -11,224 +17,260 @@ public class ActualizarSaldos extends JFrame {
     Font textoInputs = new Font("Segoe UI", Font.PLAIN, 14);
 
     public ActualizarSaldos() {
+        initComponents();
+
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
         setTitle("Neo Jacket - Actualizar Saldos");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         setContentPane(new FondoPanel());
     }
 
-    // ============================
-    // PANEL PRINCIPAL CON FONDO
-    // ============================
     class FondoPanel extends JPanel {
         public FondoPanel() {
             setLayout(null);
-            crearSidebar();
+            crearSidebar(this);
             crearContenido();
         }
+      private void crearSidebar(JPanel panel) {
 
-        private void crearSidebar() {
-            JPanel sidebar = new JPanel();
-            sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
-            sidebar.setBounds(20, 20, 300, 950);
-
-            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-            lblLogo.setBounds(20, 10, 250, 110);
-            sidebar.add(lblLogo);
-
-            String[] botonesMenu = {"Saldos", "Bancos conectados", "Transferencias", "Divisas", "Historial"};
-            int y = 140;
-            for (String textoBtn : botonesMenu) {
-                JButton btn = new JButton(textoBtn);
-                btn.setBounds(20, y, 250, 55);
-                btn.setBackground(new Color(94, 116, 73));
-                btn.setForeground(Color.WHITE);
-                btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                sidebar.add(btn);
-                y += 70;
-            }
-            add(sidebar);
+    JPanel sidebar = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setColor(new Color(25, 38, 35, 220));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+            g2.dispose();
         }
+    };
 
+    sidebar.setOpaque(false);
+    sidebar.setBounds(20, 20, 300, 950);
+    sidebar.setLayout(null);
+
+    // Logo
+    Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+    JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+    lblLogo.setBounds(20, 10, 250, 110);
+    sidebar.add(lblLogo);
+
+    String[] opciones = {
+        "Saldos",
+        "Bancos Conectados",
+        "Transferencias",
+        "Divisas",
+        "Historial"
+    };
+
+    int y = 140;
+
+    for (String texto : opciones) {
+
+        JButton btn = new JButton(texto);
+
+        btn.setBounds(20, y, 250, 50);
+        btn.setFocusPainted(false);
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(25,38,35));
+        btn.setBorderPainted(false);
+
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                btn.setBackground(new Color(251,232,138));
+                btn.setForeground(Color.BLACK);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                btn.setBackground(new Color(25,38,35));
+                btn.setForeground(Color.WHITE);
+            }
+
+        });
+// Enrutador de acciones para la navegación lateral
+                if (texto.equals("Saldos")) {
+                    btn.addActionListener(e -> { 
+                        new Saldos().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Bancos Conectados")) {
+                    btn.addActionListener(e -> { 
+                        new BancosConectados().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Transferencias")) {
+                    btn.addActionListener(e -> { 
+                        new Transferencias().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Divisas")) {
+                    btn.addActionListener(e -> { 
+                        new Divisas().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Historial")) {
+                    btn.addActionListener(e -> { 
+                        new Historial().setVisible(true);
+                        dispose(); 
+                    });
+                }
+
+        sidebar.add(btn);
+        y += 60;
+    }
+
+    // ESTA ES LA ÚNICA LÍNEA QUE DEBE EXISTIR
+    panel.add(sidebar);
+}
+
+       // -------------------------
+        // Contenido principal
+        // -------------------------
         private void crearContenido() {
             JPanel contenedor = new JPanel();
             contenedor.setLayout(null);
-            contenedor.setBackground(new Color(25, 38, 35, 180));
+            contenedor.setBackground(new Color(25, 38, 35, 150));
             contenedor.setBounds(350, 60, 1300, 760);
             add(contenedor);
-            
-              JPanel cartaCampos = new JPanel();
-            cartaCampos.setLayout(null);
-            cartaCampos.setBounds(50, 80, 600, 300);
-            cartaCampos.setBackground(new Color(25, 38, 35, 150));
-            cartaCampos.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2));
 
-            // Barra superior con pestañas
+            // Barra superior
             JPanel barraSuperior = new JPanel();
             barraSuperior.setBounds(0, 0, 1300, 55);
             barraSuperior.setBackground(new Color(94, 116, 73, 200));
             barraSuperior.setLayout(null);
             contenedor.add(barraSuperior);
 
-            JButton btnTab1 = new JButton("Agregar Fondos");
-            btnTab1.setBounds(0, 0, 434, 55);
-            btnTab1.setBackground(new Color(25, 38, 35, 100));
-            btnTab1.setForeground(Color.WHITE);
-            btnTab1.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnTab1.addActionListener(e -> {
-                new AgregarFondos().setVisible(true);
-                dispose();
-            });
+            JButton btnTab1 = crearBotonPestaña("Agregar Fondos", 0);
+            btnTab1.addActionListener(e -> { new AgregarFondos().setVisible(true); dispose(); });
             barraSuperior.add(btnTab1);
 
             JButton btnTab2 = new JButton("Actualizar Saldos");
             btnTab2.setBounds(433, 0, 434, 55);
             btnTab2.setBackground(new Color(251, 232, 138, 200));
             btnTab2.setForeground(Color.BLACK);
-            btnTab2.setFont(new Font("Segoe UI", Font.BOLD, 14));
             barraSuperior.add(btnTab2);
 
-            JButton btnTab3 = new JButton("Consultar Saldos");
-            btnTab3.setBounds(866, 0, 434, 55);
-            btnTab3.setBackground(new Color(25, 38, 35, 100));
-            btnTab3.setForeground(Color.WHITE);
-            btnTab3.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnTab3.addActionListener(e -> {
-                new ConsultarSaldos().setVisible(true);
-                dispose();
-            });
+            JButton btnTab3 = crearBotonPestaña("Consultar Saldos", 867);
+            btnTab3.addActionListener(e -> { new ConsultarSaldos().setVisible(true); dispose(); });
             barraSuperior.add(btnTab3);
 
-           
+            // Panel formulario
+            PanelFormularioRedondeado panelForm = new PanelFormularioRedondeado();
+            panelForm.setBounds(240, 100, 820, 520);
+            panelForm.setLayout(null);
+            contenedor.add(panelForm);
 
-            // Banco dirigido
-            JLabel lblBanco = new JLabel("Banco dirigido");
+            JLabel lblBanco = new JLabel("Selecciona tu banco");
             lblBanco.setForeground(Color.WHITE);
             lblBanco.setFont(tituloCampos);
-            lblBanco.setBounds(20, 20, 200, 25);
-            cartaCampos.add(lblBanco);
+            lblBanco.setBounds(25, 20, 770, 25);
+            panelForm.add(lblBanco);
 
-            String[] opcionesBancos = {"Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"};
-            JComboBox<String> cbBancos = new JComboBox<>(opcionesBancos);
-            cbBancos.setBounds(20, 50, 550, 35);
+            JComboBox<String> cbBancos = new JComboBox<>(new String[]{
+                "Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"
+            });
+            cbBancos.setBounds(25, 50, 770, 45);
             cbBancos.setFont(textoInputs);
-            cbBancos.setBackground(new Color(25, 38, 35));
-            cbBancos.setForeground(Color.WHITE);
-            cbBancos.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 1));
-            cartaCampos.add(cbBancos);
+            panelForm.add(cbBancos);
 
-            // Monto actual
-            JLabel lblMontoActual = new JLabel("Monto actual");
-            lblMontoActual.setForeground(Color.WHITE);
-            lblMontoActual.setFont(tituloCampos);
-            lblMontoActual.setBounds(20, 100, 200, 25);
-            cartaCampos.add(lblMontoActual);
+            JLabel lblMontoGastado = new JLabel("Monto gastado");
+            lblMontoGastado.setForeground(Color.WHITE);
+            lblMontoGastado.setFont(tituloCampos);
+            lblMontoGastado.setBounds(25, 115, 365, 25);
+            panelForm.add(lblMontoGastado);
 
-            JTextField txtMontoActual = new JTextField("500");
-            txtMontoActual.setBounds(20, 130, 550, 35);
-            txtMontoActual.setBackground(new Color(25, 38, 35));
-            txtMontoActual.setForeground(Color.WHITE);
-            txtMontoActual.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 1));
-            cartaCampos.add(txtMontoActual);
+            JTextFieldRedondeado txtMontoGastado = new JTextFieldRedondeado();
+            txtMontoGastado.setBounds(25, 145, 365, 45);
+            txtMontoGastado.setFont(textoInputs);
+            panelForm.add(txtMontoGastado);
 
-            // Nuevo monto
-            JLabel lblNuevoMonto = new JLabel("Nuevo monto");
-            lblNuevoMonto.setForeground(Color.WHITE);
-            lblNuevoMonto.setFont(tituloCampos);
-            lblNuevoMonto.setBounds(20, 180, 200, 25);
-            cartaCampos.add(lblNuevoMonto);
+            JLabel lblNuevoSaldo = new JLabel("Nuevo saldo después del gasto");
+            lblNuevoSaldo.setForeground(Color.WHITE);
+            lblNuevoSaldo.setFont(tituloCampos);
+            lblNuevoSaldo.setBounds(430, 115, 365, 25);
+            panelForm.add(lblNuevoSaldo);
 
-            JTextField txtNuevoMonto = new JTextField();
-            txtNuevoMonto.setBounds(20, 210, 550, 35);
-            txtNuevoMonto.setBackground(new Color(25, 38, 35));
-            txtNuevoMonto.setForeground(Color.WHITE);
-            txtNuevoMonto.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 1));
-            cartaCampos.add(txtNuevoMonto);
+            JTextFieldRedondeado txtNuevoSaldo = new JTextFieldRedondeado();
+            txtNuevoSaldo.setBounds(430, 145, 365, 45);
+            txtNuevoSaldo.setFont(textoInputs);
+            panelForm.add(txtNuevoSaldo);
 
-            contenedor.add(cartaCampos);
+            JLabel lblDescripcion = new JLabel("Descripción");
+            lblDescripcion.setForeground(Color.WHITE);
+            lblDescripcion.setFont(tituloCampos);
+            lblDescripcion.setBounds(25, 210, 770, 25);
+            panelForm.add(lblDescripcion);
 
-            // ============================
-            // Panel Movimientos disponibles
-            // ============================
-            JPanel panelMovimientos = new JPanel();
-            panelMovimientos.setLayout(null);
-            panelMovimientos.setBounds(700, 80, 550, 200);
-            panelMovimientos.setBackground(new Color(25, 38, 35, 150));
-            panelMovimientos.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2));
+            JTextFieldRedondeado txtDescripcion = new JTextFieldRedondeado();
+            txtDescripcion.setBounds(25, 240, 770, 45);
+            txtDescripcion.setFont(textoInputs);
+            panelForm.add(txtDescripcion);
 
-            JLabel lblMov = new JLabel("Movimientos disponibles");
-            lblMov.setForeground(Color.WHITE);
-            lblMov.setFont(tituloCampos);
-            lblMov.setBounds(20, 10, 400, 25);
-            panelMovimientos.add(lblMov);
-
-            JLabel lblMontoIng = new JLabel("Monto ingresado: 500");
-            lblMontoIng.setForeground(Color.WHITE);
-            lblMontoIng.setBounds(20, 50, 400, 25);
-            panelMovimientos.add(lblMontoIng);
-
-            JLabel lblFecha = new JLabel("Fecha: DD/MM/AAAA");
-            lblFecha.setForeground(Color.WHITE);
-            lblFecha.setBounds(20, 80, 400, 25);
-            panelMovimientos.add(lblFecha);
-
-            contenedor.add(panelMovimientos);
-
-            // ============================
-            // Panel Motivo de la actualización
-            // ============================
-            JPanel panelMotivo = new JPanel();
-            panelMotivo.setLayout(null);
-            panelMotivo.setBounds(700, 300, 550, 100);
-            panelMotivo.setBackground(new Color(25, 38, 35, 150));
-            panelMotivo.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2));
-
-            JLabel lblMotivo = new JLabel("Motivo de la actualización");
-            lblMotivo.setForeground(Color.WHITE);
-            lblMotivo.setFont(tituloCampos);
-            lblMotivo.setBounds(20, 10, 400, 25);
-            panelMotivo.add(lblMotivo);
-
-            JTextField txtMotivo = new JTextField();
-            txtMotivo.setBounds(20, 40, 500, 40);
-            txtMotivo.setBackground(new Color(25, 38, 35));
-            txtMotivo.setForeground(Color.WHITE);
-            txtMotivo.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 1));
-            panelMotivo.add(txtMotivo);
-
-            contenedor.add(panelMotivo);
-
-            // ============================
-            // Botón Guardar
-            // ============================
-            JButton btnGuardar = new JButton("Guardar") {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(251, 232, 138));
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                    g2.dispose();
-                    super.paintComponent(g);
-                }
-            };
-            btnGuardar.setBounds(50, 420, 600, 50);
+            JButton btnGuardar = new JButton("Guardar");
+            btnGuardar.setBounds(25, 320, 770, 50);
+            btnGuardar.setBackground(new Color(251, 232, 138));
             btnGuardar.setForeground(Color.BLACK);
             btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 16));
-            btnGuardar.setFocusPainted(false);
-            btnGuardar.setContentAreaFilled(false);
-            btnGuardar.setBorderPainted(false);
-            btnGuardar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            contenedor.add(btnGuardar);
+            panelForm.add(btnGuardar);
+
+            // Acción Guardar
+            btnGuardar.addActionListener(e -> {
+                try {
+                    CRUD crud = new CRUD();
+
+                    int idUsuario = SesionUsuario.getIdUsuario();
+                    String bancoSeleccionado = (String) cbBancos.getSelectedItem();
+                    double montoActual = Double.parseDouble(txtMontoGastado.getText());
+                    double nuevoMonto = Double.parseDouble(txtNuevoSaldo.getText());
+                    String motivo = txtDescripcion.getText();
+
+                    Connection con = conexion.getConexion();
+                    PreparedStatement psBanco = con.prepareStatement("SELECT id_banco FROM bancos WHERE nombre = ?");
+                    psBanco.setString(1, bancoSeleccionado);
+                    ResultSet rsBanco = psBanco.executeQuery();
+
+                    if (rsBanco.next()) {
+                        int idBanco = rsBanco.getInt("id_banco");
+
+                        boolean ok = crud.actualizarSaldo(idUsuario, idBanco, montoActual, nuevoMonto, motivo);
+                        if (ok) {
+                            JOptionPane.showMessageDialog(this, "Saldo actualizado con éxito");
+                        }
+                    }
+
+                    rsBanco.close();
+                    psBanco.close();
+                    con.close();
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            });
+        }
+
+        private JButton crearBotonPestaña(String texto, int xPos) {
+            JButton btn = new JButton(texto);
+            btn.setBounds(xPos, 0, 434, 55);
+            btn.setBackground(new Color(25, 38, 35, 100));
+            btn.setForeground(Color.WHITE);
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btn.setFocusPainted(false);
+            btn.setBorder(BorderFactory.createEmptyBorder());
+            btn.setContentAreaFilled(false);
+            btn.setOpaque(true);
+            return btn;
         }
 
         @Override
@@ -238,10 +280,68 @@ public class ActualizarSaldos extends JFrame {
         }
     }
 
-    // ===============================
-    // MAIN
-    // ===============================
-    public static void main(String[] args) {
+    class PanelFormularioRedondeado extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(new Color(94, 116, 73, 190));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+
+            g2.dispose();
+        }
+    }
+
+    class JTextFieldRedondeado extends JTextField {
+        public JTextFieldRedondeado() {
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15)); 
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void initComponents() {
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+        );
+        pack();
+    }
+
+    public static void main(String args[]) {
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            java.util.logging.Logger.getLogger(ActualizarSaldos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+
         SwingUtilities.invokeLater(() -> {
             new ActualizarSaldos().setVisible(true);
         });

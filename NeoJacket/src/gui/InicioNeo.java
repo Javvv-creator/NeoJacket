@@ -49,6 +49,7 @@ public class InicioNeo extends JFrame {
 
         setTitle("Neo Jacket - Inicio");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
