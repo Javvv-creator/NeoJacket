@@ -57,52 +57,121 @@ public class Historial extends javax.swing.JFrame {
 
         public FondoPanel() {
             setLayout(null);
-            crearSidebar();
+            crearSidebar(this);
             crearContenido();
         }
 
-        private void crearSidebar() {
-            JPanel sidebar = new JPanel();
-            sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
-            sidebar.setBounds(20, 20, 300, 950);
+       private void crearSidebar(JPanel panel) {
 
-            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-            lblLogo.setBounds(20, 10, 250, 110);
-            sidebar.add(lblLogo);
+    JPanel sidebar = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setColor(new Color(25, 38, 35, 220));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+            g2.dispose();
+        }
+    };
 
-            String[] menuItems = {"Saldos", "Bancos conectados", "Transferencias"};
-            int y = 140;
-            for (String textoBtn : menuItems) {
-                JButton btn = new JButton(textoBtn);
-                btn.setBounds(20, y, 250, 55);
-                btn.setBackground(new Color(94, 116, 73));
-                btn.setForeground(Color.WHITE);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btn.addActionListener(e -> {
-                    if (textoBtn.equals("Saldos")) new Saldos().setVisible(true);
-                    else if (textoBtn.equals("Bancos conectados")) new BancosConectados().setVisible(true);
-                    else if (textoBtn.equals("Transferencias")) new Transferencias().setVisible(true);
-                    dispose();
-                });
-                sidebar.add(btn);
-                y += 70;
+    sidebar.setOpaque(false);
+    sidebar.setBounds(20, 20, 300, 950);
+    sidebar.setLayout(null);
+    
+    // ============================
+    // BOTONES PRINCIPALES DE ACCESO
+    // ============================
+    Color verdeTrans = new Color(25, 38, 35, 180);
+    Color verdeHover = new Color(94, 116, 73, 220);
+
+    Color amarillo = new Color(251, 232, 138);
+    Color amarilloHover = new Color(255, 245, 180);
+
+    Color fondoTransparente = new Color(0, 0, 0, 0); 
+    Color amarilloBorde = new Color(251, 232, 138);
+
+    // Logo
+    Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+    JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+    lblLogo.setBounds(20, 10, 250, 110);
+    sidebar.add(lblLogo);
+
+    String[] opciones = {
+        "Saldos",
+        "Bancos Conectados",
+        "Transferencias",
+        "Historial"
+    };
+
+    int y = 140;
+
+    for (String texto : opciones) {
+        
+        JButton btn = new JButton(texto) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                if (getBackground() != amarillo) {
+                    g2.setColor(amarilloBorde);
+                    g2.setStroke(new BasicStroke(1f));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                }
+                
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+
+        // Ajustamos la altura a 46 para un look más estilizado
+        btn.setBounds(20, y, 250, 46);
+        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false); 
+        btn.setBorderPainted(false);     
+        btn.setOpaque(false);
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(fondoTransparente);
+
+        Font fuenteActual = btn.getFont();
+        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                btn.setBackground(amarillo);
+                btn.setForeground(Color.BLACK);
             }
 
-            // El botón de Historial se marca como activo
-            JButton btnHistorial = new JButton("Historial");
-            btnHistorial.setBounds(20, y, 250, 55);
-            btnHistorial.setBackground(amarilloPastel);
-            btnHistorial.setForeground(Color.BLACK);
-            btnHistorial.setFocusPainted(false);
-            btnHistorial.setBorderPainted(false);
-            btnHistorial.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            sidebar.add(btnHistorial);
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                btn.setBackground(fondoTransparente);
+                btn.setForeground(Color.WHITE);
+            }
+        });
 
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
+        if (texto.equals("Saldos")) {
+            btn.addActionListener(e -> { 
+                new Saldos().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Bancos Conectados")) {
+            btn.addActionListener(e -> { 
+                new BancosConectados().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Transferencias")) {
+            btn.addActionListener(e -> { 
+                new Transferencias().setVisible(true);
+                dispose(); 
+            });
+        }
+                
+        JButton btnCerrarSesion = new JButton("Cerrar sesión");
             btnCerrarSesion.setBounds(20, 880, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
             btnCerrarSesion.setBorderPainted(false);
@@ -115,9 +184,14 @@ public class Historial extends javax.swing.JFrame {
             });
             sidebar.add(btnCerrarSesion);
 
-            add(sidebar);
-        }
-
+        sidebar.add(btn);
+        
+        // Aumentamos el salto a 68 píxeles para darles más separación física
+        y += 68;
+    }
+     panel.add(sidebar);
+}
+    
         private void crearContenido() {
             PanelContenedorVerde contenedor = new PanelContenedorVerde();
             contenedor.setBounds(350, 40, 1300, 910);

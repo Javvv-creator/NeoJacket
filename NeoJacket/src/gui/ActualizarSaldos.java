@@ -2,6 +2,7 @@ package gui;
 
 import funcionalidades.SesionUsuario;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,13 +14,13 @@ public class ActualizarSaldos extends JFrame {
 
     private Image fondo;
     private Image logo;
-    Font tituloCampos = new Font("Segoe UI", Font.BOLD, 15);
+    Font tituloCampos = new Font("Segoe UI", Font.BOLD, 14);
     Font textoInputs = new Font("Segoe UI", Font.PLAIN, 14);
 
     public ActualizarSaldos() {
         initComponents();
 
-        fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
+        fondo = new ImageIcon(getClass().getResource("/gui/image/fondoUsuario.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
         setTitle("Neo Jacket - Actualizar Saldos");
@@ -37,158 +38,152 @@ public class ActualizarSaldos extends JFrame {
             crearSidebar(this);
             crearContenido();
         }
-       private void crearSidebar(JPanel panel) {
-
-    JPanel sidebar = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setColor(new Color(25, 38, 35, 220));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
-            g2.dispose();
-        }
-    };
-
-    sidebar.setOpaque(false);
-    sidebar.setBounds(20, 20, 300, 950);
-    sidebar.setLayout(null);
-    
-    // ============================
-    // BOTONES PRINCIPALES DE ACCESO
-    // ============================
-    Color verdeTrans = new Color(25, 38, 35, 180);
-    Color verdeHover = new Color(94, 116, 73, 220);
-
-    Color amarillo = new Color(251, 232, 138);
-    Color amarilloHover = new Color(255, 245, 180);
-
-    Color fondoTransparente = new Color(0, 0, 0, 0); 
-    Color amarilloBorde = new Color(251, 232, 138);
-
-    // Logo
-    Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-    JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-    lblLogo.setBounds(20, 10, 250, 110);
-    sidebar.add(lblLogo);
-
-    String[] opciones = {
-        "Saldos",
-        "Bancos Conectados",
-        "Transferencias",
-        "Historial"
-    };
-
-    int y = 140;
-
-    for (String texto : opciones) {
         
-        JButton btn = new JButton(texto) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                
-                if (getBackground() != amarillo) {
-                    g2.setColor(amarilloBorde);
-                    g2.setStroke(new BasicStroke(1f));
-                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+        private void crearSidebar(JPanel panel) {
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+                    g2.dispose();
                 }
-                
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
+            };
 
-        // Ajustamos la altura a 46 para un look más estilizado
-        btn.setBounds(20, y, 250, 46);
-        btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false); 
-        btn.setBorderPainted(false);     
-        btn.setOpaque(false);
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(fondoTransparente);
+            sidebar.setOpaque(false);
+            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setLayout(null);
+            
+            Color amarillo = new Color(251, 232, 138);
+            Color fondoTransparente = new Color(0, 0, 0, 0); 
+            Color amarilloBorde = new Color(251, 232, 138);
 
-        Font fuenteActual = btn.getFont();
-        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+            lblLogo.setBounds(20, 10, 250, 110);
+            sidebar.add(lblLogo);
 
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(amarillo);
-                btn.setForeground(Color.BLACK);
-            }
+            String[] opciones = {
+                "Saldos",
+                "Bancos Conectados",
+                "Transferencias",
+                "Historial"
+            };
 
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(fondoTransparente);
+            int y = 140;
+
+            for (String texto : opciones) {
+                JButton btn = new JButton(texto) {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        
+                        g2.setColor(getBackground());
+                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                        
+                        if (getBackground() != amarillo) {
+                            g2.setColor(amarilloBorde);
+                            g2.setStroke(new BasicStroke(1f));
+                            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                        }
+                        
+                        g2.dispose();
+                        super.paintComponent(g);
+                    }
+                };
+
+                btn.setBounds(20, y, 250, 46);
+                btn.setFocusPainted(false);
+                btn.setContentAreaFilled(false); 
+                btn.setBorderPainted(false);     
+                btn.setOpaque(false);
                 btn.setForeground(Color.WHITE);
+                btn.setBackground(fondoTransparente);
+
+                Font fuenteActual = btn.getFont();
+                btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+
+                btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent e) {
+                        btn.setBackground(amarillo);
+                        btn.setForeground(Color.BLACK);
+                    }
+
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        btn.setBackground(fondoTransparente);
+                        btn.setForeground(Color.WHITE);
+                    }
+                });
+
+                if (texto.equals("Saldos")) {
+                    btn.addActionListener(e -> { 
+                        new Saldos().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Bancos Conectados")) {
+                    btn.addActionListener(e -> { 
+                        new BancosConectados().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Transferencias")) {
+                    btn.addActionListener(e -> { 
+                        new Transferencias().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Historial")) {
+                    btn.addActionListener(e -> { 
+                        new Historial().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                        
+                JButton btnCerrarSesion = new JButton("Cerrar sesión");
+                btnCerrarSesion.setBounds(20, 880, 250, 55);
+                btnCerrarSesion.setFocusPainted(false);
+                btnCerrarSesion.setBorderPainted(false);
+                btnCerrarSesion.setBackground(new Color(191, 76, 58));
+                btnCerrarSesion.setForeground(Color.WHITE);
+                btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                btnCerrarSesion.addActionListener(e -> {
+                    new InicioNeo().setVisible(true);
+                    dispose();
+                });
+                sidebar.add(btnCerrarSesion);
+
+                sidebar.add(btn);
+                y += 68;
             }
-        });
 
-        if (texto.equals("Saldos")) {
-            btn.addActionListener(e -> { 
-                new Saldos().setVisible(true);
-                dispose(); 
-            });
+            panel.add(sidebar);
         }
-        if (texto.equals("Bancos Conectados")) {
-            btn.addActionListener(e -> { 
-                new BancosConectados().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Transferencias")) {
-            btn.addActionListener(e -> { 
-                new Transferencias().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Historial")) {
-            btn.addActionListener(e -> { 
-                new Historial().setVisible(true);
-                dispose(); 
-            });
-        }
-                
-        JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
-            sidebar.add(btnCerrarSesion);
 
-        sidebar.add(btn);
-        
-        // Aumentamos el salto a 68 píxeles para darles más separación física
-        y += 68;
-    }
-
-    panel.add(sidebar);
-}
-
-       // -------------------------
-        // Contenido principal
-        // -------------------------
         private void crearContenido() {
-            JPanel contenedor = new JPanel();
+            // DETALLE 1: El contenedor de fondo ahora tiene exactamente la misma transparencia y color del Sidebar
+            JPanel contenedor = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(new Color(25, 38, 35, 220)); // Mismo color exacto del Sidebar
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                    g2.dispose();
+                    super.paintComponent(g);
+                }
+            };
             contenedor.setLayout(null);
-            contenedor.setBackground(new Color(25, 38, 35, 150));
+            contenedor.setOpaque(false); 
             contenedor.setBounds(350, 60, 1300, 760);
+            contenedor.setBorder(new LineBorder(new Color(251, 232, 138, 50), 1));
             add(contenedor);
 
-            // Barra superior
             JPanel barraSuperior = new JPanel();
             barraSuperior.setBounds(0, 0, 1300, 55);
-            barraSuperior.setBackground(new Color(94, 116, 73, 200));
+            barraSuperior.setBackground(new Color(23, 32, 29)); 
             barraSuperior.setLayout(null);
             contenedor.add(barraSuperior);
  
@@ -198,74 +193,120 @@ public class ActualizarSaldos extends JFrame {
 
             JButton btnTab2 = new JButton("Actualizar Saldos");
             btnTab2.setBounds(433, 0, 434, 55);
-            btnTab2.setBackground(new Color(251, 232, 138, 200));
+            btnTab2.setBackground(new Color(251, 232, 138));
             btnTab2.setForeground(Color.BLACK);
+            btnTab2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnTab2.setFocusPainted(false);
+            btnTab2.setBorder(BorderFactory.createEmptyBorder());
             barraSuperior.add(btnTab2);
 
             JButton btnTab3 = crearBotonPestaña("Consultar Saldos", 867);
             btnTab3.addActionListener(e -> { new ConsultarSaldos().setVisible(true); dispose(); });
             barraSuperior.add(btnTab3);
 
-            // Panel formulario
+            // DETALLE 2: Reducción de tamaño del cuadro interno a proporciones perfectas (Estilo Agregar Fondos)
             PanelFormularioRedondeado panelForm = new PanelFormularioRedondeado();
-            panelForm.setBounds(240, 100, 820, 520);
+            panelForm.setBounds(425, 120, 450, 510); // Rediseñado a un ancho compacto de 450px y centrado
             panelForm.setLayout(null);
             contenedor.add(panelForm);
 
             JLabel lblBanco = new JLabel("Selecciona tu banco");
-            lblBanco.setForeground(Color.WHITE);
+            lblBanco.setForeground(Color.WHITE); 
             lblBanco.setFont(tituloCampos);
-            lblBanco.setBounds(25, 20, 770, 25);
+            lblBanco.setBounds(30, 25, 390, 25);
             panelForm.add(lblBanco);
 
             JComboBox<String> cbBancos = new JComboBox<>(new String[]{
                 "Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"
             });
-            cbBancos.setBounds(25, 50, 770, 45);
+            cbBancos.setBounds(30, 55, 390, 45);
             cbBancos.setFont(textoInputs);
+            cbBancos.setBackground(new Color(13, 18, 16)); 
+            cbBancos.setForeground(Color.WHITE);
+            cbBancos.setBorder(new LineBorder(new Color(251, 232, 138, 120), 1));
+            
+            cbBancos.setRenderer(new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    label.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12)); 
+                    
+                    if (isSelected) {
+                        label.setBackground(new Color(251, 232, 138)); 
+                        label.setForeground(Color.BLACK);              
+                    } else {
+                        label.setBackground(new Color(13, 18, 16));    
+                        label.setForeground(Color.WHITE);              
+                    }
+                    return label;
+                }
+            });
             panelForm.add(cbBancos);
 
             JLabel lblMontoGastado = new JLabel("Monto gastado");
             lblMontoGastado.setForeground(Color.WHITE);
             lblMontoGastado.setFont(tituloCampos);
-            lblMontoGastado.setBounds(25, 115, 365, 25);
+            lblMontoGastado.setBounds(30, 120, 390, 25);
             panelForm.add(lblMontoGastado);
 
             JTextFieldRedondeado txtMontoGastado = new JTextFieldRedondeado();
-            txtMontoGastado.setBounds(25, 145, 365, 45);
+            txtMontoGastado.setBounds(30, 150, 390, 45);
             txtMontoGastado.setFont(textoInputs);
             panelForm.add(txtMontoGastado);
 
             JLabel lblNuevoSaldo = new JLabel("Nuevo saldo después del gasto");
             lblNuevoSaldo.setForeground(Color.WHITE);
             lblNuevoSaldo.setFont(tituloCampos);
-            lblNuevoSaldo.setBounds(430, 115, 365, 25);
+            lblNuevoSaldo.setBounds(30, 215, 390, 25);
             panelForm.add(lblNuevoSaldo);
 
             JTextFieldRedondeado txtNuevoSaldo = new JTextFieldRedondeado();
-            txtNuevoSaldo.setBounds(430, 145, 365, 45);
+            txtNuevoSaldo.setBounds(30, 245, 390, 45);
             txtNuevoSaldo.setFont(textoInputs);
             panelForm.add(txtNuevoSaldo);
 
             JLabel lblDescripcion = new JLabel("Descripción");
             lblDescripcion.setForeground(Color.WHITE);
             lblDescripcion.setFont(tituloCampos);
-            lblDescripcion.setBounds(25, 210, 770, 25);
+            lblDescripcion.setBounds(30, 310, 390, 25);
             panelForm.add(lblDescripcion);
 
             JTextFieldRedondeado txtDescripcion = new JTextFieldRedondeado();
-            txtDescripcion.setBounds(25, 240, 770, 45);
+            txtDescripcion.setBounds(30, 340, 390, 45);
             txtDescripcion.setFont(textoInputs);
             panelForm.add(txtDescripcion);
 
-            JButton btnGuardar = new JButton("Guardar");
-            btnGuardar.setBounds(25, 320, 770, 50);
+            JButton btnGuardar = new JButton("Guardar") {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(getBackground());
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                    g2.dispose();
+                    super.paintComponent(g);
+                }
+            };
+            btnGuardar.setBounds(30, 425, 390, 50);
             btnGuardar.setBackground(new Color(251, 232, 138));
             btnGuardar.setForeground(Color.BLACK);
-            btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 15));
+            btnGuardar.setFocusPainted(false);
+            btnGuardar.setContentAreaFilled(false);
+            btnGuardar.setBorderPainted(false);
+
+            btnGuardar.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    btnGuardar.setBackground(new Color(255, 245, 180));
+                }
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    btnGuardar.setBackground(new Color(251, 232, 138));
+                }
+            });
             panelForm.add(btnGuardar);
 
-            // Acción Guardar
             btnGuardar.addActionListener(e -> {
                 try {
                     CRUD crud = new CRUD();
@@ -304,13 +345,24 @@ public class ActualizarSaldos extends JFrame {
         private JButton crearBotonPestaña(String texto, int xPos) {
             JButton btn = new JButton(texto);
             btn.setBounds(xPos, 0, 434, 55);
-            btn.setBackground(new Color(25, 38, 35, 100));
-            btn.setForeground(Color.WHITE);
+            btn.setBackground(new Color(16, 22, 20));
+            btn.setForeground(new Color(150, 150, 150));
             btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
             btn.setFocusPainted(false);
             btn.setBorder(BorderFactory.createEmptyBorder());
             btn.setContentAreaFilled(false);
             btn.setOpaque(true);
+            
+            btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    btn.setForeground(Color.WHITE);
+                }
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    btn.setForeground(new Color(150, 150, 150));
+                }
+            });
             return btn;
         }
 
@@ -324,15 +376,15 @@ public class ActualizarSaldos extends JFrame {
     class PanelFormularioRedondeado extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2.setColor(new Color(94, 116, 73, 190));
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            g2.setColor(new Color(20, 28, 25, 120));
+            g2.fillRect(0, 0, getWidth(), getHeight());
 
-            g2.setColor(new Color(255, 255, 255, 80));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            g2.setColor(new Color(251, 232, 138, 70));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 
             g2.dispose();
         }
@@ -341,6 +393,8 @@ public class ActualizarSaldos extends JFrame {
     class JTextFieldRedondeado extends JTextField {
         public JTextFieldRedondeado() {
             setOpaque(false);
+            setCaretColor(Color.WHITE); 
+            setForeground(Color.WHITE);
             setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15)); 
         }
 
@@ -348,8 +402,14 @@ public class ActualizarSaldos extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(Color.WHITE);
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+            
+            g2.setColor(new Color(13, 18, 16));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+            
+            g2.setColor(new Color(251, 232, 138, 130));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+            
             g2.dispose();
             super.paintComponent(g);
         }
