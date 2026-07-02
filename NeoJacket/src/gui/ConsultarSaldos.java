@@ -33,7 +33,43 @@ public class ConsultarSaldos extends JFrame {
         setLocationRelativeTo(null);
 
         setContentPane(new FondoPanel());
+        
+}
+        
+         class BotonNeo extends JButton {
+        private Color colorNormal;
+        private Color colorHover;
+
+        public BotonNeo(String texto, Color normal, Color hover) {
+            super(texto);
+            this.colorNormal = normal;
+            this.colorHover = hover;
+
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(Color.WHITE);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setFont(new Font("Segoe UI", Font.BOLD, 18));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(getModel().isRollover() ? colorHover : colorNormal);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+
+            super.paintComponent(g);
+            g2.dispose();
+        }
     }
+        
+        
+    
+    
+    
 
     class FondoPanel extends JPanel {
         public FondoPanel() {
@@ -44,6 +80,9 @@ public class ConsultarSaldos extends JFrame {
         // Método para crear el menú lateral
  private void crearSidebar(JPanel panel) {
 
+    
+
+     
     JPanel sidebar = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
@@ -57,6 +96,22 @@ public class ConsultarSaldos extends JFrame {
     sidebar.setOpaque(false);
     sidebar.setBounds(20, 20, 300, 950);
     sidebar.setLayout(null);
+    
+      // ============================
+            // BOTONES PRINCIPALES DE ACCESO
+            // ============================
+            Color verdeTrans = new Color(25, 38, 35, 180);
+            Color verdeHover = new Color(94, 116, 73, 220);
+
+            Color amarillo = new Color(251, 232, 138);
+            Color amarilloHover = new Color(255, 245, 180);
+
+            // ComboBox bancos
+            JComboBox<String> cbBancos = new JComboBox<>(new String[]{
+                "Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"
+            });
+            cbBancos.setBounds(40, 110, 300, 40);
+            sidebar.add(cbBancos);
 
     // Logo
     Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -76,6 +131,7 @@ public class ConsultarSaldos extends JFrame {
 
     for (String texto : opciones) {
 
+        
         JButton btn = new JButton(texto);
 
         btn.setBounds(20, y, 250, 50);
@@ -130,6 +186,21 @@ public class ConsultarSaldos extends JFrame {
                         dispose(); 
                     });
                 }
+                
+                
+                
+                 BotonNeo btnCerrarSesion = new BotonNeo("Cerrar sesión",  amarillo, amarilloHover);
+            btnCerrarSesion.setBounds(20, 880, 250, 55);
+            btnCerrarSesion.setFocusPainted(false);
+            btnCerrarSesion.setBorderPainted(false);
+            btnCerrarSesion.setBackground(new Color(191, 76, 58));
+            btnCerrarSesion.setForeground(Color.BLACK);
+            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
 
         sidebar.add(btn);
         y += 60;
@@ -149,59 +220,97 @@ public class ConsultarSaldos extends JFrame {
             contenedor.setBounds(350, 60, 1300, 760);
             add(contenedor);
 
-            // Barra superior
-            JPanel barraSuperior = new JPanel();
+             JPanel barraSuperior = new JPanel();
             barraSuperior.setBounds(0, 0, 1300, 55);
             barraSuperior.setBackground(new Color(94, 116, 73, 200));
             barraSuperior.setLayout(null);
             contenedor.add(barraSuperior);
 
             JButton btnTab1 = new JButton("Agregar Fondos");
-            btnTab1.setBounds(0, 0, 433, 55);
-            btnTab1.addActionListener(e -> { new AgregarFondos().setVisible(true); dispose(); });
+            btnTab1.setBounds(0, 0, 434, 55);
+            btnTab1.setBackground(new Color(25, 38, 35, 100));
+            btnTab1.setForeground(Color.WHITE);
+            btnTab1.setFont(new Font("Segoe UI", Font.BOLD, 14));
             barraSuperior.add(btnTab1);
 
             JButton btnTab2 = new JButton("Actualizar Saldos");
-            btnTab2.setBounds(433, 0, 433, 55);
-            btnTab2.addActionListener(e -> { new ActualizarSaldos().setVisible(true); dispose(); });
+            btnTab2.setBounds(433, 0, 434, 55);
+            btnTab2.setBackground(new Color(25, 38, 35, 100));
+            btnTab2.setForeground(Color.BLACK);
+            btnTab2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnTab2.addActionListener(e -> {
+                new ActualizarSaldos().setVisible(true);
+                dispose();
+            });
             barraSuperior.add(btnTab2);
 
             JButton btnTab3 = new JButton("Consultar Saldos");
-            btnTab3.setBounds(866, 0, 433, 55);
+            btnTab3.setBounds(866, 0, 434, 55);
+            
             btnTab3.setBackground(new Color(251, 232, 138, 200));
-            btnTab3.setForeground(Color.BLACK);
+            btnTab3.setForeground(Color.WHITE);
+            btnTab3.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnTab3.addActionListener(e -> {
+                new ConsultarSaldos().setVisible(true);
+                dispose();
+            });
             barraSuperior.add(btnTab3);
+
+            
+                // ============================
+            // BOTONES PRINCIPALES DE ACCESO
+            // ============================
+            Color verdeTrans = new Color(25, 38, 35, 180);
+            Color verdeHover = new Color(94, 116, 73, 220);
+
+            Color amarillo = new Color(251, 232, 138);
+            Color amarilloHover = new Color(255, 245, 180);
 
             // ComboBox bancos
             JComboBox<String> cbBancos = new JComboBox<>(new String[]{
                 "Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"
             });
-            cbBancos.setBounds(30, 60, 300, 40);
+            cbBancos.setBounds(40, 110, 300, 40);
             contenedor.add(cbBancos);
 
             // Botón consultar
-            JButton btnConsultar = new JButton("Consultar");
-            btnConsultar.setBounds(350, 60, 150, 40);
+            BotonNeo btnConsultar = new BotonNeo("ⓘ Consultar ", amarillo, amarilloHover);
+             btnConsultar.setForeground(Color.BLACK);
+            btnConsultar.setBounds(360, 110, 150, 40);
             contenedor.add(btnConsultar);
 
-            // Tabla
+             JPanel panelTabla = new JPanel();
+            panelTabla.setLayout(null);
+            panelTabla.setBackground(new Color(25, 38, 35, 180));
+            panelTabla.setBounds(40, 230, 1180, 330);
+            panelTabla.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2, true));
+            contenedor.add(panelTabla);
+ 
             String[] columnas = {"Fecha", "Actividad", "Monto", "Saldo Restante", "Estado"};
-            modelo = new DefaultTableModel(columnas, 0) {
+ 
+            DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
                 @Override
                 public boolean isCellEditable(int row, int column) { return false; }
             };
-            tabla = new JTable(modelo);
-            tabla.setRowHeight(40);
+ 
+            JTable tabla = new JTable(modelo);
+            tabla.setRowHeight(35);
             tabla.setBackground(new Color(25, 38, 35));
             tabla.setForeground(Color.WHITE);
-
+            tabla.setGridColor(new Color(94, 116, 73));
+            tabla.setSelectionBackground(new Color(251, 232, 138));
+            tabla.setSelectionForeground(Color.BLACK);
+            tabla.setShowGrid(true);
+ 
             JTableHeader header = tabla.getTableHeader();
-            header.setBackground(new Color(35, 50, 40));
+            header.setBackground(new Color(94, 116, 73));
             header.setForeground(Color.WHITE);
-
+            header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+ 
             JScrollPane scroll = new JScrollPane(tabla);
-            scroll.setBounds(30, 120, 790, 350);
-            contenedor.add(scroll);
+            scroll.getViewport().setBackground(new Color(25, 38, 35));
+            scroll.setBounds(10, 10, 1160, 310);
+            panelTabla.add(scroll);
 
             // Acción consultar
             btnConsultar.addActionListener(e -> {

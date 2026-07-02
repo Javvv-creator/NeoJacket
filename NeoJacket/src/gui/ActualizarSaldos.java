@@ -125,6 +125,19 @@ public class ActualizarSaldos extends JFrame {
                         dispose(); 
                     });
                 }
+                
+                 JButton btnCerrarSesion = new JButton("Cerrar sesión");
+            btnCerrarSesion.setBounds(20, 880, 250, 55);
+            btnCerrarSesion.setFocusPainted(false);
+            btnCerrarSesion.setBorderPainted(false);
+            btnCerrarSesion.setBackground(new Color(191, 76, 58));
+            btnCerrarSesion.setForeground(Color.WHITE);
+            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
 
         sidebar.add(btn);
         y += 60;
@@ -150,7 +163,7 @@ public class ActualizarSaldos extends JFrame {
             barraSuperior.setBackground(new Color(94, 116, 73, 200));
             barraSuperior.setLayout(null);
             contenedor.add(barraSuperior);
-
+ 
             JButton btnTab1 = crearBotonPestaña("Agregar Fondos", 0);
             btnTab1.addActionListener(e -> { new AgregarFondos().setVisible(true); dispose(); });
             barraSuperior.add(btnTab1);
