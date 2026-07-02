@@ -1,11 +1,14 @@
-
-
-
 package gui;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import main.Conexion.conexion;
 
 public class GestionMenores extends JFrame {
 
@@ -51,7 +54,6 @@ public class GestionMenores extends JFrame {
 
         setTitle("Gestión de Menores Supervisados");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -60,10 +62,16 @@ public class GestionMenores extends JFrame {
 
     class FondoPanel extends JPanel {
 
+        private JTable tabla;
+        private DefaultTableModel modeloTabla;
+        private JTextField txtIdMenor;
+        private JTextField txtIdTutor;
+
         public FondoPanel() {
             setLayout(null);
             crearSidebar();
             crearPanelPrincipal();
+            cargarDatos(null, null);
         }
 
         private void crearSidebar() {
@@ -80,7 +88,7 @@ public class GestionMenores extends JFrame {
 
             String[] botones = {
                 "Gestión de Usuarios",
-                "Gestión de Menores",
+                "Gestión de Menores Supervisados",
                 "Gestión de Cuentas",
                 "Gestión de Tarjetas",
                 "Gestión de Divisas",
@@ -95,7 +103,7 @@ public class GestionMenores extends JFrame {
                 btn.setFocusPainted(false);
                 btn.setBorderPainted(false);
 
-                if (texto.equals("Gestión de Menores")) {
+                if (texto.equals("Gestión de Menores Supervisados")) {
                     btn.setBackground(new Color(251, 232, 138));
                     btn.setForeground(Color.BLACK);
                 } else {
@@ -106,32 +114,36 @@ public class GestionMenores extends JFrame {
                 if (texto.equals("Gestión de Usuarios")) {
                     btn.addActionListener(e -> {
                         new GestionUsuario();
-                        dispose();
                     });
-                } else if (texto.equals("Gestión de Menores")) {
+                }
+
+                if (texto.equals("Gestión de Menores Supervisados")) {
                     btn.addActionListener(e -> {
                         new GestionMenores();
-                        dispose();
                     });
-                } else if (texto.equals("Gestión de Cuentas")) {
+                }
+
+                if (texto.equals("Gestión de Cuentas")) {
                     btn.addActionListener(e -> {
                         new GestionCuentas();
-                        dispose();
                     });
-                } else if (texto.equals("Gestión de Tarjetas")) {
+                }
+
+                if (texto.equals("Gestión de Tarjetas")) {
                     btn.addActionListener(e -> {
                         new GestionTarjeta();
-                        dispose();
                     });
-                } else if (texto.equals("Gestión de Divisas")) {
+                }
+
+                if (texto.equals("Gestión de Divisas")) {
                     btn.addActionListener(e -> {
                         new GestionDivisas();
-                        dispose();
                     });
-                } else if (texto.equals("Gestión de Transacciones")) {
+                }
+
+                if (texto.equals("Gestión de Transacciones")) {
                     btn.addActionListener(e -> {
                         new GestionTransacciones();
-                        dispose();
                     });
                 }
 
@@ -181,7 +193,7 @@ public class GestionMenores extends JFrame {
             lblIdMenor.setBounds(30, 20, 150, 25);
             panelFiltros.add(lblIdMenor);
 
-            JTextField txtIdMenor = new JTextField();
+            txtIdMenor = new JTextField();
             txtIdMenor.setBounds(150, 15, 200, 35);
             panelFiltros.add(txtIdMenor);
 
@@ -190,9 +202,17 @@ public class GestionMenores extends JFrame {
             lblIdTutor.setBounds(400, 20, 150, 25);
             panelFiltros.add(lblIdTutor);
 
-            JTextField txtIdTutor = new JTextField();
+            txtIdTutor = new JTextField();
             txtIdTutor.setBounds(500, 15, 200, 35);
             panelFiltros.add(txtIdTutor);
+
+            BotonNeo btnBuscar = new BotonNeo("Buscar");
+            btnBuscar.setBounds(760, 15, 130, 35);
+            panelFiltros.add(btnBuscar);
+
+            BotonNeo btnLimpiar = new BotonNeo("Limpiar");
+            btnLimpiar.setBounds(910, 15, 130, 35);
+            panelFiltros.add(btnLimpiar);
 
             // PANEL TABLA
             JPanel panelTabla = new JPanel();
@@ -203,13 +223,14 @@ public class GestionMenores extends JFrame {
             panel.add(panelTabla);
 
             String[] columnas = {"ID", "MENOR", "ID (TUTOR)", "TUTOR"};
-            Object[][] datos = {
-    {"", "", "", ""},
-    {"", "", "", ""},
-    {"", "", "", ""}
-};
+            modeloTabla = new DefaultTableModel(columnas, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
 
-            JTable tabla = new JTable(datos, columnas);
+            tabla = new JTable(modeloTabla);
             tabla.setRowHeight(35);
             tabla.setBackground(new Color(25, 38, 35));
             tabla.setForeground(Color.WHITE);
@@ -246,6 +267,173 @@ public class GestionMenores extends JFrame {
             });
 
             panel.add(btnVolver);
+
+            // LOGICA: Buscar
+            btnBuscar.addActionListener(e -> {
+                cargarDatos(txtIdMenor.getText().trim(), txtIdTutor.getText().trim());
+            });
+
+            // LOGICA: Limpiar
+            btnLimpiar.addActionListener(e -> {
+                txtIdMenor.setText("");
+                txtIdTutor.setText("");
+                cargarDatos(null, null);
+            });
+
+            // LOGICA: Boton VerDetalles
+            btnDetalles.addActionListener(e -> {
+                int filaSeleccionada = tabla.getSelectedRow();
+                if (filaSeleccionada == -1) {
+                    JOptionPane.showMessageDialog(FondoPanel.this, "Por favor, selecciona un menor de la tabla.", "Sin selección", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                String id = String.valueOf(tabla.getValueAt(filaSeleccionada, 0));
+                String menor = String.valueOf(tabla.getValueAt(filaSeleccionada, 1));
+                String idTutor = String.valueOf(tabla.getValueAt(filaSeleccionada, 2));
+                String tutor = String.valueOf(tabla.getValueAt(filaSeleccionada, 3));
+
+                JDialog dialogo = new JDialog((JFrame) SwingUtilities.getWindowAncestor(FondoPanel.this), "Detalles del Menor", true);
+                dialogo.setSize(420, 340);
+                dialogo.setLocationRelativeTo(FondoPanel.this);
+                dialogo.setResizable(false);
+                JPanel contenido = new JPanel(null);
+                contenido.setBackground(new Color(25, 38, 35));
+                dialogo.setContentPane(contenido);
+
+                JLabel lblTitulo = new JLabel("Detalles del Menor");
+                lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
+                lblTitulo.setForeground(new Color(251, 232, 138));
+                lblTitulo.setBounds(20, 15, 350, 30);
+                contenido.add(lblTitulo);
+
+                JSeparator sep = new JSeparator();
+                sep.setForeground(new Color(94, 116, 73));
+                sep.setBounds(20, 50, 370, 2);
+                contenido.add(sep);
+
+                String[] etiquetas = {"ID:", "Menor:", "ID (Tutor):", "Tutor:"};
+                String[] valores = {id, menor, idTutor, tutor};
+                int y1 = 65;
+                for (int i = 0; i < etiquetas.length; i++) {
+                    JLabel lbl = new JLabel(etiquetas[i]);
+                    lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+                    lbl.setForeground(Color.WHITE);
+                    lbl.setBounds(30, y1, 120, 28);
+                    contenido.add(lbl);
+                    JLabel val = new JLabel(valores[i]);
+                    val.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                    val.setForeground(new Color(251, 232, 138));
+                    val.setBounds(160, y1, 220, 28);
+                    contenido.add(val);
+                    y1 += 38;
+                }
+
+                JButton btnCerrar = new JButton("Cerrar");
+                btnCerrar.setBounds(150, 265, 110, 35);
+                btnCerrar.setBackground(new Color(94, 116, 73));
+                btnCerrar.setForeground(Color.WHITE);
+                btnCerrar.setFocusPainted(false);
+                btnCerrar.setBorderPainted(false);
+                btnCerrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                btnCerrar.addActionListener(ev -> dialogo.dispose());
+                contenido.add(btnCerrar);
+
+                dialogo.setVisible(true);
+            });
+
+            // LOGICA: Boton Desvincular
+            btnDesvincular.addActionListener(e -> {
+                int filaSeleccionada = tabla.getSelectedRow();
+                if (filaSeleccionada == -1) {
+                    JOptionPane.showMessageDialog(FondoPanel.this, "Por favor, selecciona un menor de la tabla.", "Sin selección", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                int confirmar = JOptionPane.showConfirmDialog(
+                        FondoPanel.this,
+                        "¿Deseas desvincular a este menor de su tutor?",
+                        "Confirmar desvinculación",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+                if (confirmar != JOptionPane.YES_OPTION) {
+                    return;
+                }
+
+                String idSupervision = String.valueOf(tabla.getValueAt(filaSeleccionada, 0));
+
+                String sql = "UPDATE supervisiones SET activa = FALSE WHERE id_supervision = ?";
+
+                try (Connection con = conexion.getConexion();
+                     PreparedStatement ps = con.prepareStatement(sql)) {
+
+                    ps.setInt(1, Integer.parseInt(idSupervision));
+                    int filasAfectadas = ps.executeUpdate();
+
+                    if (filasAfectadas > 0) {
+                        JOptionPane.showMessageDialog(FondoPanel.this, "Menor desvinculado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                        cargarDatos(txtIdMenor.getText().trim(), txtIdTutor.getText().trim());
+                    } else {
+                        JOptionPane.showMessageDialog(FondoPanel.this, "No se pudo desvincular el registro.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(FondoPanel.this, "Error al desvincular: " + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        }
+
+        private void cargarDatos(String filtroMenor, String filtroTutor) {
+
+            modeloTabla.setRowCount(0);
+
+            StringBuilder sql = new StringBuilder(
+                    "SELECT s.id_supervision, CONCAT(m.nombre, ' ', m.apellido) AS menor, "
+                    + "t.id_usuario AS id_tutor, CONCAT(t.nombre, ' ', t.apellido) AS tutor "
+                    + "FROM supervisiones s "
+                    + "JOIN usuarios m ON s.id_menor = m.id_usuario "
+                    + "JOIN usuarios t ON s.id_adulto = t.id_usuario "
+                    + "WHERE s.activa = TRUE"
+            );
+
+            boolean hayFiltroMenor = filtroMenor != null && !filtroMenor.isEmpty();
+            boolean hayFiltroTutor = filtroTutor != null && !filtroTutor.isEmpty();
+
+            if (hayFiltroMenor) {
+                sql.append(" AND m.id_usuario = ?");
+            }
+            if (hayFiltroTutor) {
+                sql.append(" AND t.id_usuario = ?");
+            }
+
+            try (Connection con = conexion.getConexion();
+                 PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+                int idx = 1;
+                if (hayFiltroMenor) {
+                    ps.setInt(idx++, Integer.parseInt(filtroMenor));
+                }
+                if (hayFiltroTutor) {
+                    ps.setInt(idx++, Integer.parseInt(filtroTutor));
+                }
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        modeloTabla.addRow(new Object[]{
+                            rs.getInt("id_supervision"),
+                            rs.getString("menor"),
+                            rs.getInt("id_tutor"),
+                            rs.getString("tutor")
+                        });
+                    }
+                }
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "El ID debe ser un número.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Error al cargar los menores: " + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+            }
         }
 
         @Override
@@ -255,4 +443,3 @@ public class GestionMenores extends JFrame {
         }
     }
 }
-
