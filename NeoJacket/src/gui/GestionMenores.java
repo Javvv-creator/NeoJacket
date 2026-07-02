@@ -54,6 +54,8 @@ public class GestionMenores extends JFrame {
 
         setTitle("Gestión de Menores Supervisados");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -103,47 +105,44 @@ public class GestionMenores extends JFrame {
                 btn.setFocusPainted(false);
                 btn.setBorderPainted(false);
 
-                if (texto.equals("Gestión de Menores Supervisados")) {
+                if (texto.equals("Gestión de Menores")) {
                     btn.setBackground(new Color(251, 232, 138));
                     btn.setForeground(Color.BLACK);
                 } else {
                     btn.setBackground(new Color(94, 116, 73));
                     btn.setForeground(Color.WHITE);
                 }
-
-                if (texto.equals("Gestión de Usuarios")) {
+                
+                 if (texto.equals("Gestión de Menores")) {
                     btn.addActionListener(e -> {
                         new GestionUsuario();
+                        dispose();
                     });
-                }
 
-                if (texto.equals("Gestión de Menores Supervisados")) {
+                 }else if (texto.equals("Gestión de Usuarios")) {
                     btn.addActionListener(e -> {
-                        new GestionMenores();
+                        new GestionUsuario();
+                        dispose();
                     });
-                }
-
-                if (texto.equals("Gestión de Cuentas")) {
+                }else if (texto.equals("Gestión de Cuentas")) {
                     btn.addActionListener(e -> {
                         new GestionCuentas();
+                        dispose();
                     });
-                }
-
-                if (texto.equals("Gestión de Tarjetas")) {
+                }else if (texto.equals("Gestión de Tarjetas")) {
                     btn.addActionListener(e -> {
                         new GestionTarjeta();
+                        dispose();
                     });
-                }
-
-                if (texto.equals("Gestión de Divisas")) {
+                }else if (texto.equals("Gestión de Divisas")) {
                     btn.addActionListener(e -> {
                         new GestionDivisas();
+                        dispose();
                     });
-                }
-
-                if (texto.equals("Gestión de Transacciones")) {
+                }else if (texto.equals("Gestión de Transacciones")) {
                     btn.addActionListener(e -> {
                         new GestionTransacciones();
+                        dispose();
                     });
                 }
 

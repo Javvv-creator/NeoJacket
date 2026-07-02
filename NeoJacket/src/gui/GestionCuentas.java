@@ -99,6 +99,8 @@ public class GestionCuentas extends JFrame {
 
         setTitle("Gestion de Cuentas");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
+        
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -133,12 +135,12 @@ public class GestionCuentas extends JFrame {
             sidebar.add(lblLogo);
 
             String[] botones = {
-                "Gestion de Usuarios",
-                "Gestion de Menores Supervisados",
-                "Gestion de Cuentas",
-                "Gestion de Tarjetas",
-                "Gestion de Divisas",
-                "Gestion de Transacciones"
+                "Gestión de Usuarios",
+                "Gestión de Menores",
+                "Gestión de Cuentas",
+                "Gestión de Tarjetas",
+                "Gestión de Divisas",
+                "Gestión de Transacciones"
             };
 
             int y = 140;
@@ -149,31 +151,42 @@ public class GestionCuentas extends JFrame {
                 btn.setFocusPainted(false);
                 btn.setBorderPainted(false);
 
-                if (texto.equals("Gestion de Cuentas")) {
+                if (texto.equals("Gestión de Cuentas")) {
                     btn.setBackground(new Color(251, 232, 138));
                     btn.setForeground(Color.BLACK);
                 } else {
                     btn.setBackground(new Color(94, 116, 73));
                     btn.setForeground(Color.WHITE);
                 }
-
-                if (texto.equals("Gestion de Usuarios")) {
+                   if (texto.equals("Gestión de Cuentas")) {
+                    btn.addActionListener(e -> {
+                        new GestionCuentas();
+                        dispose();
+                    });
+                    
+                   }else if (texto.equals("Gestión de Usuarios")) {
                     btn.addActionListener(e -> {
                         new GestionUsuario();
                         dispose();
                     });
-                }
-
-                if (texto.equals("Gestion de Menores Supervisados")) {
+                } else if (texto.equals("Gestión de Menores")) {
                     btn.addActionListener(e -> {
                         new GestionMenores();
                         dispose();
                     });
-                }
-
-                if (texto.equals("Gestion de Cuentas")) {
+                } else if (texto.equals("Gestión de Tarjetas")) {
                     btn.addActionListener(e -> {
-                        new GestionCuentas();
+                        new GestionTarjeta();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Divisas")) {
+                    btn.addActionListener(e -> {
+                        new GestionDivisas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Transacciones")) {
+                    btn.addActionListener(e -> {
+                        new GestionTransacciones();
                         dispose();
                     });
                 }
@@ -181,7 +194,7 @@ public class GestionCuentas extends JFrame {
                 sidebar.add(btn);
                 y += 70;
             }
-
+ 
             add(sidebar);
         }
 
@@ -278,7 +291,10 @@ public class GestionCuentas extends JFrame {
             BotonNeo btnCrear = new BotonNeo("Crear cuenta");
             btnCrear.setBounds(bx + 240, by, bw, bh);
             panel.add(btnCrear);
-            btnCrear.addActionListener(e -> new DialogCrearCuenta(GestionCuentas.this));
+            btnCrear.addActionListener(e -> {
+                   new DialogCrearCuenta(GestionCuentas.this);
+                   dispose();
+                           });
 
             BotonNeo btnBloquear = new BotonNeo("Bloquear cuenta");
             btnBloquear.setBounds(bx + 480, by, bw, bh);
@@ -300,17 +316,29 @@ public class GestionCuentas extends JFrame {
             btnInfo.setBounds(bx + 960, by, bw, bh);
             panel.add(btnInfo);
             btnInfo.addActionListener(e -> {
-                new DetalleCuenta();
-                dispose();
+            int filaSeleccionada = tabla.getSelectedRow();
+                 if (filaSeleccionada == -1) {
+                        JOptionPane.showMessageDialog(this, "Por favor, selecciona una cuenta de la tabla.", "Sin selección", JOptionPane.WARNING_MESSAGE);
+                     return;
+                 }
+                 int filaModelo = tabla.convertRowIndexToModel(filaSeleccionada);
+                 int idCuenta = (int) modeloTabla.getValueAt(filaModelo, 0); // columna ID sigue existiendo en el modelo aunque no se vea
+
+                 new DetalleCuenta(idCuenta);
+            dispose();
             });
+            
 
             // ============================
             // FILTRAR EN TIEMPO REAL (al cambiar combos o escribir enter)
             // ============================
             cbTipo.addActionListener(e -> aplicarFiltros());
             cbEstado.addActionListener(e -> aplicarFiltros());
-            txtCuenta.addActionListener(e -> aplicarFiltros());
-
+          txtCuenta.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+    @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { aplicarFiltros(); }
+    @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { aplicarFiltros(); }
+    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { aplicarFiltros(); }
+});
             // ============================
             // TABLA
             // ============================
@@ -474,172 +502,119 @@ public class GestionCuentas extends JFrame {
     // ============================
     class DialogCrearCuenta extends JDialog {
 
-        private JComboBox<ComboItem> cbUsuario;
-        private JComboBox<ComboItem> cbBanco;
-        private JComboBox<ComboItem> cbTipoCuenta;
-        private JComboBox<String> cbMoneda;
-        private RoundedTextField txtNumeroCuenta;
-        private RoundedTextField txtSaldo;
+    public DialogCrearCuenta(JFrame padre) {
 
-        public DialogCrearCuenta(JFrame padre) {
-            super(padre, "Crear Cuenta", true);
-            setSize(480, 480);
-            setLocationRelativeTo(padre);
-            setLayout(null);
-            getContentPane().setBackground(new Color(25, 38, 35));
+        setTitle("Crear Cuenta");
+        setSize(560, 560);
+        setLocationRelativeTo(padre);
+        setModal(true);
+        setResizable(false);
+        setUndecorated(false);
+        getContentPane().setBackground(new Color(25, 38, 35));
 
-            Color amarillo = new Color(251, 232, 138);
-            int y = 20;
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+        panel.setBackground(new Color(25, 38, 35));
+        panel.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 3, true));
+        setContentPane(panel);
 
-            JLabel lblUsuario = new JLabel("Propietario");
-            lblUsuario.setForeground(amarillo);
-            lblUsuario.setBounds(30, y, 200, 20);
-            add(lblUsuario);
+        JLabel titulo = new JLabel("Nueva Cuenta");
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titulo.setForeground(Color.WHITE);
+        titulo.setBounds(30, 20, 400, 35);
+        panel.add(titulo);
 
-            cbUsuario = new JComboBox<>();
-            cbUsuario.setBounds(30, y + 25, 400, 35);
-            add(cbUsuario);
-            cargarUsuarios();
-            y += 75;
+        int y = 70;
+        int alturaCampo = 60;
 
-            JLabel lblBanco = new JLabel("Banco");
-            lblBanco.setForeground(amarillo);
-            lblBanco.setBounds(30, y, 200, 20);
-            add(lblBanco);
+        // Propietario
+        JLabel lblUsuario = new JLabel("Propietario");
+        lblUsuario.setForeground(Color.WHITE);
+        lblUsuario.setBounds(30, y, 200, 20);
+        panel.add(lblUsuario);
 
-            cbBanco = new JComboBox<>();
-            cbBanco.setBounds(30, y + 25, 400, 35);
-            add(cbBanco);
-            cargarBancos();
-            y += 75;
+        JComboBox<ComboItem> cbUsuario = new JComboBox<>();
+        cbUsuario.setBounds(30, y + 22, 480, 32);
+        cbUsuario.setBackground(new Color(25, 38, 35));
+        cbUsuario.setForeground(Color.WHITE);
+        panel.add(cbUsuario);
+        y += alturaCampo;
 
-            JLabel lblTipoCuenta = new JLabel("Tipo de cuenta");
-            lblTipoCuenta.setForeground(amarillo);
-            lblTipoCuenta.setBounds(30, y, 200, 20);
-            add(lblTipoCuenta);
+        // Banco
+        JLabel lblBanco = new JLabel("Banco");
+        lblBanco.setForeground(Color.WHITE);
+        lblBanco.setBounds(30, y, 200, 20);
+        panel.add(lblBanco);
 
-            cbTipoCuenta = new JComboBox<>();
-            cbTipoCuenta.setBounds(30, y + 25, 400, 35);
-            add(cbTipoCuenta);
-            cargarTiposCuentaCombo();
-            y += 75;
+        JComboBox<ComboItem> cbBanco = new JComboBox<>();
+        cbBanco.setBounds(30, y + 22, 480, 32);
+        cbBanco.setBackground(new Color(25, 38, 35));
+        cbBanco.setForeground(Color.WHITE);
+        panel.add(cbBanco);
+        y += alturaCampo;
 
-            JLabel lblMoneda = new JLabel("Moneda");
-            lblMoneda.setForeground(amarillo);
-            lblMoneda.setBounds(30, y, 200, 20);
-            add(lblMoneda);
+        // Tipo de cuenta
+        JLabel lblTipoCuenta = new JLabel("Tipo de cuenta");
+        lblTipoCuenta.setForeground(Color.WHITE);
+        lblTipoCuenta.setBounds(30, y, 200, 20);
+        panel.add(lblTipoCuenta);
 
-            cbMoneda = new JComboBox<>();
-            cbMoneda.setBounds(30, y + 25, 400, 35);
-            add(cbMoneda);
-            cargarMonedas();
-            y += 75;
+        JComboBox<ComboItem> cbTipoCuenta = new JComboBox<>();
+        cbTipoCuenta.setBounds(30, y + 22, 480, 32);
+        cbTipoCuenta.setBackground(new Color(25, 38, 35));
+        cbTipoCuenta.setForeground(Color.WHITE);
+        panel.add(cbTipoCuenta);
+        y += alturaCampo;
 
-            JLabel lblNumero = new JLabel("Numero de cuenta");
-            lblNumero.setForeground(amarillo);
-            lblNumero.setBounds(30, y, 200, 20);
-            add(lblNumero);
+        // Moneda
+        JLabel lblMoneda = new JLabel("Moneda");
+        lblMoneda.setForeground(Color.WHITE);
+        lblMoneda.setBounds(30, y, 200, 20);
+        panel.add(lblMoneda);
 
-            txtNumeroCuenta = new RoundedTextField(20);
-            txtNumeroCuenta.setOpaque(true);
-            txtNumeroCuenta.setBackground(new Color(25, 38, 35));
-            txtNumeroCuenta.setBounds(30, y + 25, 400, 35);
-            add(txtNumeroCuenta);
-            y += 75;
+        JComboBox<String> cbMoneda = new JComboBox<>();
+        cbMoneda.setBounds(30, y + 22, 480, 32);
+        cbMoneda.setBackground(new Color(25, 38, 35));
+        cbMoneda.setForeground(Color.WHITE);
+        panel.add(cbMoneda);
+        y += alturaCampo;
 
-            JLabel lblSaldo = new JLabel("Saldo inicial");
-            lblSaldo.setForeground(amarillo);
-            lblSaldo.setBounds(30, y, 200, 20);
-            add(lblSaldo);
+        // Numero de cuenta
+        JLabel lblNumero = new JLabel("Numero de cuenta");
+        lblNumero.setForeground(Color.WHITE);
+        lblNumero.setBounds(30, y, 300, 20);
+        panel.add(lblNumero);
 
-            txtSaldo = new RoundedTextField(20);
-            txtSaldo.setOpaque(true);
-            txtSaldo.setBackground(new Color(25, 38, 35));
-            txtSaldo.setText("0.00");
-            txtSaldo.setBounds(30, y + 25, 400, 35);
-            add(txtSaldo);
-            y += 75;
+        JTextField txtNumeroCuenta = new JTextField();
+        txtNumeroCuenta.setBounds(30, y + 22, 480, 32);
+        panel.add(txtNumeroCuenta);
+        y += alturaCampo;
 
-            BotonNeo btnGuardar = new BotonNeo("Guardar");
-            btnGuardar.setBounds(30, y, 190, 45);
-            add(btnGuardar);
-            btnGuardar.addActionListener(e -> guardarCuenta());
+        // Saldo inicial
+        JLabel lblSaldo = new JLabel("Saldo inicial");
+        lblSaldo.setForeground(Color.WHITE);
+        lblSaldo.setBounds(30, y, 200, 20);
+        panel.add(lblSaldo);
 
-            BotonNeo btnCancelar = new BotonNeo("Cancelar");
-            btnCancelar.setBounds(240, y, 190, 45);
-            add(btnCancelar);
-            btnCancelar.addActionListener(e -> dispose());
+        JTextField txtSaldo = new JTextField();
+        txtSaldo.setText("0.00");
+        txtSaldo.setBounds(30, y + 22, 480, 32);
+        panel.add(txtSaldo);
+        y += alturaCampo;
 
-            setVisible(true);
-        }
+        // Carga de datos en los combos
+        cargarUsuarios(cbUsuario);
+        cargarBancos(cbBanco);
+        cargarTiposCuentaCombo(cbTipoCuenta);
+        cargarMonedas(cbMoneda);
 
-        private void cargarUsuarios() {
-            String sql = "SELECT id_usuario, nombre, apellido FROM usuarios ORDER BY nombre";
-            try (Connection con = main.Conexion.conexion.getConexion();
-                 PreparedStatement ps = con.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
+        // Botón Guardar
+        BotonNeo btnGuardar = new BotonNeo("Guardar Cuenta");
+        btnGuardar.setBounds(170, y + 10, 200, 45);
+        panel.add(btnGuardar);
 
-                while (rs.next()) {
-                    cbUsuario.addItem(new ComboItem(
-                            rs.getInt("id_usuario"),
-                            rs.getString("nombre") + " " + rs.getString("apellido")));
-                }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Error al cargar usuarios: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-
-        private void cargarBancos() {
-            String sql = "SELECT id_banco, nombre FROM bancos WHERE activo = TRUE ORDER BY nombre";
-            try (Connection con = main.Conexion.conexion.getConexion();
-                 PreparedStatement ps = con.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-
-                while (rs.next()) {
-                    cbBanco.addItem(new ComboItem(rs.getInt("id_banco"), rs.getString("nombre")));
-                }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Error al cargar bancos: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-
-        private void cargarTiposCuentaCombo() {
-            String sql = "SELECT id_tipo, nombre FROM tipos_cuentas ORDER BY nombre";
-            try (Connection con = main.Conexion.conexion.getConexion();
-                 PreparedStatement ps = con.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-
-                while (rs.next()) {
-                    cbTipoCuenta.addItem(new ComboItem(rs.getInt("id_tipo"), rs.getString("nombre")));
-                }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Error al cargar tipos de cuenta: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-
-        private void cargarMonedas() {
-            String sql = "SELECT codigo FROM monedas WHERE activa = TRUE ORDER BY codigo";
-            try (Connection con = main.Conexion.conexion.getConexion();
-                 PreparedStatement ps = con.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-
-                while (rs.next()) {
-                    cbMoneda.addItem(rs.getString("codigo"));
-                }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Error al cargar monedas: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-
-        private void guardarCuenta() {
+        // ---- LÓGICA: botón Guardar ----
+        btnGuardar.addActionListener(e -> {
 
             if (cbUsuario.getSelectedItem() == null || cbBanco.getSelectedItem() == null
                     || cbTipoCuenta.getSelectedItem() == null || cbMoneda.getSelectedItem() == null) {
@@ -688,22 +663,93 @@ public class GestionCuentas extends JFrame {
                 ps.setString(5, numeroCuenta);
                 ps.setDouble(6, saldo);
 
-                ps.executeUpdate();
+                int filas = ps.executeUpdate();
 
-                JOptionPane.showMessageDialog(this,
-                        "Cuenta creada correctamente.",
-                        "Exito", JOptionPane.INFORMATION_MESSAGE);
-
-                dispose();
-                aplicarFiltros();
+                if (filas > 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "Cuenta creada correctamente.",
+                            "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    dispose();
+                    aplicarFiltros();
+                }
 
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this,
                         "Error al crear la cuenta: " + ex.getMessage(),
                         "Error", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
             }
+        });
+
+        setVisible(true);
+    }
+
+    private void cargarUsuarios(JComboBox<ComboItem> combo) {
+        String sql = "SELECT id_usuario, nombre, apellido FROM usuarios ORDER BY nombre";
+        try (Connection con = main.Conexion.conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                combo.addItem(new ComboItem(
+                        rs.getInt("id_usuario"),
+                        rs.getString("nombre") + " " + rs.getString("apellido")));
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al cargar usuarios: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    private void cargarBancos(JComboBox<ComboItem> combo) {
+        String sql = "SELECT id_banco, nombre FROM bancos WHERE activo = TRUE ORDER BY nombre";
+        try (Connection con = main.Conexion.conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                combo.addItem(new ComboItem(rs.getInt("id_banco"), rs.getString("nombre")));
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al cargar bancos: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cargarTiposCuentaCombo(JComboBox<ComboItem> combo) {
+        String sql = "SELECT id_tipo, nombre FROM tipos_cuentas ORDER BY nombre";
+        try (Connection con = main.Conexion.conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                combo.addItem(new ComboItem(rs.getInt("id_tipo"), rs.getString("nombre")));
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al cargar tipos de cuenta: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cargarMonedas(JComboBox<String> combo) {
+        String sql = "SELECT codigo FROM monedas WHERE activa = TRUE ORDER BY codigo";
+        try (Connection con = main.Conexion.conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                combo.addItem(rs.getString("codigo"));
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al cargar monedas: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
 
     // ============================
     // CLASE AUXILIAR PARA COMBOS CON ID + TEXTO

@@ -87,6 +87,10 @@ CREATE TABLE monedas (
     simbolo VARCHAR(5) NOT NULL,
     activa BOOLEAN DEFAULT TRUE
 );
+INSERT IGNORE INTO monedas (codigo, nombre, simbolo, activa) VALUES
+    ('GTQ', 'Quetzal', 'Q', TRUE),
+    ('USD', 'Dólar estadounidense', '$', TRUE),
+    ('EUR', 'Euro', '€', TRUE);
 
 CREATE TABLE tipos_cambio (
     id_tipo_cambio INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -121,6 +125,12 @@ CREATE TABLE tipos_cuentas (
     es_credito BOOLEAN DEFAULT FALSE    
 );
 
+INSERT IGNORE INTO tipos_cuentas (nombre, es_credito) VALUES
+    ('Ahorro', FALSE),
+    ('Monetaria', FALSE),
+    ('Corriente', FALSE),
+    ('Tarjeta de crédito', TRUE);
+
 CREATE TABLE cuentas_bancarias (
     id_cuenta INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT UNSIGNED NOT NULL,
@@ -133,7 +143,8 @@ CREATE TABLE cuentas_bancarias (
     CONSTRAINT fk_cuentas_bancos FOREIGN KEY (id_banco) REFERENCES bancos(id_banco),
     CONSTRAINT fk_cuentas_tipos FOREIGN KEY (id_tipo_cuenta) REFERENCES tipos_cuentas(id_tipo),
     CONSTRAINT fk_cuentas_monedas FOREIGN KEY (moneda) REFERENCES monedas(codigo),
-    UNIQUE (id_banco, numero_cuenta) 
+    UNIQUE (id_banco, numero_cuenta),
+    estado ENUM('activa', 'bloqueada') not null default 'activa'
 );
 
 CREATE TABLE tarjetas_bancarias (
