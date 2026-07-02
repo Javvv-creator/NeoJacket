@@ -108,7 +108,6 @@ public class Dashboard extends javax.swing.JFrame {
                 "Saldos",
                 "Bancos conectados",
                 "Transferencias",
-                "Divisas",
                 "Historial"
             };
 
@@ -137,12 +136,6 @@ public class Dashboard extends javax.swing.JFrame {
                 if (textoBtn.equals("Transferencias")) {
                     btn.addActionListener(e -> { 
                         new Transferencias().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (textoBtn.equals("Divisas")) {
-                    btn.addActionListener(e -> { 
-                        new Divisas().setVisible(true);
                         dispose(); 
                     });
                 }
@@ -297,33 +290,6 @@ public class Dashboard extends javax.swing.JFrame {
             h2.setBounds(20, 80, 200, 20);
             historial.add(h2);
 
-            // TARJETA DIVISAS
-            RoundedPanel divisas = new RoundedPanel();
-            divisas.setBounds(420, 450, 780, 200);
-            divisas.setBackground(new Color(25, 38, 35, 180));
-            divisas.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1, true));
-            divisas.setLayout(null);
-            contenedor.add(divisas);
-
-            JLabel lblDivisasTarjeta = new JLabel("Cambio de Divisas");
-            lblDivisasTarjeta.setForeground(amarilloPastel);
-            lblDivisasTarjeta.setFont(tituloTarjeta);
-            lblDivisasTarjeta.setBounds(15, 10, 200, 25);
-            divisas.add(lblDivisasTarjeta);
-
-            RoundedTextField txtCantidad = new RoundedTextField(20);
-            txtCantidad.setBounds(20, 55, 180, 35);
-            divisas.add(txtCantidad);
-
-            BotonNeo btnConvertir = new BotonNeo("Convertir");
-            btnConvertir.setBounds(220, 55, 130, 35);
-            divisas.add(btnConvertir);
-
-            JLabel resultado = new JLabel("1 USD = Q7.72");
-            resultado.setForeground(Color.WHITE);
-            resultado.setFont(texto);
-            resultado.setBounds(20, 110, 200, 20);
-            divisas.add(resultado);
         }
 
         @Override
