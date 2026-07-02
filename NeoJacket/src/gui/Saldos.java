@@ -68,63 +68,125 @@ public class Saldos extends javax.swing.JFrame {
 
         public FondoPanel() {
             setLayout(null);
-            crearSidebar();
+            crearSidebar(this);
             crearContenido();
         }
 
         // ==========================================
         // DISEÑO DEL MENÚ LATERAL (SIDEBAR)
         // ==========================================
-        private void crearSidebar() {
-            JPanel sidebar = new JPanel();
-            sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
-            sidebar.setBounds(20, 20, 300, 950);
+         private void crearSidebar(JPanel panel) {
 
-            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-            lblLogo.setBounds(20, 10, 250, 110);
-            sidebar.add(lblLogo);
+    JPanel sidebar = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setColor(new Color(25, 38, 35, 220));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+            g2.dispose();
+        }
+    };
 
-            JButton btnSaldosActivo = new JButton("Saldos");
-            btnSaldosActivo.setBounds(20, 140, 250, 55);
-            btnSaldosActivo.setFocusPainted(false);
-            btnSaldosActivo.setBorderPainted(false);
-            btnSaldosActivo.setBackground(new Color(251, 232, 138));
-            btnSaldosActivo.setForeground(Color.BLACK);
-            btnSaldosActivo.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            sidebar.add(btnSaldosActivo);
+    sidebar.setOpaque(false);
+    sidebar.setBounds(20, 20, 300, 950);
+    sidebar.setLayout(null);
+    
+    // ============================
+    // BOTONES PRINCIPALES DE ACCESO
+    // ============================
+    Color verdeTrans = new Color(25, 38, 35, 180);
+    Color verdeHover = new Color(94, 116, 73, 220);
 
-            String[] botonesMenu = {"Bancos conectados", "Transferencias", "Divisas", "Historial"};
-            int y = 210;
+    Color amarillo = new Color(251, 232, 138);
+    Color amarilloHover = new Color(255, 245, 180);
 
-            for (String textoBtn : botonesMenu) {
-                JButton btn = new JButton(textoBtn);
-                btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                btn.setBackground(new Color(94, 116, 73));
-                btn.setForeground(Color.WHITE);
-                btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    Color fondoTransparente = new Color(0, 0, 0, 0); 
+    Color amarilloBorde = new Color(251, 232, 138);
+
+    // Logo
+    Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+    JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+    lblLogo.setBounds(20, 10, 250, 110);
+    sidebar.add(lblLogo);
+
+    String[] opciones = {
+        "Saldos",
+        "Bancos Conectados",
+        "Transferencias",
+        "Historial"
+    };
+
+    int y = 140;
+
+    for (String texto : opciones) {
+        
+        JButton btn = new JButton(texto) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                btn.addActionListener(e -> {
-                    if (textoBtn.equals("Bancos conectados")) {
-                        new BancosConectados().setVisible(true);
-                    } else if (textoBtn.equals("Transferencias")) {
-                        new Transferencias().setVisible(true);
-                    } else if (textoBtn.equals("Divisas")) {
-                        new Divisas().setVisible(true);
-                    } else if (textoBtn.equals("Historial")) {
-                        new Historial().setVisible(true);
-                    }
-                    dispose();
-                });
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
                 
-                sidebar.add(btn);
-                y += 70;
+                if (getBackground() != amarillo) {
+                    g2.setColor(amarilloBorde);
+                    g2.setStroke(new BasicStroke(1f));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                }
+                
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+
+        // Ajustamos la altura a 46 para un look más estilizado
+        btn.setBounds(20, y, 250, 46);
+        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false); 
+        btn.setBorderPainted(false);     
+        btn.setOpaque(false);
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(fondoTransparente);
+
+        Font fuenteActual = btn.getFont();
+        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                btn.setBackground(amarillo);
+                btn.setForeground(Color.BLACK);
             }
 
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                btn.setBackground(fondoTransparente);
+                btn.setForeground(Color.WHITE);
+            }
+        });
+
+       
+        if (texto.equals("Bancos Conectados")) {
+            btn.addActionListener(e -> { 
+                new BancosConectados().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Transferencias")) {
+            btn.addActionListener(e -> { 
+                new Transferencias().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Historial")) {
+            btn.addActionListener(e -> { 
+                new Historial().setVisible(true);
+                dispose(); 
+            });
+        }
+                
+        JButton btnCerrarSesion = new JButton("Cerrar sesión");
             btnCerrarSesion.setBounds(20, 880, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
             btnCerrarSesion.setBorderPainted(false);
@@ -137,8 +199,14 @@ public class Saldos extends javax.swing.JFrame {
             });
             sidebar.add(btnCerrarSesion);
 
-            add(sidebar);
-        }
+        sidebar.add(btn);
+        
+        // Aumentamos el salto a 68 píxeles para darles más separación física
+        y += 68;
+    }
+
+    panel.add(sidebar);
+}
 
         // ==========================================
         // DISEÑO DEL PANEL DE CONTENIDO CENTRAL

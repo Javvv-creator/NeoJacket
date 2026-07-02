@@ -80,9 +80,6 @@ public class ConsultarSaldos extends JFrame {
         // Método para crear el menú lateral
  private void crearSidebar(JPanel panel) {
 
-    
-
-     
     JPanel sidebar = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
@@ -97,21 +94,17 @@ public class ConsultarSaldos extends JFrame {
     sidebar.setBounds(20, 20, 300, 950);
     sidebar.setLayout(null);
     
-      // ============================
-            // BOTONES PRINCIPALES DE ACCESO
-            // ============================
-            Color verdeTrans = new Color(25, 38, 35, 180);
-            Color verdeHover = new Color(94, 116, 73, 220);
+    // ============================
+    // BOTONES PRINCIPALES DE ACCESO
+    // ============================
+    Color verdeTrans = new Color(25, 38, 35, 180);
+    Color verdeHover = new Color(94, 116, 73, 220);
 
-            Color amarillo = new Color(251, 232, 138);
-            Color amarilloHover = new Color(255, 245, 180);
+    Color amarillo = new Color(251, 232, 138);
+    Color amarilloHover = new Color(255, 245, 180);
 
-            // ComboBox bancos
-            JComboBox<String> cbBancos = new JComboBox<>(new String[]{
-                "Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"
-            });
-            cbBancos.setBounds(40, 110, 300, 40);
-            sidebar.add(cbBancos);
+    Color fondoTransparente = new Color(0, 0, 0, 0); 
+    Color amarilloBorde = new Color(251, 232, 138);
 
     // Logo
     Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -123,90 +116,103 @@ public class ConsultarSaldos extends JFrame {
         "Saldos",
         "Bancos Conectados",
         "Transferencias",
-        "Divisas",
         "Historial"
     };
 
     int y = 140;
 
     for (String texto : opciones) {
-
         
-        JButton btn = new JButton(texto);
+        JButton btn = new JButton(texto) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                if (getBackground() != amarillo) {
+                    g2.setColor(amarilloBorde);
+                    g2.setStroke(new BasicStroke(1f));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                }
+                
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
 
-        btn.setBounds(20, y, 250, 50);
+        // Ajustamos la altura a 46 para un look más estilizado
+        btn.setBounds(20, y, 250, 46);
         btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false); 
+        btn.setBorderPainted(false);     
+        btn.setOpaque(false);
         btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(25,38,35));
-        btn.setBorderPainted(false);
+        btn.setBackground(fondoTransparente);
+
+        Font fuenteActual = btn.getFont();
+        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
-
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(251,232,138));
+                btn.setBackground(amarillo);
                 btn.setForeground(Color.BLACK);
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(25,38,35));
+                btn.setBackground(fondoTransparente);
                 btn.setForeground(Color.WHITE);
             }
-
         });
-// Enrutador de acciones para la navegación lateral
-                if (texto.equals("Saldos")) {
-                    btn.addActionListener(e -> { 
-                        new Saldos().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (texto.equals("Bancos Conectados")) {
-                    btn.addActionListener(e -> { 
-                        new BancosConectados().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (texto.equals("Transferencias")) {
-                    btn.addActionListener(e -> { 
-                        new Transferencias().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (texto.equals("Divisas")) {
-                    btn.addActionListener(e -> { 
-                        new Divisas().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (texto.equals("Historial")) {
-                    btn.addActionListener(e -> { 
-                        new Historial().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                
-                
-                
-                 BotonNeo btnCerrarSesion = new BotonNeo("Cerrar sesión",  amarillo, amarilloHover);
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.BLACK);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
+
+        if (texto.equals("Saldos")) {
+            btn.addActionListener(e -> { 
+                new Saldos().setVisible(true);
+                dispose(); 
             });
-            sidebar.add(btnCerrarSesion);
+        }
+        if (texto.equals("Bancos Conectados")) {
+            btn.addActionListener(e -> { 
+                new BancosConectados().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Transferencias")) {
+            btn.addActionListener(e -> { 
+                new Transferencias().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Historial")) {
+            btn.addActionListener(e -> { 
+                new Historial().setVisible(true);
+                dispose(); 
+            });
+        }
+                
+        BotonNeo btnCerrarSesion = new BotonNeo("Cerrar sesión", amarillo, amarilloHover);
+        btnCerrarSesion.setBounds(20, 880, 250, 55);
+        btnCerrarSesion.setFocusPainted(false);
+        btnCerrarSesion.setBorderPainted(false);
+        btnCerrarSesion.setBackground(new Color(191, 76, 58));
+        btnCerrarSesion.setForeground(Color.BLACK);
+        btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnCerrarSesion.addActionListener(e -> {
+            new InicioNeo().setVisible(true);
+            dispose();
+        });
+        sidebar.add(btnCerrarSesion);
 
         sidebar.add(btn);
-        y += 60;
+        
+        // Aumentamos el salto a 68 píxeles para darles más separación física
+        y += 68;
     }
 
-    // ESTA ES LA ÚNICA LÍNEA QUE DEBE EXISTIR
     panel.add(sidebar);
 }
 
@@ -231,6 +237,11 @@ public class ConsultarSaldos extends JFrame {
             btnTab1.setBackground(new Color(25, 38, 35, 100));
             btnTab1.setForeground(Color.WHITE);
             btnTab1.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnTab1.addActionListener(e -> {
+                new AgregarFondos().setVisible(true);
+                dispose();
+            });
+            barraSuperior.add(btnTab1);
             barraSuperior.add(btnTab1);
 
             JButton btnTab2 = new JButton("Actualizar Saldos");
@@ -250,10 +261,6 @@ public class ConsultarSaldos extends JFrame {
             btnTab3.setBackground(new Color(251, 232, 138, 200));
             btnTab3.setForeground(Color.WHITE);
             btnTab3.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnTab3.addActionListener(e -> {
-                new ConsultarSaldos().setVisible(true);
-                dispose();
-            });
             barraSuperior.add(btnTab3);
 
             

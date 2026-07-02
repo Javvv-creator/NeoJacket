@@ -37,7 +37,7 @@ public class ActualizarSaldos extends JFrame {
             crearSidebar(this);
             crearContenido();
         }
-      private void crearSidebar(JPanel panel) {
+       private void crearSidebar(JPanel panel) {
 
     JPanel sidebar = new JPanel() {
         @Override
@@ -52,6 +52,18 @@ public class ActualizarSaldos extends JFrame {
     sidebar.setOpaque(false);
     sidebar.setBounds(20, 20, 300, 950);
     sidebar.setLayout(null);
+    
+    // ============================
+    // BOTONES PRINCIPALES DE ACCESO
+    // ============================
+    Color verdeTrans = new Color(25, 38, 35, 180);
+    Color verdeHover = new Color(94, 116, 73, 220);
+
+    Color amarillo = new Color(251, 232, 138);
+    Color amarilloHover = new Color(255, 245, 180);
+
+    Color fondoTransparente = new Color(0, 0, 0, 0); 
+    Color amarilloBorde = new Color(251, 232, 138);
 
     // Logo
     Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -63,70 +75,85 @@ public class ActualizarSaldos extends JFrame {
         "Saldos",
         "Bancos Conectados",
         "Transferencias",
-        "Divisas",
         "Historial"
     };
 
     int y = 140;
 
     for (String texto : opciones) {
+        
+        JButton btn = new JButton(texto) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                if (getBackground() != amarillo) {
+                    g2.setColor(amarilloBorde);
+                    g2.setStroke(new BasicStroke(1f));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                }
+                
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
 
-        JButton btn = new JButton(texto);
-
-        btn.setBounds(20, y, 250, 50);
+        // Ajustamos la altura a 46 para un look más estilizado
+        btn.setBounds(20, y, 250, 46);
         btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false); 
+        btn.setBorderPainted(false);     
+        btn.setOpaque(false);
         btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(25,38,35));
-        btn.setBorderPainted(false);
+        btn.setBackground(fondoTransparente);
+
+        Font fuenteActual = btn.getFont();
+        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
-
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(251,232,138));
+                btn.setBackground(amarillo);
                 btn.setForeground(Color.BLACK);
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(25,38,35));
+                btn.setBackground(fondoTransparente);
                 btn.setForeground(Color.WHITE);
             }
-
         });
-// Enrutador de acciones para la navegación lateral
-                if (texto.equals("Saldos")) {
-                    btn.addActionListener(e -> { 
-                        new Saldos().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (texto.equals("Bancos Conectados")) {
-                    btn.addActionListener(e -> { 
-                        new BancosConectados().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (texto.equals("Transferencias")) {
-                    btn.addActionListener(e -> { 
-                        new Transferencias().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (texto.equals("Divisas")) {
-                    btn.addActionListener(e -> { 
-                        new Divisas().setVisible(true);
-                        dispose(); 
-                    });
-                }
-                if (texto.equals("Historial")) {
-                    btn.addActionListener(e -> { 
-                        new Historial().setVisible(true);
-                        dispose(); 
-                    });
-                }
+
+        if (texto.equals("Saldos")) {
+            btn.addActionListener(e -> { 
+                new Saldos().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Bancos Conectados")) {
+            btn.addActionListener(e -> { 
+                new BancosConectados().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Transferencias")) {
+            btn.addActionListener(e -> { 
+                new Transferencias().setVisible(true);
+                dispose(); 
+            });
+        }
+        if (texto.equals("Historial")) {
+            btn.addActionListener(e -> { 
+                new Historial().setVisible(true);
+                dispose(); 
+            });
+        }
                 
-                 JButton btnCerrarSesion = new JButton("Cerrar sesión");
+        JButton btnCerrarSesion = new JButton("Cerrar sesión");
             btnCerrarSesion.setBounds(20, 880, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
             btnCerrarSesion.setBorderPainted(false);
@@ -140,10 +167,11 @@ public class ActualizarSaldos extends JFrame {
             sidebar.add(btnCerrarSesion);
 
         sidebar.add(btn);
-        y += 60;
+        
+        // Aumentamos el salto a 68 píxeles para darles más separación física
+        y += 68;
     }
 
-    // ESTA ES LA ÚNICA LÍNEA QUE DEBE EXISTIR
     panel.add(sidebar);
 }
 
