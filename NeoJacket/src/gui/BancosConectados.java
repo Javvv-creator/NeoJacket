@@ -27,6 +27,73 @@ public class BancosConectados extends JFrame {
         setContentPane(new FondoPanel());
     }
 
+    // ==========================================================
+    // CLASE CLONADA DEL RADIO BUTTON PREMIUM DORADO
+    // ==========================================================
+    class NeoRadioButton extends JRadioButton {
+        public NeoRadioButton(String texto) {
+            super(texto);
+            setOpaque(false);
+            setForeground(new Color(235, 235, 230)); // Blanco suave
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setFocusPainted(false);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setIconTextGap(10);
+            getModel().addChangeListener(e -> repaint());
+            setIcon(new Icon() {
+                @Override
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(255, 255, 255, 30));
+                    g2.fillOval(x, y, 18, 18);
+                    g2.setColor(new Color(251, 232, 138)); // Dorado amarillo
+                    g2.setStroke(new BasicStroke(1.5f));
+                    g2.drawOval(x, y, 18, 18);
+                    if (isSelected()) {
+                        g2.setColor(new Color(251, 232, 138));
+                        g2.fillOval(x + 4, y + 4, 10, 10);
+                    }
+                    g2.dispose();
+                }
+
+                @Override
+                public int getIconWidth() { return 18; }
+
+                @Override
+                public int getIconHeight() { return 18; }
+            });
+        }
+    }
+
+    // ==========================================================
+    // CLASE PARA EL BOTÓN FLUJO TOTALMENTE REDONDEADO
+    // ==========================================================
+    class BotonFlujoNeo extends JButton {
+        public BotonFlujoNeo(String texto) {
+            super(texto);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(Color.BLACK);
+            setFont(new Font("Segoe UI", Font.BOLD, 16));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            boolean over = getModel().isRollover();
+            g2.setColor(over ? new Color(255, 245, 180) : new Color(251, 232, 138));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25); // Bordes bien redondeados
+
+            super.paintComponent(g);
+            g2.dispose();
+        }
+    }
+
     class FondoPanel extends JPanel {
         public FondoPanel() {
             setLayout(null);
@@ -34,117 +101,86 @@ public class BancosConectados extends JFrame {
             crearContenido(this);
         }
 
-       private void crearSidebar(JPanel panel) {
-
-    JPanel sidebar = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setColor(new Color(25, 38, 35, 220));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
-            g2.dispose();
-        }
-    };
-
-    sidebar.setOpaque(false);
-    sidebar.setBounds(20, 20, 300, 950);
-    sidebar.setLayout(null);
-    
-    // ============================
-    // BOTONES PRINCIPALES DE ACCESO
-    // ============================
-    Color verdeTrans = new Color(25, 38, 35, 180);
-    Color verdeHover = new Color(94, 116, 73, 220);
-
-    Color amarillo = new Color(251, 232, 138);
-    Color amarilloHover = new Color(255, 245, 180);
-
-    Color fondoTransparente = new Color(0, 0, 0, 0); 
-    Color amarilloBorde = new Color(251, 232, 138);
-
-    // Logo
-    Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-    JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-    lblLogo.setBounds(20, 10, 250, 110);
-    sidebar.add(lblLogo);
-
-    String[] opciones = {
-        "Saldos",
-        "Bancos Conectados",
-        "Transferencias",
-        "Historial"
-    };
-
-    int y = 140;
-
-    for (String texto : opciones) {
-        
-        JButton btn = new JButton(texto) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                
-                if (getBackground() != amarillo) {
-                    g2.setColor(amarilloBorde);
-                    g2.setStroke(new BasicStroke(1f));
-                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+        private void crearSidebar(JPanel panel) {
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+                    g2.dispose();
                 }
-                
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
+            };
 
-        // Ajustamos la altura a 46 para un look más estilizado
-        btn.setBounds(20, y, 250, 46);
-        btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false); 
-        btn.setBorderPainted(false);     
-        btn.setOpaque(false);
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(fondoTransparente);
+            sidebar.setOpaque(false);
+            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setLayout(null);
 
-        Font fuenteActual = btn.getFont();
-        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+            Color amarillo = new Color(251, 232, 138);
+            Color fondoTransparente = new Color(0, 0, 0, 0); 
+            Color amarilloBorde = new Color(251, 232, 138);
 
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(amarillo);
-                btn.setForeground(Color.BLACK);
-            }
+            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+            lblLogo.setBounds(20, 10, 250, 110);
+            sidebar.add(lblLogo);
 
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(fondoTransparente);
+            String[] opciones = { "Saldos", "Bancos Conectados", "Transferencias", "Historial" };
+            int y = 140;
+
+            for (String texto : opciones) {
+                JButton btn = new JButton(texto) {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2.setColor(getBackground());
+                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                        
+                        if (getBackground() != amarillo) {
+                            g2.setColor(amarilloBorde);
+                            g2.setStroke(new BasicStroke(1f));
+                            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                        }
+                        g2.dispose();
+                        super.paintComponent(g);
+                    }
+                };
+
+                btn.setBounds(20, y, 250, 46);
+                btn.setFocusPainted(false);
+                btn.setContentAreaFilled(false); 
+                btn.setBorderPainted(false);     
+                btn.setOpaque(false);
                 btn.setForeground(Color.WHITE);
-            }
-        });
+                btn.setBackground(fondoTransparente);
 
-        if (texto.equals("Saldos")) {
-            btn.addActionListener(e -> { 
-                new Saldos().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Transferencias")) {
-            btn.addActionListener(e -> { 
-                new Transferencias().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Historial")) {
-            btn.addActionListener(e -> { 
-                new Historial().setVisible(true);
-                dispose(); 
-            });
-        }
-                
-        JButton btnCerrarSesion = new JButton("Cerrar sesión");
+                Font fuenteActual = btn.getFont();
+                btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+
+                btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent e) {
+                        btn.setBackground(amarillo);
+                        btn.setForeground(Color.BLACK);
+                    }
+
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        btn.setBackground(fondoTransparente);
+                        btn.setForeground(Color.WHITE);
+                    }
+                });
+
+                if (texto.equals("Saldos")) { btn.addActionListener(e -> { new Saldos().setVisible(true); dispose(); }); }
+                if (texto.equals("Transferencias")) { btn.addActionListener(e -> { new Transferencias().setVisible(true); dispose(); }); }
+                if (texto.equals("Historial")) { btn.addActionListener(e -> { new Historial().setVisible(true); dispose(); }); }
+
+                sidebar.add(btn);
+                y += 68;
+            }
+
+            JButton btnCerrarSesion = new JButton("Cerrar sesión");
             btnCerrarSesion.setBounds(20, 880, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
             btnCerrarSesion.setBorderPainted(false);
@@ -157,170 +193,178 @@ public class BancosConectados extends JFrame {
             });
             sidebar.add(btnCerrarSesion);
 
-        sidebar.add(btn);
-        
-        // Aumentamos el salto a 68 píxeles para darles más separación física
-        y += 68;
-    }
+            panel.add(sidebar);
+        }
 
-    panel.add(sidebar);
-}
+        private void crearContenido(JPanel panel) {
+            
+            // ==========================================================
+            // NUEVO PANEL TRASPARENTE DE FONDO PARA EL CONTENIDO (Cuerpo principal)
+            // ==========================================================
+            JPanel panelContenedorGris = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(15, 22, 20, 130)); // Cristal oscuro traslúcido
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                    g2.dispose();
+                }
+            };
+            panelContenedorGris.setLayout(null);
+            panelContenedorGris.setOpaque(false);
+            panelContenedorGris.setBounds(350, 20, 1250, 950); // Cubre toda la zona de trabajo derecha
+            panel.add(panelContenedorGris);
 
+            // Títulos montados ahora dentro del contenedor transparente
+            JLabel lblTitulo = new JLabel("BANCOS CONECTADOS");
+            lblTitulo.setForeground(Color.WHITE);
+            lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
+            lblTitulo.setBounds(40, 20, 400, 40);
+            panelContenedorGris.add(lblTitulo);
 
+            JLabel lblSubtitulo = new JLabel("AQUÍ PUEDES GESTIONAR EL CONTROL DE TUS BANCOS");
+            lblSubtitulo.setForeground(new Color(190, 195, 190));
+            lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+            lblSubtitulo.setBounds(40, 60, 500, 30);
+            panelContenedorGris.add(lblSubtitulo);
 
-    // Contenido central
-private void crearContenido(JPanel panel) {
-    
-    JLabel lblTitulo = new JLabel("BANCOS CONECTADOS");
-lblTitulo.setForeground(Color.WHITE);
-lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
-lblTitulo.setBounds(450, 20, 400, 40);
-panel.add(lblTitulo);
+            ButtonGroup grupoBancos = new ButtonGroup();
 
-JLabel lblSubtitulo = new JLabel("AQUI PUEDES GESTIONAR EL CONTROL DE TUS BANCOS");
-lblSubtitulo.setForeground(Color.WHITE);
-lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-lblSubtitulo.setBounds(450, 60, 500, 30);
-panel.add(lblSubtitulo);
+            // ==========================================================
+            // DISTRIBUCIÓN MATEMÁTICA CORRECTA PARA CENTRAR LAS 4 IMÁGENES
+            // ==========================================================
+            int cardW = 220;
+            int cardH = 175;
+            int inicioX = 40; // Margen izquierdo inicial interno
+            int separacion = 80; // Distancia exacta entre inicios de tarjeta
+            int posY = 120;
 
-    // Grupo para que solo se seleccione un banco
-    ButtonGroup grupoBancos = new ButtonGroup();
+            // --- Panel Banco Industrial ---
+            JPanel panelIndustrial = crearCard(inicioX, posY, cardW, cardH);
+            panelIndustrial.setLayout(null);
+            Image imgIndustrial = new ImageIcon(getClass().getResource("/gui/image/banco_industrial.png")).getImage();
+            Image imgEscaladaIndustrial = imgIndustrial.getScaledInstance(230, 150, Image.SCALE_SMOOTH);
+            
+            // Reemplazo a JLabel para el icono del banco (así el RadioButton personalizado no se solapa feo)
+            JLabel lblImgIndustrial = new JLabel(new ImageIcon(imgEscaladaIndustrial));
+            lblImgIndustrial.setBounds((cardW - 180)/2, 25, 180, 100);
+            panelIndustrial.add(lblImgIndustrial);
+            
+            NeoRadioButton rbIndustrial = new NeoRadioButton("Banco Industrial");
+            rbIndustrial.setBounds(30, 130, 160, 26);
+            grupoBancos.add(rbIndustrial);
+            rbIndustrial.setSelected(true);
+            panelIndustrial.add(rbIndustrial);
+            panelContenedorGris.add(panelIndustrial);
 
-    // Ajuste de coordenadas X para centrar más los cuadros
-    int offsetX = 100; // mueve todo un poco a la derecha
+            // --- Panel Banrural ---
+            JPanel panelBanrural = crearCard(inicioX + (cardW + separacion), posY, cardW, cardH);
+            panelBanrural.setLayout(null);
+            Image imgBanrural = new ImageIcon(getClass().getResource("/gui/image/banrural.png")).getImage();
+            Image imgEscaladaBanrural = imgBanrural.getScaledInstance(280, 200, Image.SCALE_SMOOTH);
+            
+            JLabel lblImgBanrural = new JLabel(new ImageIcon(imgEscaladaBanrural));
+            lblImgBanrural.setBounds((cardW - 180)/2, 25, 180, 100);
+            panelBanrural.add(lblImgBanrural);
+            
+            NeoRadioButton rbBanrural = new NeoRadioButton("Banrural");
+            rbBanrural.setBounds(30, 130, 160, 26);
+            grupoBancos.add(rbBanrural);
+            panelBanrural.add(rbBanrural);
+            panelContenedorGris.add(panelBanrural);
 
-    // Panel Banco Industrial
-    JPanel panelIndustrial = crearCard(350 + offsetX, 120, 200, 150);
-    panelIndustrial.setLayout(null);
-    Image imgIndustrial = new ImageIcon(getClass().getResource("/gui/image/banco_industrial.png")).getImage();
-    Image imgEscaladaIndustrial = imgIndustrial.getScaledInstance(220, 150, Image.SCALE_SMOOTH);
-    
-    JRadioButton btnIndustrial = new JRadioButton(new ImageIcon(imgEscaladaIndustrial));
-    btnIndustrial.setBounds((panelIndustrial.getWidth() - 220) / 2,20,220, 150);
-    btnIndustrial.setBounds(2, 20, 170, 100);
-    btnIndustrial.setBackground(new Color(25, 38, 35));
-    grupoBancos.add(btnIndustrial);
-    panelIndustrial.add(btnIndustrial);
-    panel.add(panelIndustrial);
-    
-    JRadioButton rbIndustrial = new JRadioButton("Banco Industrial");
-rbIndustrial.setForeground(Color.WHITE);
-rbIndustrial.setBackground(new Color(25, 38, 35));
-rbIndustrial.setBounds(40, 125, 150, 20);
-grupoBancos.add(rbIndustrial);
-panelIndustrial.add(rbIndustrial);
+            // --- Panel BAC Credomatic ---
+            JPanel panelBAC = crearCard(inicioX + 2 * (cardW + separacion), posY, cardW, cardH);
+            panelBAC.setLayout(null);
+            Image imgBAC = new ImageIcon(getClass().getResource("/gui/image/bac.png")).getImage();
+            Image imgEscaladaBAC = imgBAC.getScaledInstance(360, 280, Image.SCALE_SMOOTH);
+            
+            JLabel lblImgBAC = new JLabel(new ImageIcon(imgEscaladaBAC));
+            lblImgBAC.setBounds((cardW - 180)/2, 30, 180, 100);
+            panelBAC.add(lblImgBAC);
+            
+            NeoRadioButton rbBac = new NeoRadioButton("BAC Credomatic");
+            rbBac.setBounds(30, 130, 160, 26);
+            grupoBancos.add(rbBac);
+            panelBAC.add(rbBac);
+            panelContenedorGris.add(panelBAC);
 
+            // --- Panel G&T Continental ---
+            JPanel panelGYT = crearCard(inicioX + 3 * (cardW + separacion), posY, cardW, cardH);
+            panelGYT.setLayout(null);
+            Image imgGYT = new ImageIcon(getClass().getResource("/gui/image/gyt.png")).getImage();
+            Image imgEscaladaGYT = imgGYT.getScaledInstance(340, 260, Image.SCALE_SMOOTH);
+            
+            JLabel lblImgGYT = new JLabel(new ImageIcon(imgEscaladaGYT));
+            lblImgGYT.setBounds((cardW - 180)/2, 25, 180, 100);
+            panelGYT.add(lblImgGYT);
+            
+            NeoRadioButton rbGYT = new NeoRadioButton("G&T Continental");
+            rbGYT.setBounds(30, 130, 160, 26);
+            grupoBancos.add(rbGYT);
+            panelGYT.add(rbGYT);
+            panelContenedorGris.add(panelGYT);
+            
+            // ==========================================================
+            // BOTÓN FLUJO DE BANCOS CON ESTILO REDONDEADO NEO
+            // ==========================================================
+            BotonFlujoNeo btnFlujo = new BotonFlujoNeo("→ Flujo de Bancos");
+            btnFlujo.setBounds(930, 410, 280, 50); 
+            panelContenedorGris.add(btnFlujo);
 
-    
+            // Panel de "Saldo Disponible"
+            JPanel panelSaldo = crearCardSinBorde(40, 320, 410, 110);
+            panelSaldo.setLayout(null);
+            JLabel lblSaldoTitulo = new JLabel("Saldo Disponible:");
+            lblSaldoTitulo.setForeground(Color.WHITE);
+            lblSaldoTitulo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            lblSaldoTitulo.setBounds(20, 15, 200, 25);
+            panelSaldo.add(lblSaldoTitulo);
+            JLabel lblSaldoValor = new JLabel("Q. 500.00");
+            lblSaldoValor.setForeground(new Color(251, 232, 138));
+            lblSaldoValor.setFont(new Font("Segoe UI", Font.BOLD, 26));
+            lblSaldoValor.setBounds(20, 45, 300, 35);
+            panelSaldo.add(lblSaldoValor);
+            panelContenedorGris.add(panelSaldo);
 
-    // Panel Banrural
-    JPanel panelBanrural = crearCard(600 + offsetX, 120, 200, 150);
-    panelBanrural.setLayout(null);
-    Image imgBanrural = new ImageIcon(getClass().getResource("/gui/image/banrural.png")).getImage();
-    Image imgEscaladaBanrural = imgBanrural.getScaledInstance(220, 150, Image.SCALE_SMOOTH);
-    JRadioButton btnBanrural = new JRadioButton(new ImageIcon(imgEscaladaBanrural));
-    btnBanrural.setBounds((panelBanrural.getWidth() - 220) / 2,20,220, 150);
-    btnBanrural.setBounds(15, 20, 170, 100);
-    btnBanrural.setBackground(new Color(25, 38, 35));
-    grupoBancos.add(btnBanrural);
-    panelBanrural.add(btnBanrural);
-    panel.add(panelBanrural);
-    
-    JRadioButton rbBanrural = new JRadioButton("Banrural");
-rbBanrural.setForeground(Color.WHITE);
-rbBanrural.setBackground(new Color(25, 38, 35));
-rbBanrural.setBounds(40, 125, 150, 20);
-grupoBancos.add(rbBanrural);
-panelBanrural.add(rbBanrural);
+            // Panel de "Nombre del Banco"
+            JPanel panelBanco = crearCardSinBorde(480, 320, 410, 110);
+            panelBanco.setLayout(null);
+            JLabel lblBancoTitulo = new JLabel("Nombre del Banco:");
+            lblBancoTitulo.setForeground(Color.WHITE);
+            lblBancoTitulo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            lblBancoTitulo.setBounds(20, 15, 250, 25);
+            panelBanco.add(lblBancoTitulo);
+            JLabel lblBancoValor = new JLabel("Banco Banrural");
+            lblBancoValor.setForeground(new Color(251, 232, 138));
+            lblBancoValor.setFont(new Font("Segoe UI", Font.BOLD, 22));
+            lblBancoValor.setBounds(20, 45, 300, 35);
+            panelBanco.add(lblBancoValor);
+            panelContenedorGris.add(panelBanco);
 
-
-    // Panel BAC Credomatic
-    JPanel panelBAC = crearCard(850 + offsetX, 120, 200, 150);
-    panelBAC.setLayout(null);
-    Image imgBAC = new ImageIcon(getClass().getResource("/gui/image/bac.png")).getImage();
-    Image imgEscaladaBAC = imgBAC.getScaledInstance(220, 150, Image.SCALE_SMOOTH);
-    JRadioButton btnBAC = new JRadioButton(new ImageIcon(imgEscaladaBAC));
-    btnBAC.setBounds((panelBAC.getWidth() - 220) / 2,(panelBAC.getHeight() - 150) / 2,220, 150);
-    btnBAC.setBounds(15, 20, 170, 100);
-    btnBAC.setBackground(new Color(25, 38, 35));
-    grupoBancos.add(btnBAC);
-    panelBAC.add(btnBAC);
-    panel.add(panelBAC);
-    
-   JRadioButton rbBac = new JRadioButton("Ban Credomatic");
-rbBac.setForeground(Color.WHITE);
-rbBac.setBackground(new Color(25, 38, 35));
-rbBac.setBounds(40, 125, 150, 20);
-grupoBancos.add(rbBac);
-panelBAC.add(rbBac);
-
-
-    // Panel G&T Continental
-    JPanel panelGYT = crearCard(1100 + offsetX, 120, 200, 150);
-    panelGYT.setLayout(null);
-    Image imgGYT = new ImageIcon(getClass().getResource("/gui/image/gyt.png")).getImage();
-    Image imgEscaladaGYT = imgGYT.getScaledInstance(220, 150, Image.SCALE_SMOOTH);
-    JRadioButton btnGYT = new JRadioButton(new ImageIcon(imgEscaladaGYT));
-    btnGYT.setBounds((panelGYT.getWidth() - 220) / 2,(panelGYT.getHeight() - 150) / 2,220, 150);
-    btnGYT.setBounds(15, 20, 170, 100);
-    btnGYT.setBackground(new Color(25, 38, 35));
-    grupoBancos.add(btnGYT);
-    panelGYT.add(btnGYT);
-    panel.add(panelGYT);
-    
-       JRadioButton rbGYT = new JRadioButton("G&T Continental");
-rbGYT.setForeground(Color.WHITE);
-rbGYT.setBackground(new Color(25, 38, 35));
-rbGYT.setBounds(40, 125, 150, 20);
-grupoBancos.add(rbGYT);
-panelGYT.add(rbGYT);
-    
-    JButton btnFlujo = new JButton("→ Flujo de Bancos");
-btnFlujo.setBounds(1380, 450, 250, 50); // ajusta coordenadas según tu layout
-btnFlujo.setFocusPainted(false);
-btnFlujo.setForeground(Color.BLACK);
-btnFlujo.setBackground(new Color(251, 232, 138)); // estilo amarillo
-btnFlujo.setFont(new Font("Segoe UI", Font.BOLD, 16));
-panel.add(btnFlujo);
-
-
-    // Panel de "Saldo Disponible" (sin borde amarillo)
-    JPanel panelSaldo = crearCardSinBorde(350 + offsetX, 320, 400, 150);
-    panelSaldo.setLayout(null);
-    JLabel lblSaldoTitulo = new JLabel("Saldo Disponible:");
-    lblSaldoTitulo.setForeground(Color.WHITE);
-    lblSaldoTitulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
-    lblSaldoTitulo.setBounds(20, 20, 200, 30);
-    panelSaldo.add(lblSaldoTitulo);
-    JLabel lblSaldoValor = new JLabel("Q. 500.00");
-    lblSaldoValor.setForeground(new Color(251, 232, 138));
-    lblSaldoValor.setFont(new Font("Segoe UI", Font.BOLD, 28));
-    lblSaldoValor.setBounds(20, 60, 300, 40);
-    panelSaldo.add(lblSaldoValor);
-    panel.add(panelSaldo);
-
-    // Panel de "Nombre del Banco" (sin borde amarillo)
-    JPanel panelBanco = crearCardSinBorde(800 + offsetX, 320, 400, 150);
-    panelBanco.setLayout(null);
-    JLabel lblBancoTitulo = new JLabel("Nombre del Banco:");
-    lblBancoTitulo.setForeground(Color.WHITE);
-    lblBancoTitulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
-    lblBancoTitulo.setBounds(20, 20, 250, 30);
-    panelBanco.add(lblBancoTitulo);
-    JLabel lblBancoValor = new JLabel("Banco Banrural");
-    lblBancoValor.setForeground(new Color(251, 232, 138));
-    lblBancoValor.setFont(new Font("Segoe UI", Font.BOLD, 22));
-    lblBancoValor.setBounds(20, 60, 300, 30);
-    panelBanco.add(lblBancoValor);
-    panel.add(panelBanco);
-
-    // PANEL 2 — TABLA DE RESULTADOS (con borde blanco)
-            JPanel panelTabla = new JPanel();
+            // ==========================================================
+            // PANEL DE TABLA CON BORDE BLANCO ESTILIZADO DELGADO Y CURVO
+            // ==========================================================
+            JPanel panelTabla = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    // Fondo interno oscuro
+                    g2.setColor(new Color(25, 38, 35, 180));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 22, 22);
+                    // Borde blanco muy delgado y suave (Grosor 1f)
+                    g2.setColor(new Color(255, 255, 255, 140));
+                    g2.setStroke(new BasicStroke(1.0f));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 22, 22);
+                    g2.dispose();
+                }
+            };
             panelTabla.setLayout(null);
-            panelTabla.setBackground(new Color(25, 38, 35, 180));
-            panelTabla.setBounds(450, 510, 1180, 380);
-            panelTabla.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2, true));
-            panel.add(panelTabla);
+            panelTabla.setOpaque(false);
+            panelTabla.setBounds(40, 470, 1170, 440);
+            panelContenedorGris.add(panelTabla);
  
             String[] columnas = {"Fecha", "Actividad", "Monto", "Saldo Restante", "Estado"};
  
@@ -344,22 +388,19 @@ panel.add(btnFlujo);
             header.setFont(new Font("Segoe UI", Font.BOLD, 14));
  
             JScrollPane scroll = new JScrollPane(tabla);
+            scroll.setBorder(BorderFactory.createEmptyBorder()); // Quitamos borde cuadrado por defecto del scroll
             scroll.getViewport().setBackground(new Color(25, 38, 35));
-            scroll.setBounds(10, 10, 1160, 310);
+            scroll.setBounds(15, 15, 1140, 410);
             panelTabla.add(scroll);
-            
-}
+        }
 
-    @Override
+        @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
     }
 
-    // -------------------------
-    // Métodos auxiliares fuera de FondoPanel
-    // -------------------------
     private JPanel crearCard(int x, int y, int w, int h) {
         JPanel panel = new JPanel() {
             @Override
@@ -369,6 +410,7 @@ panel.add(btnFlujo);
                 g2.setColor(new Color(25, 38, 35, 210));
                 g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 30, 30));
                 g2.setColor(new Color(251, 232, 138));
+                g2.setStroke(new BasicStroke(1.2f));
                 g2.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, 30, 30));
                 g2.dispose();
             }
@@ -394,9 +436,6 @@ panel.add(btnFlujo);
         return panel;
     }
 
-    // -------------------------
-    // Main
-    // -------------------------
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new BancosConectados().setVisible(true));
     }
