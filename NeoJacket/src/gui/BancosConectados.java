@@ -30,7 +30,7 @@ public class BancosConectados extends JFrame {
         setLocationRelativeTo(null);
 
         setContentPane(new FondoPanel());
-        
+
     }
 
     // ==========================================================
@@ -341,7 +341,6 @@ public class BancosConectados extends JFrame {
             // ==========================================================
             // CORRECCIÓN: PANELES AL FRENTE (Agregados a panelContenedorGris)
             // ==========================================================
-            
             // Panel de "Saldo Disponible" - Reposicionado simétricamente adentro
             JPanel panelSaldo = crearCardSinBorde(40, 320, 410, 110);
             panelSaldo.setLayout(null);
@@ -367,7 +366,7 @@ public class BancosConectados extends JFrame {
             lblBancoTitulo.setBounds(20, 15, 250, 25);
             panelBanco.add(lblBancoTitulo);
 
-            lblBancoValor = new JLabel("-");
+            lblBancoValor = new JLabel("--");
             lblBancoValor.setForeground(new Color(251, 232, 138));
             lblBancoValor.setFont(new Font("Segoe UI", Font.BOLD, 22));
             lblBancoValor.setBounds(20, 45, 300, 35);
@@ -465,6 +464,7 @@ public class BancosConectados extends JFrame {
             // Al abrir la interfaz, cargar todas las cuentas del usuario
             try {
                 Connection con = conexion.getConexion();
+
                 PreparedStatement ps = con.prepareStatement(
                         "SELECT c.saldo, c.estado, t.nombre AS tipoCuenta, b.nombre AS banco "
                         + "FROM cuentas_bancarias c "
@@ -473,6 +473,61 @@ public class BancosConectados extends JFrame {
                         + "WHERE c.id_usuario = ?"
                 );
                 ps.setInt(1, SesionUsuario.getIdUsuario());
+                ResultSet rs = ps.executeQuery();
+
+                modelo.setRowCount(0);
+
+                double saldoTotal = 0.0; // 🔹 acumulador de saldo total
+                while (rs.next()) {
+                    Object[] fila = {
+                        java.time.LocalDate.now(),
+                        rs.getString("tipoCuenta"),
+                        rs.getDouble("saldo"),
+                        rs.getString("banco"),
+                        rs.getString("estado")
+                    };
+                    modelo.addRow(fila);
+
+                    saldoTotal += rs.getDouble("saldo"); // 🔹 sumar cada saldo
+                }
+
+                // Mostrar el saldo total en el panel
+                lblSaldoValor.setText("Q. " + saldoTotal);
+
+                // 🔹 Mostrar "--" en Nombre del Banco por defecto
+                lblBancoValor.setText("--");
+
+                rs.close();
+                ps.close();
+                con.close();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+
+            @Override
+            protected void paintComponent
+            (Graphics g
+            
+                ) {
+            super.paintComponent(g);
+                g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
+            }
+        }
+
+        private void mostrarCuentasPorBanco(int idBanco) {
+            try {
+                Connection con = conexion.getConexion();
+                PreparedStatement ps = con.prepareStatement(
+                        "SELECT c.saldo, c.estado, t.nombre AS tipoCuenta, b.nombre AS banco "
+                        + "FROM cuentas_bancarias c "
+                        + "JOIN tipos_cuentas t ON c.id_tipo_cuenta = t.id_tipo "
+                        + "JOIN bancos b ON c.id_banco = b.id_banco "
+                        + "WHERE c.id_usuario = ? AND c.id_banco = ?"
+                );
+                ps.setInt(1, SesionUsuario.getIdUsuario());
+                ps.setInt(2, idBanco);
                 ResultSet rs = ps.executeQuery();
 
                 modelo.setRowCount(0);
@@ -495,6 +550,12 @@ public class BancosConectados extends JFrame {
                     }
                 }
 
+                if (modelo.getRowCount() == 0) {
+                    JOptionPane.showMessageDialog(this, "No tienes cuentas registradas en este banco.");
+                    lblBancoValor.setText("-");
+                    lblSaldoValor.setText("Q. 0.00");
+                }
+
                 rs.close();
                 ps.close();
                 con.close();
@@ -502,101 +563,45 @@ public class BancosConectados extends JFrame {
                 JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
                 ex.printStackTrace();
             }
-
         }
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
-        }
-    }
-
-    private void mostrarCuentasPorBanco(int idBanco) {
-        try {
-            Connection con = conexion.getConexion();
-            PreparedStatement ps = con.prepareStatement(
-                    "SELECT c.saldo, c.estado, t.nombre AS tipoCuenta, b.nombre AS banco "
-                    + "FROM cuentas_bancarias c "
-                    + "JOIN tipos_cuentas t ON c.id_tipo_cuenta = t.id_tipo "
-                    + "JOIN bancos b ON c.id_banco = b.id_banco "
-                    + "WHERE c.id_usuario = ? AND c.id_banco = ?"
-            );
-            ps.setInt(1, SesionUsuario.getIdUsuario());
-            ps.setInt(2, idBanco);
-            ResultSet rs = ps.executeQuery();
-
-            modelo.setRowCount(0);
-
-            boolean primeraFila = true;
-            while (rs.next()) {
-                Object[] fila = {
-                    java.time.LocalDate.now(),
-                    rs.getString("tipoCuenta"),
-                    rs.getDouble("saldo"),
-                    rs.getString("banco"),
-                    rs.getString("estado")
-                };
-                modelo.addRow(fila);
-
-                if (primeraFila) {
-                    lblBancoValor.setText(rs.getString("banco"));
-                    lblSaldoValor.setText("Q. " + rs.getDouble("saldo"));
-                    primeraFila = false;
+        private JPanel crearCard(int x, int y, int w, int h) {
+            JPanel panel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 210));
+                    g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 30, 30));
+                    g2.setColor(new Color(251, 232, 138));
+                    g2.setStroke(new BasicStroke(1.2f));
+                    g2.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, 30, 30));
+                    g2.dispose();
                 }
-            }
-
-            if (modelo.getRowCount() == 0) {
-                JOptionPane.showMessageDialog(this, "No tienes cuentas registradas en este banco.");
-                lblBancoValor.setText("-");
-                lblSaldoValor.setText("Q. 0.00");
-            }
-
-            rs.close();
-            ps.close();
-            con.close();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
-            ex.printStackTrace();
+            };
+            panel.setOpaque(false);
+            panel.setBounds(x, y, w, h);
+            return panel;
         }
-    }
 
-    private JPanel crearCard(int x, int y, int w, int h) {
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(25, 38, 35, 210));
-                g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 30, 30));
-                g2.setColor(new Color(251, 232, 138));
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, 30, 30));
-                g2.dispose();
-            }
-        };
-        panel.setOpaque(false);
-        panel.setBounds(x, y, w, h);
-        return panel;
-    }
+        private JPanel crearCardSinBorde(int x, int y, int w, int h) {
+            JPanel panel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 210));
+                    g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 30, 30));
+                    g2.dispose();
+                }
+            };
+            panel.setOpaque(false);
+            panel.setBounds(x, y, w, h);
+            return panel;
+        }
 
-    private JPanel crearCardSinBorde(int x, int y, int w, int h) {
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(25, 38, 35, 210));
-                g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 30, 30));
-                g2.dispose();
-            }
-        };
-        panel.setOpaque(false);
-        panel.setBounds(x, y, w, h);
-        return panel;
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new BancosConectados().setVisible(true));
-    }
+        public static void main(String[] args) {
+            SwingUtilities.invokeLater(() -> new BancosConectados().setVisible(true));
+        }
+    
 }

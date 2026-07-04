@@ -33,12 +33,13 @@ public class ActualizarSaldos extends JFrame {
     }
 
     class FondoPanel extends JPanel {
+
         public FondoPanel() {
             setLayout(null);
             crearSidebar(this);
             crearContenido();
         }
-        
+
         private void crearSidebar(JPanel panel) {
             JPanel sidebar = new JPanel() {
                 @Override
@@ -53,9 +54,9 @@ public class ActualizarSaldos extends JFrame {
             sidebar.setOpaque(false);
             sidebar.setBounds(20, 20, 300, 950);
             sidebar.setLayout(null);
-            
+
             Color amarillo = new Color(251, 232, 138);
-            Color fondoTransparente = new Color(0, 0, 0, 0); 
+            Color fondoTransparente = new Color(0, 0, 0, 0);
             Color amarilloBorde = new Color(251, 232, 138);
 
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -78,16 +79,16 @@ public class ActualizarSaldos extends JFrame {
                     protected void paintComponent(Graphics g) {
                         Graphics2D g2 = (Graphics2D) g.create();
                         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                        
+
                         g2.setColor(getBackground());
                         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                        
+
                         if (getBackground() != amarillo) {
                             g2.setColor(amarilloBorde);
                             g2.setStroke(new BasicStroke(1f));
                             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
                         }
-                        
+
                         g2.dispose();
                         super.paintComponent(g);
                     }
@@ -95,8 +96,8 @@ public class ActualizarSaldos extends JFrame {
 
                 btn.setBounds(20, y, 250, 46);
                 btn.setFocusPainted(false);
-                btn.setContentAreaFilled(false); 
-                btn.setBorderPainted(false);     
+                btn.setContentAreaFilled(false);
+                btn.setBorderPainted(false);
                 btn.setOpaque(false);
                 btn.setForeground(Color.WHITE);
                 btn.setBackground(fondoTransparente);
@@ -119,30 +120,30 @@ public class ActualizarSaldos extends JFrame {
                 });
 
                 if (texto.equals("Saldos")) {
-                    btn.addActionListener(e -> { 
+                    btn.addActionListener(e -> {
                         new Saldos().setVisible(true);
-                        dispose(); 
+                        dispose();
                     });
                 }
                 if (texto.equals("Bancos Conectados")) {
-                    btn.addActionListener(e -> { 
+                    btn.addActionListener(e -> {
                         new BancosConectados().setVisible(true);
-                        dispose(); 
+                        dispose();
                     });
                 }
                 if (texto.equals("Transferencias")) {
-                    btn.addActionListener(e -> { 
+                    btn.addActionListener(e -> {
                         new Transferencias().setVisible(true);
-                        dispose(); 
+                        dispose();
                     });
                 }
                 if (texto.equals("Historial")) {
-                    btn.addActionListener(e -> { 
+                    btn.addActionListener(e -> {
                         new Historial().setVisible(true);
-                        dispose(); 
+                        dispose();
                     });
                 }
-                        
+
                 JButton btnCerrarSesion = new JButton("Cerrar sesión");
                 btnCerrarSesion.setBounds(20, 880, 250, 55);
                 btnCerrarSesion.setFocusPainted(false);
@@ -176,19 +177,22 @@ public class ActualizarSaldos extends JFrame {
                 }
             };
             contenedor.setLayout(null);
-            contenedor.setOpaque(false); 
+            contenedor.setOpaque(false);
             contenedor.setBounds(350, 60, 1300, 760);
             contenedor.setBorder(new LineBorder(new Color(251, 232, 138, 50), 1));
             add(contenedor);
 
             JPanel barraSuperior = new JPanel();
             barraSuperior.setBounds(0, 0, 1300, 55);
-            barraSuperior.setBackground(new Color(23, 32, 29)); 
+            barraSuperior.setBackground(new Color(23, 32, 29));
             barraSuperior.setLayout(null);
             contenedor.add(barraSuperior);
- 
+
             JButton btnTab1 = crearBotonPestaña("Agregar Fondos", 0);
-            btnTab1.addActionListener(e -> { new AgregarFondos().setVisible(true); dispose(); });
+            btnTab1.addActionListener(e -> {
+                new AgregarFondos().setVisible(true);
+                dispose();
+            });
             barraSuperior.add(btnTab1);
 
             JButton btnTab2 = new JButton("Actualizar Saldos");
@@ -201,7 +205,10 @@ public class ActualizarSaldos extends JFrame {
             barraSuperior.add(btnTab2);
 
             JButton btnTab3 = crearBotonPestaña("Consultar Saldos", 867);
-            btnTab3.addActionListener(e -> { new ConsultarSaldos().setVisible(true); dispose(); });
+            btnTab3.addActionListener(e -> {
+                new ConsultarSaldos().setVisible(true);
+                dispose();
+            });
             barraSuperior.add(btnTab3);
 
             // DETALLE 2: Reducción de tamaño del cuadro interno a proporciones perfectas (Estilo Agregar Fondos)
@@ -211,7 +218,7 @@ public class ActualizarSaldos extends JFrame {
             contenedor.add(panelForm);
 
             JLabel lblBanco = new JLabel("Selecciona tu banco");
-            lblBanco.setForeground(Color.WHITE); 
+            lblBanco.setForeground(Color.WHITE);
             lblBanco.setFont(tituloCampos);
             lblBanco.setBounds(30, 25, 390, 25);
             panelForm.add(lblBanco);
@@ -221,22 +228,22 @@ public class ActualizarSaldos extends JFrame {
             });
             cbBancos.setBounds(30, 55, 390, 45);
             cbBancos.setFont(textoInputs);
-            cbBancos.setBackground(new Color(13, 18, 16)); 
+            cbBancos.setBackground(new Color(13, 18, 16));
             cbBancos.setForeground(Color.WHITE);
             cbBancos.setBorder(new LineBorder(new Color(251, 232, 138, 120), 1));
-            
+
             cbBancos.setRenderer(new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                     JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    label.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12)); 
-                    
+                    label.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+
                     if (isSelected) {
-                        label.setBackground(new Color(251, 232, 138)); 
-                        label.setForeground(Color.BLACK);              
+                        label.setBackground(new Color(251, 232, 138));
+                        label.setForeground(Color.BLACK);
                     } else {
-                        label.setBackground(new Color(13, 18, 16));    
-                        label.setForeground(Color.WHITE);              
+                        label.setBackground(new Color(13, 18, 16));
+                        label.setForeground(Color.WHITE);
                     }
                     return label;
                 }
@@ -300,6 +307,7 @@ public class ActualizarSaldos extends JFrame {
                 public void mouseEntered(java.awt.event.MouseEvent e) {
                     btnGuardar.setBackground(new Color(255, 245, 180));
                 }
+
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent e) {
                     btnGuardar.setBackground(new Color(251, 232, 138));
@@ -317,9 +325,26 @@ public class ActualizarSaldos extends JFrame {
                     double nuevoMonto = Double.parseDouble(txtNuevoSaldo.getText());
                     String motivo = txtDescripcion.getText();
 
+                    // 🔹 Mapeo de nombres del ComboBox a los nombres reales en la BD
+                    String nombreBD = "";
+                    switch (bancoSeleccionado) {
+                        case "Banco Industrial":
+                            nombreBD = "Bi";
+                            break;
+                        case "BAC Credomatic":
+                            nombreBD = "bac";
+                            break;
+                        case "Banrural":
+                            nombreBD = "banrural";
+                            break;
+                        case "G&T Continental":
+                            nombreBD = "gyt";
+                            break;
+                    }
+
                     Connection con = conexion.getConexion();
                     PreparedStatement psBanco = con.prepareStatement("SELECT id_banco FROM bancos WHERE nombre = ?");
-                    psBanco.setString(1, bancoSeleccionado);
+                    psBanco.setString(1, nombreBD);
                     ResultSet rsBanco = psBanco.executeQuery();
 
                     if (rsBanco.next()) {
@@ -327,6 +352,17 @@ public class ActualizarSaldos extends JFrame {
 
                         boolean ok = crud.actualizarSaldo(idUsuario, idBanco, montoActual, nuevoMonto, motivo);
                         if (ok) {
+                            // 🔹 Registrar la transacción en la tabla
+                            PreparedStatement psTrans = con.prepareStatement(
+                                    "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, moneda_origen, estado) "
+                                    + "VALUES (?, ?, 'deposito', ?, 'GTQ', 'completada')"
+                            );
+                            psTrans.setInt(1, idBanco);      // aquí puedes usar idCuenta si lo tienes
+                            psTrans.setInt(2, idUsuario);
+                            psTrans.setDouble(3, nuevoMonto);
+                            psTrans.executeUpdate();
+                            psTrans.close();
+
                             JOptionPane.showMessageDialog(this, "Saldo actualizado con éxito");
                         }
                     }
@@ -340,6 +376,7 @@ public class ActualizarSaldos extends JFrame {
                     ex.printStackTrace();
                 }
             });
+
         }
 
         private JButton crearBotonPestaña(String texto, int xPos) {
@@ -352,12 +389,13 @@ public class ActualizarSaldos extends JFrame {
             btn.setBorder(BorderFactory.createEmptyBorder());
             btn.setContentAreaFilled(false);
             btn.setOpaque(true);
-            
+
             btn.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent e) {
                     btn.setForeground(Color.WHITE);
                 }
+
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent e) {
                     btn.setForeground(new Color(150, 150, 150));
@@ -374,6 +412,7 @@ public class ActualizarSaldos extends JFrame {
     }
 
     class PanelFormularioRedondeado extends JPanel {
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
@@ -391,25 +430,26 @@ public class ActualizarSaldos extends JFrame {
     }
 
     class JTextFieldRedondeado extends JTextField {
+
         public JTextFieldRedondeado() {
             setOpaque(false);
-            setCaretColor(Color.WHITE); 
+            setCaretColor(Color.WHITE);
             setForeground(Color.WHITE);
-            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15)); 
+            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
+
             g2.setColor(new Color(13, 18, 16));
             g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-            
+
             g2.setColor(new Color(251, 232, 138, 130));
             g2.setStroke(new BasicStroke(1f));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-            
+
             g2.dispose();
             super.paintComponent(g);
         }
@@ -421,12 +461,12 @@ public class ActualizarSaldos extends JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 300, Short.MAX_VALUE)
         );
         pack();
     }

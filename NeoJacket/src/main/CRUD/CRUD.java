@@ -239,60 +239,70 @@ public class CRUD {
 // MÉTODO: Actualizar Saldos
 // =============================
 public boolean actualizarSaldo(int idUsuario, int idBanco, double montoActual, double nuevoMonto, String motivo) {
+    Connection con = null;
+    PreparedStatement psUpdate = null;
+    PreparedStatement psTrans = null;
+    ResultSet rsCuenta = null;
+
     try {
-        Connection con = conexion.getConexion();
+        con = conexion.getConexion();
 
-        // 1. Validar monto actual
-        PreparedStatement psSaldo = con.prepareStatement(
-            "SELECT saldo FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ?"
+        // 1. Obtener la cuenta bancaria del usuario en ese banco
+        PreparedStatement psCuenta = con.prepareStatement(
+            "SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ?"
         );
-        psSaldo.setInt(1, idUsuario);
-        psSaldo.setInt(2, idBanco);
-        ResultSet rsSaldo = psSaldo.executeQuery();
+        psCuenta.setInt(1, idUsuario);
+        psCuenta.setInt(2, idBanco);
+        rsCuenta = psCuenta.executeQuery();
 
-        if (rsSaldo.next()) {
-            double saldoBD = rsSaldo.getDouble("saldo");
-            if (saldoBD != montoActual) {
-                JOptionPane.showMessageDialog(null, "El monto actual no coincide con el saldo en la base de datos");
-                return false;
-            }
+        if (rsCuenta.next()) {
+            int idCuenta = rsCuenta.getInt("id_cuenta");
 
-            // 2. Actualizar saldo
-            PreparedStatement psUpdate = con.prepareStatement(
-                "UPDATE cuentas_bancarias SET saldo = ? WHERE id_usuario = ? AND id_banco = ?"
+            // 2. Actualizar el saldo en cuentas_bancarias
+            psUpdate = con.prepareStatement(
+                "UPDATE cuentas_bancarias SET saldo = ? WHERE id_cuenta = ?"
             );
             psUpdate.setDouble(1, nuevoMonto);
-            psUpdate.setInt(2, idUsuario);
-            psUpdate.setInt(3, idBanco);
+            psUpdate.setInt(2, idCuenta);
             psUpdate.executeUpdate();
 
-            // 3. Insertar transacción tipo "actualizacion"
-            PreparedStatement psInsert = con.prepareStatement(
-                "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, descripcion, moneda_origen) " +
-                "VALUES ((SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ? LIMIT 1), ?, 'actualizacion', ?, ?, 'GTQ')"
+            // 3. Registrar la transacción en transacciones
+            psTrans = con.prepareStatement(
+                "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, moneda_origen, estado) " +
+                "VALUES (?, ?, ?, ?, 'GTQ', 'completada')"
             );
-            psInsert.setInt(1, idUsuario);
-            psInsert.setInt(2, idBanco);
-            psInsert.setInt(3, idUsuario);
-            psInsert.setDouble(4, nuevoMonto);
-            psInsert.setString(5, motivo.isEmpty() ? null : motivo);
-            psInsert.executeUpdate();
+            psTrans.setInt(1, idCuenta);
+            psTrans.setInt(2, idUsuario);
 
-            psUpdate.close();
-            psInsert.close();
+            // 🔹 Aquí decides el tipo de transacción según el caso
+            if (nuevoMonto > montoActual) {
+                psTrans.setString(3, "deposito");   // saldo aumentó
+                psTrans.setDouble(4, nuevoMonto - montoActual);
+            } else {
+                psTrans.setString(3, "retiro");     // saldo disminuyó
+                psTrans.setDouble(4, montoActual - nuevoMonto);
+            }
+
+            psTrans.executeUpdate();
         }
 
-        rsSaldo.close();
-        psSaldo.close();
-        con.close();
         return true;
 
-    } catch (SQLException e) {
-        JOptionPane.showMessageDialog(null, "Error al actualizar saldo: " + e.getMessage());
+    } catch (Exception e) {
         e.printStackTrace();
         return false;
+    } finally {
+        try {
+            if (rsCuenta != null) rsCuenta.close();
+            if (psUpdate != null) psUpdate.close();
+            if (psTrans != null) psTrans.close();
+            if (con != null) con.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }
+
 
    // =============================
 // MÉTODO: Consultar Saldo
