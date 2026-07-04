@@ -1,11 +1,15 @@
 package funcionalidades;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 import javax.swing.JOptionPane;
 
 import main.CRUD.CRUD;
+import main.Conexion.conexion;
 
 public class CrearUsuario {
 
@@ -16,10 +20,9 @@ public class CrearUsuario {
     }
 
     /**
-     * Versión que se adapta a tus campos actuales de RegistroNeo.
-     * - txtUsuario -> nombre (usaremos todo como nombre)
-     * - txtIdent -> dpiNumero
-     * Lo demás lo dejamos como "faltante" y bloqueamos el registro si falta información.
+     * Versión que se adapta a tus campos actuales de RegistroNeo. - txtUsuario
+     * -> nombre (usaremos todo como nombre) - txtIdent -> dpiNumero Lo demás lo
+     * dejamos como "faltante" y bloqueamos el registro si falta información.
      */
     public boolean crearDesdeRegistroNeo(
             String nombre,
@@ -81,7 +84,6 @@ public class CrearUsuario {
     // ============================
     // VALIDACIONES
     // ============================
-
     private void validarCamposObligatorios(String... campos) {
         for (String campo : campos) {
             if (campo == null || campo.trim().isEmpty()) {
@@ -142,4 +144,86 @@ public class CrearUsuario {
             throw new IllegalArgumentException("El género debe ser 'M', 'F' o 'Otro'.");
         }
     }
+
+    public boolean crearCuentaBancaria(int idUsuario, int idBanco, String tipoCuenta) {
+        try {
+            Connection con = conexion.getConexion();
+
+            // Obtener id_tipo_cuenta desde la tabla tipos_cuentas
+            PreparedStatement psTipo = con.prepareStatement(
+                    "SELECT id_tipo FROM tipos_cuentas WHERE nombre = ?"
+            );
+            psTipo.setString(1, tipoCuenta);
+            ResultSet rsTipo = psTipo.executeQuery();
+
+            int idTipoCuenta = -1;
+            if (rsTipo.next()) {
+                idTipoCuenta = rsTipo.getInt("id_tipo");
+            }
+            rsTipo.close();
+            psTipo.close();
+
+            if (idTipoCuenta == -1) {
+                throw new Exception("Tipo de cuenta no válido: " + tipoCuenta);
+            }
+
+            // Insertar nueva cuenta bancaria
+            PreparedStatement psCuenta = con.prepareStatement(
+                    "INSERT INTO cuentas_bancarias (id_usuario, id_banco, id_tipo_cuenta, numero_cuenta, saldo, estado) "
+                    + "VALUES (?, ?, ?, ?, ?, ?)"
+            );
+            psCuenta.setInt(1, idUsuario);
+            psCuenta.setInt(2, idBanco);
+            psCuenta.setInt(3, idTipoCuenta);
+            psCuenta.setString(4, generarNumeroCuenta()); // método auxiliar para generar número único
+            psCuenta.setDouble(5, 0.00); // saldo inicial
+            psCuenta.setString(6, "activa");
+
+            int filas = psCuenta.executeUpdate();
+
+// 🔹 Verificación en consola
+            System.out.println("Cuenta creada -> Usuario: " + idUsuario
+                    + ", Banco: " + idBanco
+                    + ", Tipo: " + tipoCuenta
+                    + ", Filas insertadas: " + filas);
+
+            psCuenta.close();
+            con.close();
+
+            return filas > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public int obtenerIdUsuario(String correo, String dpiNumero) {
+        int idUsuario = -1;
+        try {
+            Connection con = conexion.getConexion();
+            PreparedStatement ps = con.prepareStatement(
+                    "SELECT id_usuario FROM usuarios WHERE correo = ? OR dpi_numero = ?"
+            );
+            ps.setString(1, correo);
+            ps.setString(2, dpiNumero);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                idUsuario = rs.getInt("id_usuario");
+            }
+
+            rs.close();
+            ps.close();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return idUsuario;
+    }
+
+// Método auxiliar para generar número de cuenta ficticio
+    private String generarNumeroCuenta() {
+        return "NC-" + System.currentTimeMillis();
+    }
+
 }

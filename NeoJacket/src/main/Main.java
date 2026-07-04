@@ -1,5 +1,6 @@
 package main;
 
+import funcionalidades.SesionUsuario;
 import gui.InicioNeo;
 import gui.RegistroNeo;
 
