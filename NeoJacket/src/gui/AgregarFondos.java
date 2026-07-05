@@ -104,7 +104,7 @@ public class AgregarFondos extends JFrame {
 
                         // Si el ratón no está encima, dibuja un contorno sutil
                         if (getBackground() != amarillo) {
-                            g2.setColor(yellowBorder);
+                            g2.setColor(amarilloBorde);
                             g2.setStroke(new BasicStroke(1f));
                             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
                         }

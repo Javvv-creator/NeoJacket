@@ -1,14 +1,12 @@
 package main;
 
-import funcionalidades.SesionUsuario;
-import gui.InicioNeo;
-import gui.RegistroNeo;
+import gui.PantallaBienvenida;
 
 public class Main {
 
     public static void main(String[] args) {
-        InicioNeo ejemplo = new InicioNeo();
-        ejemplo.setVisible(true);
-        
+
+        new PantallaBienvenida().setVisible(true);
+
     }
 }
