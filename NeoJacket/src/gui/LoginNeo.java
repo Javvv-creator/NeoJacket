@@ -2,24 +2,43 @@ package gui;
 
 import funcionalidades.SesionUsuario;
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 
 public class LoginNeo extends JFrame {
 
+    // ============================
+    // PALETA DE COLORES (constantes para mantener consistencia)
+    // ============================
+    private static final Color VERDE_OSCURO   = new Color(25, 38, 35, 200);
+    private static final Color AMARILLO       = new Color(251, 232, 138);
+    private static final Color AMARILLO_HOVER = new Color(255, 245, 180);
+    private static final Color PLACEHOLDER    = new Color(255, 255, 255, 140);
+
     private Image fondo;
     private Image logo;
+    private FondoPanel fondoPanel;
 
     // ============================
-    // TEXTFIELD REDONDEADO
+    // TEXTFIELD REDONDEADO CON PLACEHOLDER
     // ============================
     class RoundedTextField extends JTextField {
-        public RoundedTextField(int size) {
+        private String placeholder;
+        private boolean focused = false;
+
+        public RoundedTextField(int size, String placeholder) {
             super(size);
+            this.placeholder = placeholder;
             setOpaque(false);
             setForeground(Color.WHITE);
             setCaretColor(Color.WHITE);
-            setBorder(BorderFactory.createEmptyBorder(8, 40, 8, 10));
+            setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
             setFont(new Font("Segoe UI", Font.PLAIN, 18));
+
+            addFocusListener(new FocusAdapter() {
+                @Override public void focusGained(FocusEvent e) { focused = true; repaint(); }
+                @Override public void focusLost(FocusEvent e) { focused = false; repaint(); }
+            });
         }
 
         @Override
@@ -27,28 +46,46 @@ public class LoginNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2.setColor(new Color(25, 38, 35, 200));
+            g2.setColor(VERDE_OSCURO);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
 
-            g2.setColor(new Color(251, 232, 138));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 25, 25);
+            g2.setColor(focused ? AMARILLO_HOVER : AMARILLO);
+            g2.setStroke(new BasicStroke(focused ? 2f : 1f));
+            g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 25, 25);
 
             super.paintComponent(g);
+
+            if (getText().isEmpty() && !focused) {
+                g2.setColor(PLACEHOLDER);
+                g2.setFont(getFont());
+                FontMetrics fm = g2.getFontMetrics();
+                int textY = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(placeholder, getInsets().left, textY);
+            }
             g2.dispose();
         }
     }
 
     // ============================
-    // PASSFIELD REDONDEADO
+    // PASSFIELD REDONDEADO CON PLACEHOLDER
     // ============================
     class RoundedPassField extends JPasswordField {
-        public RoundedPassField(int size) {
+        private String placeholder;
+        private boolean focused = false;
+
+        public RoundedPassField(int size, String placeholder) {
             super(size);
+            this.placeholder = placeholder;
             setOpaque(false);
             setForeground(Color.WHITE);
             setCaretColor(Color.WHITE);
-            setBorder(BorderFactory.createEmptyBorder(8, 40, 8, 10));
+            setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
             setFont(new Font("Segoe UI", Font.PLAIN, 18));
+
+            addFocusListener(new FocusAdapter() {
+                @Override public void focusGained(FocusEvent e) { focused = true; repaint(); }
+                @Override public void focusLost(FocusEvent e) { focused = false; repaint(); }
+            });
         }
 
         @Override
@@ -56,13 +93,23 @@ public class LoginNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2.setColor(new Color(25, 38, 35, 200));
+            g2.setColor(VERDE_OSCURO);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
 
-            g2.setColor(new Color(251, 232, 138));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 25, 25);
+            g2.setColor(focused ? AMARILLO_HOVER : AMARILLO);
+            g2.setStroke(new BasicStroke(focused ? 2f : 1f));
+            g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 25, 25);
 
+            boolean vacio = getPassword().length == 0;
             super.paintComponent(g);
+
+            if (vacio && !focused) {
+                g2.setColor(PLACEHOLDER);
+                g2.setFont(getFont());
+                FontMetrics fm = g2.getFontMetrics();
+                int textY = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(placeholder, getInsets().left, textY);
+            }
             g2.dispose();
         }
     }
@@ -86,11 +133,11 @@ public class LoginNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            Color amarillo = new Color(251, 232, 138);
-            Color hover = new Color(255, 245, 180);
+            boolean presionado = getModel().isPressed();
+            boolean hover = getModel().isRollover();
 
-            g2.setColor(getModel().isRollover() ? hover : amarillo);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+            g2.setColor(presionado ? AMARILLO : (hover ? AMARILLO_HOVER : AMARILLO));
+            g2.fillRoundRect(0, 0, getWidth(), presionado ? getHeight() - 2 : getHeight(), 25, 25);
 
             super.paintComponent(g);
             g2.dispose();
@@ -110,7 +157,9 @@ public class LoginNeo extends JFrame {
         setResizable(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setContentPane(new FondoPanel());
+
+        fondoPanel = new FondoPanel();
+        setContentPane(fondoPanel);
         setVisible(true);
     }
 
@@ -119,9 +168,28 @@ public class LoginNeo extends JFrame {
     // ============================
     class FondoPanel extends JPanel {
 
+        private JPanel panelLogin;
+        private static final int PANEL_ANCHO = 420;
+        private static final int PANEL_ALTO  = 450;
+
         public FondoPanel() {
             setLayout(null);
             crearLogin();
+
+            // Recalcula el centrado del panel de login cada vez que la ventana cambia de tamaño
+            addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    centrarPanelLogin();
+                }
+            });
+        }
+
+        private void centrarPanelLogin() {
+            if (panelLogin == null) return;
+            int x = (getWidth() - PANEL_ANCHO) / 2;
+            int y = (getHeight() - PANEL_ALTO) / 2;
+            panelLogin.setBounds(x, y, PANEL_ANCHO, PANEL_ALTO);
         }
 
         private void crearLogin() {
@@ -132,124 +200,139 @@ public class LoginNeo extends JFrame {
             lblLogo.setBounds(50, 40, 260, 120);
             add(lblLogo);
 
-            // PANEL SEMITRANSPARENTE CENTRADO
-            JPanel panelLogin = new JPanel();
+            // PANEL SEMITRANSPARENTE, AHORA CENTRADO EN LA PANTALLA (no fijo a la derecha)
+            panelLogin = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    // Fondo con esquinas redondeadas + sombra sutil para dar profundidad
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(0, 0, 0, 60));
+                    g2.fillRoundRect(4, 6, getWidth() - 4, getHeight() - 4, 20, 20);
+                    g2.setColor(VERDE_OSCURO);
+                    g2.fillRoundRect(0, 0, getWidth() - 6, getHeight() - 6, 20, 20);
+                    g2.setColor(AMARILLO);
+                    g2.setStroke(new BasicStroke(2f));
+                    g2.drawRoundRect(0, 0, getWidth() - 7, getHeight() - 7, 20, 20);
+                    g2.dispose();
+                }
+            };
             panelLogin.setLayout(null);
-            panelLogin.setBackground(new Color(25, 38, 35, 180));
-            panelLogin.setBounds(750, 150, 420, 450);
-            panelLogin.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2, true));
+            panelLogin.setOpaque(false);
             add(panelLogin);
 
             // TÍTULOS
             JLabel titulo = new JLabel("NEO JACKET BANCA EN LÍNEA");
             titulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
             titulo.setForeground(Color.WHITE);
-            titulo.setBounds(40, 20, 400, 40);
+            titulo.setBounds(40, 25, 380, 40);
             panelLogin.add(titulo);
 
             // SUBTÍTULO
             JLabel subtitulo = new JLabel("EL FUTURO BANCARIO EN TUS MANOS");
-            subtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            subtitulo.setForeground(Color.WHITE);
-            subtitulo.setBounds(40, 55, 400, 30);
+            subtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            subtitulo.setForeground(new Color(255, 255, 255, 200));
+            subtitulo.setBounds(40, 60, 380, 30);
             panelLogin.add(subtitulo);
 
-            // CAMPOS
-            JLabel lblUsuario = new JLabel("Nombre");
-            lblUsuario.setForeground(Color.WHITE);
-            lblUsuario.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            lblUsuario.setBounds(40, 120, 200, 30);
-            panelLogin.add(lblUsuario);
-
-            RoundedTextField txtUsuario = new RoundedTextField(20);
-            txtUsuario.setBounds(40, 155, 330, 50);
+            // CAMPO USUARIO (con placeholder, sin label separado)
+            RoundedTextField txtUsuario = new RoundedTextField(20, "Nombre de usuario");
+            txtUsuario.setBounds(40, 130, 330, 50);
             panelLogin.add(txtUsuario);
 
-            JLabel lblPass = new JLabel("Contraseña");
-            lblPass.setForeground(Color.WHITE);
-            lblPass.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            lblPass.setBounds(40, 225, 200, 30);
-            panelLogin.add(lblPass);
-
-            RoundedPassField txtPass = new RoundedPassField(20);
-            txtPass.setBounds(40, 260, 330, 50);
+            // CAMPO CONTRASEÑA
+            RoundedPassField txtPass = new RoundedPassField(20, "Contraseña");
+            txtPass.setBounds(40, 200, 330, 50);
             panelLogin.add(txtPass);
 
             // BOTÓN INICIAR SESIÓN
             BotonNeo btnLogin = new BotonNeo("→ Iniciar sesión");
-            btnLogin.setBounds(40, 340, 330, 55);
+            btnLogin.setBounds(40, 280, 330, 55);
             panelLogin.add(btnLogin);
-            
-            
+
+            // Mensaje de estado (errores) integrado en el panel, en vez de solo diálogos modales
+            JLabel lblEstado = new JLabel(" ");
+            lblEstado.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            lblEstado.setForeground(new Color(255, 120, 120));
+            lblEstado.setBounds(40, 345, 340, 25);
+            panelLogin.add(lblEstado);
 
             // =========================================================
-            // BOTÓN REGRESAR EN LA PARTE INFERIOR DE LA PANTALLA
+            // BOTÓN REGRESAR EN LA PARTE INFERIOR IZQUIERDA
             // =========================================================
             BotonNeo btnRegresar = new BotonNeo("← Regresar");
-            // Obtenemos el alto de la pantalla actual para colocarlo abajo de forma segura
             int altoPantalla = Toolkit.getDefaultToolkit().getScreenSize().height;
-            // Lo posicionamos a 50px de la izquierda y restamos unos 140px para que libre la barra de tareas
             btnRegresar.setBounds(50, altoPantalla - 140, 180, 50);
             add(btnRegresar);
 
-            // Acción asignada de manera funcional para regresar al InicioNeo
             btnRegresar.addActionListener(e -> {
-                new InicioNeo(); // Crea y muestra la ventana de inicio anterior
-                dispose();       // Cierra y destruye la ventana de login actual
+                new InicioNeo();
+                dispose();
             });
-            // =========================================================
 
-            // ACCIÓN / LOGIN: Usar la lógica de autenticación del backend
-            btnLogin.addActionListener(e -> {
+            // ACCIÓN DE LOGIN
+            Runnable accionLogin = () -> {
                 String nombre = txtUsuario.getText().trim();
                 String password = new String(txtPass.getPassword());
 
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                lblEstado.setText(" ");
+
                 try {
-                   funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
-String rol = auth.iniciarSesion(nombre, password);
+                    funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
+                    String rol = auth.iniciarSesion(nombre, password);
 
-if (rol != null) {
-    int idUsuario = auth.obtenerIdUsuario(nombre, password);
-    if (idUsuario > 0) {
-        SesionUsuario.setIdUsuario(idUsuario);
-    }
+                    if (rol != null) {
+                        int idUsuario = auth.obtenerIdUsuario(nombre, password);
+                        if (idUsuario > 0) {
+                            SesionUsuario.setIdUsuario(idUsuario);
+                        }
 
-    // DEBUG TEMPORAL
-    System.out.println("=== DEBUG LOGIN ===");
-    System.out.println("ID: " + idUsuario);
-    System.out.println("ES MENOR: " + new funcionalidades.SupervisionDAO().esMenorSupervisado(idUsuario));
-    System.out.println("==================");
+                        if ("ADMIN".equals(rol)) {
+                            new PanelControlAdmin().setVisible(true);
+                            dispose();
+                        } else {
+                            funcionalidades.SupervisionDAO dao = new funcionalidades.SupervisionDAO();
+                            boolean esMenor = idUsuario > 0 && dao.esMenorSupervisado(idUsuario);
 
-    if ("ADMIN".equals(rol)) {
-        new PanelControlAdmin().setVisible(true);
-        dispose();
-    } else {
-        // Detectar si es menor por el campo perfil en usuarios
-        funcionalidades.SupervisionDAO dao = new funcionalidades.SupervisionDAO();
-        boolean esMenor = idUsuario > 0 && dao.esMenorSupervisado(idUsuario);
-
-        if (esMenor) {
-            dao.registrarSesionMenor(idUsuario, "inicio_sesion");
-            new DashboardMenor(idUsuario).setVisible(true);
-        } else {
-            new Dashboard(idUsuario).setVisible(true);
-        }
-        dispose();
-    }
-} else {
-    JOptionPane.showMessageDialog(null,
-            "Credenciales incorrectas o cuenta inactiva.",
-            "Error de autenticación",
-            JOptionPane.ERROR_MESSAGE);
-}
+                            if (esMenor) {
+                                dao.registrarSesionMenor(idUsuario, "inicio_sesion");
+                                new DashboardMenor(idUsuario).setVisible(true);
+                            } else {
+                                new Dashboard(idUsuario).setVisible(true);
+                            }
+                            dispose();
+                        }
+                    } else {
+                        lblEstado.setText("Credenciales incorrectas o cuenta inactiva.");
+                    }
 
                 } catch (IllegalArgumentException ex) {
-                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
+                    lblEstado.setText(ex.getMessage());
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Error al iniciar sesión: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    lblEstado.setText("Error al iniciar sesión: " + ex.getMessage());
                     ex.printStackTrace();
+                } finally {
+                    setCursor(Cursor.getDefaultCursor());
                 }
-            });
+            };
+
+            btnLogin.addActionListener(e -> accionLogin.run());
+
+            // Permite iniciar sesión presionando Enter desde cualquiera de los dos campos
+            KeyAdapter enterListener = new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        accionLogin.run();
+                    }
+                }
+            };
+            txtUsuario.addKeyListener(enterListener);
+            txtPass.addKeyListener(enterListener);
+
+            // Centra el panel al iniciar (antes de que se dispare el primer resize)
+            SwingUtilities.invokeLater(this::centrarPanelLogin);
         }
 
         @Override

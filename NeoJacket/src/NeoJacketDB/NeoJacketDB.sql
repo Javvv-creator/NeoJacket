@@ -221,6 +221,20 @@ CREATE TABLE auditoria_logs (
     CONSTRAINT fk_auditoria_usuarios FOREIGN KEY (id_admin) REFERENCES usuarios(id_usuario)
 );
 
+CREATE TABLE solicitudes_permiso (
+    id_solicitud    INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_menor        INT UNSIGNED NOT NULL,
+    id_adulto       INT UNSIGNED NOT NULL,
+    tipo_accion     VARCHAR(50)   NOT NULL,
+    descripcion     VARCHAR(255)  NOT NULL,
+    monto           DECIMAL(14,2) DEFAULT 0.00,
+    estado          ENUM('pendiente','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
+    fecha_solicitud TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_respuesta DATETIME      DEFAULT NULL,
+    CONSTRAINT fk_solicitud_menor  FOREIGN KEY (id_menor)  REFERENCES usuarios(id_usuario),
+    CONSTRAINT fk_solicitud_adulto FOREIGN KEY (id_adulto) REFERENCES usuarios(id_usuario)
+);
+
 -- =========================================================================
 -- 6. ÍNDICES EXPLÍCITOS PARA LLAVES FORÁNEAS (Optimización de Rendimiento)
 -- =========================================================================
