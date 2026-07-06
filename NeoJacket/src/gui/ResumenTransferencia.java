@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.*;
 import javax.swing.*;
+import funcionalidades.SupervisionDAO;
 
 public class ResumenTransferencia extends javax.swing.JFrame {
 
@@ -12,7 +13,16 @@ public class ResumenTransferencia extends javax.swing.JFrame {
     Font etiquetaCampos = new Font("Segoe UI", Font.PLAIN, 13);
     Font textoInputs = new Font("Segoe UI", Font.BOLD, 13);
 
+    private Integer idMenor;
+    private double monto;
+
     public ResumenTransferencia() {
+        this(null, 0.0);
+    }
+
+    public ResumenTransferencia(Integer idMenor, double monto) {
+        this.idMenor = idMenor;
+        this.monto   = monto;
         initComponents();
         
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
@@ -67,10 +77,10 @@ public class ResumenTransferencia extends javax.swing.JFrame {
                 
                 btn.addActionListener(e -> {
                     if (nombre.equals("Saldos")) { new Saldos().setVisible(true); dispose(); }
-                    else if (nombre.equals("Transferencias")) { new Transferencias().setVisible(true); dispose(); }
+                    else if (nombre.equals("Transferencias")) { new Transferencias(idMenor).setVisible(true); dispose(); }
                     else if (nombre.equals("Bancos conectados")) { new BancosConectados().setVisible(true); dispose(); }
-                    else if (nombre.equals("Divisas")) { new Divisas().setVisible(true); dispose(); }
-                    else if (nombre.equals("Historial")) { new Historial().setVisible(true); dispose(); }
+                    else if (nombre.equals("Divisas")) { new Divisas(idMenor).setVisible(true); dispose(); }
+                    else if (nombre.equals("Historial")) { new Historial(idMenor).setVisible(true); dispose(); }
                 });
 
                 sidebar.add(btn);
@@ -191,7 +201,7 @@ public class ResumenTransferencia extends javax.swing.JFrame {
             btnRegresar.setBorderPainted(false);
             btnRegresar.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnRegresar.addActionListener(e -> {
-                new Transferencias().setVisible(true);
+                new Transferencias(idMenor).setVisible(true);
                 dispose();
             });
             contenedor.add(btnRegresar);
@@ -217,8 +227,19 @@ public class ResumenTransferencia extends javax.swing.JFrame {
             btnAceptar.setBorderPainted(false);
             btnAceptar.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnAceptar.addActionListener(e -> {
+                // Segunda validación de límite antes de confirmar
+                if (idMenor != null && monto > 0) {
+                    SupervisionDAO dao = new SupervisionDAO();
+                    String errorLimite = dao.validarLimite(idMenor, monto);
+                    if (errorLimite != null) {
+                        JOptionPane.showMessageDialog(this,
+                            errorLimite,
+                            "Límite de gasto excedido", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                }
                 JOptionPane.showMessageDialog(this, "¡Transferencia realizada con éxito!");
-                new Transferencias().setVisible(true);
+                new Transferencias(idMenor).setVisible(true);
                 dispose();
             });
             contenedor.add(btnAceptar);

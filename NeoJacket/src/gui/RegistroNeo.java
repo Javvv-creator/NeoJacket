@@ -1,6 +1,7 @@
 package gui;
 
 import funcionalidades.CrearUsuario;
+import funcionalidades.SupervisionDAO;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -12,15 +13,15 @@ public class RegistroNeo extends JFrame {
     // ============================
     // PALETA DE COLORES
     // ============================
-    private static final Color VERDE_OSCURO = new Color(25, 38, 35);
-    private static final Color VERDE_CARD = new Color(22, 34, 31, 215);
-    private static final Color VERDE_CAMPO = new Color(20, 32, 29, 200);
-    private static final Color VERDE_BOTON = new Color(94, 116, 73);
+    private static final Color VERDE_OSCURO   = new Color(25, 38, 35);
+    private static final Color VERDE_CARD     = new Color(22, 34, 31, 215);
+    private static final Color VERDE_CAMPO    = new Color(20, 32, 29, 200);
+    private static final Color VERDE_BOTON    = new Color(94, 116, 73);
     private static final Color VERDE_BOTON_HOVER = new Color(120, 150, 90);
-    private static final Color DORADO = new Color(251, 232, 138);
-    private static final Color DORADO_HOVER = new Color(255, 245, 180);
-    private static final Color BLANCO_SUAVE = new Color(235, 235, 230);
-    private static final Color GRIS_HINT = new Color(190, 195, 190);
+    private static final Color DORADO         = new Color(251, 232, 138);
+    private static final Color DORADO_HOVER   = new Color(255, 245, 180);
+    private static final Color BLANCO_SUAVE   = new Color(235, 235, 230);
+    private static final Color GRIS_HINT      = new Color(190, 195, 190);
 
     // ============================
     // DIMENSIONES DE LA TARJETA
@@ -41,7 +42,6 @@ public class RegistroNeo extends JFrame {
     // TEXTFIELD REDONDEADO
     // ============================
     class RoundedTextField extends JTextField {
-
         public RoundedTextField(int size) {
             super(size);
             setOpaque(false);
@@ -72,7 +72,6 @@ public class RegistroNeo extends JFrame {
     // PASSFIELD REDONDEADO
     // ============================
     class RoundedPassField extends JPasswordField {
-
         public RoundedPassField(int size) {
             super(size);
             setOpaque(false);
@@ -104,7 +103,6 @@ public class RegistroNeo extends JFrame {
     // COMBOBOX REDONDEADO (mismo lenguaje visual que los campos de texto)
     // ============================
     class RoundedComboBox<T> extends JComboBox<T> {
-
         public RoundedComboBox(T[] items) {
             super(items);
             setOpaque(false);
@@ -163,7 +161,6 @@ public class RegistroNeo extends JFrame {
     // RADIO BUTTON CON ICONO PROPIO
     // ============================
     class NeoRadioButton extends JRadioButton {
-
         public NeoRadioButton(String texto) {
             super(texto);
             setOpaque(false);
@@ -191,14 +188,10 @@ public class RegistroNeo extends JFrame {
                 }
 
                 @Override
-                public int getIconWidth() {
-                    return 18;
-                }
+                public int getIconWidth() { return 18; }
 
                 @Override
-                public int getIconHeight() {
-                    return 18;
-                }
+                public int getIconHeight() { return 18; }
             });
         }
     }
@@ -207,7 +200,6 @@ public class RegistroNeo extends JFrame {
     // BOTÓN NEO
     // ============================
     class BotonNeo extends JButton {
-
         private final Color normal;
         private final Color hover;
 
@@ -246,7 +238,6 @@ public class RegistroNeo extends JFrame {
     // TARJETA CON SOMBRA Y BORDES REDONDEADOS
     // ============================
     class RoundedCardPanel extends JPanel {
-
         public RoundedCardPanel() {
             setLayout(null);
             setOpaque(false);
@@ -314,9 +305,7 @@ public class RegistroNeo extends JFrame {
         }
 
         private void centrarTarjeta() {
-            if (panelReg == null) {
-                return;
-            }
+            if (panelReg == null) return;
             int px = Math.max(MARGIN_X, (getWidth() - PANEL_W) / 2);
             int py = Math.max(30, (getHeight() - PANEL_H) / 2);
             panelReg.setBounds(px, py, PANEL_W, PANEL_H);
@@ -368,7 +357,8 @@ public class RegistroNeo extends JFrame {
             panelReg.add(txtPass);
 
             panelReg.add(crearLabel("Tipo de cuenta", COL2_X, y));
-            RoundedComboBox<String> cbTipo = new RoundedComboBox<>(new String[]{"Monetaria", "Ahorro", "Corriente"});
+            RoundedComboBox<String> cbTipo = new RoundedComboBox<>(new String[]{"Monetaria"});
+            cbTipo.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
             cbTipo.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbTipo);
 
@@ -391,67 +381,145 @@ public class RegistroNeo extends JFrame {
 
             panelReg.add(crearLabel("Género", COL2_X, y));
             RoundedComboBox<String> cbGenero = new RoundedComboBox<>(new String[]{"Masculino", "Femenino", "Otro"});
+            cbGenero.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
             cbGenero.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbGenero);
 
+            // ---------- CAMPO CORREO TUTOR (se inserta entre fila 3 y fila 4) ----------
+            // Ocupa su propia fila de 80px — se muestra/oculta dinámicamente
+            int tutorRowH = 80; // alto reservado para la fila del tutor
+
+            JLabel lblCorreoTutor = crearLabel("Correo del tutor", COL1_X, y + 70);
+            lblCorreoTutor.setForeground(DORADO);
+            lblCorreoTutor.setVisible(false);
+            panelReg.add(lblCorreoTutor);
+
+            RoundedTextField txtCorreoTutor = new RoundedTextField(20);
+            txtCorreoTutor.setBounds(COL1_X, y + 92, PANEL_W - 2 * MARGIN_X, FIELD_H);
+            txtCorreoTutor.setVisible(false);
+            panelReg.add(txtCorreoTutor);
+
             // ---------- FILA 4: Correo / Teléfono ----------
-            y += 100;
-            panelReg.add(crearLabel("Correo electrónico", COL1_X, y));
+            // Posición base: y + 100. Cuando el tutor está visible se desplaza +tutorRowH
+            int[] yF4 = { y + 100 }; // array para modificar dentro de lambdas
+
+            JLabel lblCorreoLabel = crearLabel("Correo electrónico", COL1_X, yF4[0]);
+            panelReg.add(lblCorreoLabel);
             RoundedTextField txtCorreo = new RoundedTextField(20);
-            txtCorreo.setBounds(COL1_X, y + 24, FIELD_W, FIELD_H);
+            txtCorreo.setBounds(COL1_X, yF4[0] + 24, FIELD_W, FIELD_H);
             panelReg.add(txtCorreo);
 
-            panelReg.add(crearLabel("Teléfono", COL2_X, y));
+            JLabel lblTelefonoLabel = crearLabel("Teléfono", COL2_X, yF4[0]);
+            panelReg.add(lblTelefonoLabel);
             RoundedTextField txtTelefono = new RoundedTextField(20);
-            txtTelefono.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
+            txtTelefono.setBounds(COL2_X, yF4[0] + 24, FIELD_W, FIELD_H);
             panelReg.add(txtTelefono);
 
-            // ---------- FILA 5: Fecha de nacimiento / Identificación ----------
-            y += 100;
-            panelReg.add(crearLabel("Fecha de nacimiento", COL1_X, y));
+            // ---------- FILA 5: Fecha / Identificación ----------
+            int[] yF5 = { yF4[0] + 100 };
+
+            JLabel lblFechaLabel = crearLabel("Fecha de nacimiento", COL1_X, yF5[0]);
+            panelReg.add(lblFechaLabel);
             RoundedTextField txtFecha = new RoundedTextField(20);
-            txtFecha.setBounds(COL1_X, y + 24, FIELD_W, FIELD_H);
+            txtFecha.setBounds(COL1_X, yF5[0] + 24, FIELD_W, FIELD_H);
             panelReg.add(txtFecha);
 
             JLabel lblFechaHint = new JLabel("Formato: AAAA-MM-DD");
             lblFechaHint.setForeground(GRIS_HINT);
             lblFechaHint.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            lblFechaHint.setBounds(COL1_X, y + 24 + FIELD_H + 4, FIELD_W, 16);
+            lblFechaHint.setBounds(COL1_X, yF5[0] + 24 + FIELD_H + 4, FIELD_W, 16);
             panelReg.add(lblFechaHint);
 
-            panelReg.add(crearLabel("Número de identificación", COL2_X, y));
+            JLabel lblIdentLabel = crearLabel("Número de identificación", COL2_X, yF5[0]);
+            panelReg.add(lblIdentLabel);
             RoundedTextField txtIdent = new RoundedTextField(20);
-            txtIdent.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
+            txtIdent.setBounds(COL2_X, yF5[0] + 24, FIELD_W, FIELD_H);
             panelReg.add(txtIdent);
 
+            // Ocultar identificación si ya es menor al cargar
+            lblIdentLabel.setVisible(!rbMenor.isSelected());
+            txtIdent.setVisible(!rbMenor.isSelected());
+
             // ---------- BOTONES ----------
-            int btnY = y + 100;
+            int[] btnYArr = { yF5[0] + 100 };
             int btnW = 160;
             int btnH = 50;
-            int gap = 40;
+            int gap = 20;
 
             BotonNeo btnTutor = new BotonNeo("Cuenta tutor", VERDE_BOTON, VERDE_BOTON_HOVER);
             btnTutor.setForeground(Color.WHITE);
-            btnTutor.setBounds(MARGIN_X, btnY, btnW, btnH);
+            btnTutor.setBounds(MARGIN_X, btnYArr[0], btnW, btnH);
             panelReg.add(btnTutor);
-
-            btnTutor.addActionListener(e -> {
-                new RegistroTutor().setVisible(true);
-                dispose();
-            });
+            btnTutor.addActionListener(e -> { new RegistroTutor().setVisible(true); dispose(); });
 
             BotonNeo btnRegresar = new BotonNeo("Regresar", DORADO, DORADO_HOVER);
-            btnRegresar.setBounds(MARGIN_X + btnW + gap, btnY, btnW, btnH);
+            btnRegresar.setBounds(MARGIN_X + btnW + gap, btnYArr[0], btnW, btnH);
             panelReg.add(btnRegresar);
-
-            btnRegresar.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
+            btnRegresar.addActionListener(e -> { new InicioNeo().setVisible(true); dispose(); });
 
             BotonNeo btnIngresar = new BotonNeo("Registrarse", DORADO, DORADO_HOVER);
-            btnIngresar.setBounds(MARGIN_X + 2 * (btnW + gap), btnY, btnW, btnH);
+            btnIngresar.setBounds(MARGIN_X + 2 * (btnW + gap), btnYArr[0], btnW, btnH);
             panelReg.add(btnIngresar);
+
+            // ---------- Mostrar/ocultar campo tutor y ajustar filas ----------
+            Runnable mostrarTutor = () -> {
+                lblCorreoTutor.setVisible(true);
+                txtCorreoTutor.setVisible(true);
+                // Ocultar identificación para el menor
+                lblIdentLabel.setVisible(false);
+                txtIdent.setVisible(false);
+                // Mover fila 4
+                lblCorreoLabel.setBounds(COL1_X, yF4[0] + tutorRowH, FIELD_W, 22);
+                txtCorreo.setBounds(COL1_X, yF4[0] + tutorRowH + 24, FIELD_W, FIELD_H);
+                lblTelefonoLabel.setBounds(COL2_X, yF4[0] + tutorRowH, FIELD_W, 22);
+                txtTelefono.setBounds(COL2_X, yF4[0] + tutorRowH + 24, FIELD_W, FIELD_H);
+                // Mover fila 5
+                int nY5 = yF4[0] + tutorRowH + 100;
+                lblFechaLabel.setBounds(COL1_X, nY5, FIELD_W, 22);
+                txtFecha.setBounds(COL1_X, nY5 + 24, FIELD_W, FIELD_H);
+                lblFechaHint.setBounds(COL1_X, nY5 + 24 + FIELD_H + 4, FIELD_W, 16);
+                lblIdentLabel.setBounds(COL2_X, nY5, FIELD_W, 22);
+                txtIdent.setBounds(COL2_X, nY5 + 24, FIELD_W, FIELD_H);
+                // Mover botones
+                int nBtnY = nY5 + 100;
+                btnTutor.setBounds(MARGIN_X, nBtnY, btnW, btnH);
+                btnRegresar.setBounds(MARGIN_X + btnW + gap, nBtnY, btnW, btnH);
+                btnIngresar.setBounds(MARGIN_X + 2 * (btnW + gap), nBtnY, btnW, btnH);
+                // Expandir tarjeta
+                panelReg.setBounds(panelReg.getX(), panelReg.getY(), PANEL_W, PANEL_H + tutorRowH);
+                panelReg.revalidate();
+                panelReg.repaint();
+            };
+
+            Runnable ocultarTutor = () -> {
+                lblCorreoTutor.setVisible(false);
+                txtCorreoTutor.setVisible(false);
+                // Mostrar identificación para el adulto
+                lblIdentLabel.setVisible(true);
+                txtIdent.setVisible(true);
+                // Restaurar fila 4
+                lblCorreoLabel.setBounds(COL1_X, yF4[0], FIELD_W, 22);
+                txtCorreo.setBounds(COL1_X, yF4[0] + 24, FIELD_W, FIELD_H);
+                lblTelefonoLabel.setBounds(COL2_X, yF4[0], FIELD_W, 22);
+                txtTelefono.setBounds(COL2_X, yF4[0] + 24, FIELD_W, FIELD_H);
+                // Restaurar fila 5
+                lblFechaLabel.setBounds(COL1_X, yF5[0], FIELD_W, 22);
+                txtFecha.setBounds(COL1_X, yF5[0] + 24, FIELD_W, FIELD_H);
+                lblFechaHint.setBounds(COL1_X, yF5[0] + 24 + FIELD_H + 4, FIELD_W, 16);
+                lblIdentLabel.setBounds(COL2_X, yF5[0], FIELD_W, 22);
+                txtIdent.setBounds(COL2_X, yF5[0] + 24, FIELD_W, FIELD_H);
+                // Restaurar botones
+                btnTutor.setBounds(MARGIN_X, btnYArr[0], btnW, btnH);
+                btnRegresar.setBounds(MARGIN_X + btnW + gap, btnYArr[0], btnW, btnH);
+                btnIngresar.setBounds(MARGIN_X + 2 * (btnW + gap), btnYArr[0], btnW, btnH);
+                // Restaurar tamaño tarjeta
+                panelReg.setBounds(panelReg.getX(), panelReg.getY(), PANEL_W, PANEL_H);
+                panelReg.revalidate();
+                panelReg.repaint();
+            };
+
+            rbMenor.addActionListener(e -> mostrarTutor.run());
+            rbAdulto.addActionListener(e -> ocultarTutor.run());
 
             btnIngresar.addActionListener(e -> {
                 String nombre = txtUsuario.getText();
@@ -471,29 +539,49 @@ public class RegistroNeo extends JFrame {
                 String perfil = rbAdulto.isSelected() ? "Adulto" : rbMenor.isSelected() ? "Menor supervisado" : "Adulto";
                 String tipoCuenta = cbTipo.getSelectedItem() != null ? cbTipo.getSelectedItem().toString() : "Monetaria";
 
-                CrearUsuario crearUsuario = new CrearUsuario();
-                boolean creado = crearUsuario.crearDesdeRegistroNeo(
-                        nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero
-                );
+                // Validar correo del tutor si es menor supervisado
+                if (rbMenor.isSelected()) {
+                    String correoTutor = txtCorreoTutor.getText().trim();
+                    if (correoTutor.isEmpty()) {
+                        JOptionPane.showMessageDialog(null,
+                            "Debes ingresar el correo del tutor para registrarte como menor supervisado.",
+                            "Campo requerido", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
 
-                if (creado) {
-                    int idUsuario = crearUsuario.obtenerIdUsuario(correo, dpiNumero);
+                    SupervisionDAO dao = new SupervisionDAO();
+                    Integer idAdulto = dao.buscarIdUsuarioPorCorreo(correoTutor);
+                    if (idAdulto == null) {
+                        JOptionPane.showMessageDialog(null,
+                            "No se encontró ningún tutor registrado con ese correo.\nVerifica que el tutor ya tenga una cuenta creada.",
+                            "Tutor no encontrado", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
 
-                    // 🔹 Crear cuentas en los 4 bancos automáticamente
-                    crearUsuario.crearCuentaBancaria(idUsuario, 1, tipoCuenta); // Banco Industrial
-                    crearUsuario.crearCuentaBancaria(idUsuario, 3, tipoCuenta); // Banrural
-                    crearUsuario.crearCuentaBancaria(idUsuario, 2, tipoCuenta); // BAC Credomatic
-                    crearUsuario.crearCuentaBancaria(idUsuario, 4, tipoCuenta); // G&T Continental
-
-                    JOptionPane.showMessageDialog(this, "Cuentas bancarias creadas en los 4 bancos exitosamente.");
-
-                    new DatosTarjeta(correo, dpiNumero).setVisible(true);
-                    dispose();
+                    CrearUsuario crearUsuario = new CrearUsuario();
+                    boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
+                    if (creado) {
+                        // Vincular menor con tutor en tabla supervisiones
+                        Integer idMenor = dao.buscarIdUsuarioPorCorreo(correo);
+                        if (idMenor != null) {
+                            dao.crearSupervision(idAdulto, idMenor);
+                        }
+                        // El menor no tiene tarjeta — ir directo al inicio
+                        JOptionPane.showMessageDialog(null,
+                            "✅ Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",
+                            "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
+                        new InicioNeo().setVisible(true);
+                        dispose();
+                    }
+                } else {
+                    CrearUsuario crearUsuario = new CrearUsuario();
+                    boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
+                    if (creado) {
+                        new DatosTarjeta(correo, dpiNumero).setVisible(true);
+                        dispose();
+                    }
                 }
-
-            }
-            );
-
+            });
         }
 
         private JLabel crearLabel(String texto, int x, int y) {

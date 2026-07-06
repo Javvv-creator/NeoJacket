@@ -13,7 +13,7 @@ public class Transferencias {
     
     private int idCuentaOrigenValida = -1;
     private int idCuentaDestinoValida = -1;
-    private int idUsuarioRealizador = 1; 
+    private int idUsuarioRealizador = -1; // Se obtiene de la cuenta origen al buscarla
     
     private double saldoOrigenActual = 0.00;
     private double tasaCambioActual = 1.000000;
@@ -77,7 +77,7 @@ public class Transferencias {
             return;
         }
 
-        String query = "SELECT c.id_cuenta, c.saldo, c.moneda, u.nombre, u.apellido " +
+        String query = "SELECT c.id_cuenta, c.saldo, c.moneda, u.id_usuario, u.nombre, u.apellido " +
                        "FROM cuentas_bancarias c " +
                        "JOIN bancos b ON c.id_banco = b.id_banco " +
                        "JOIN tipos_cuentas tc ON c.id_tipo_cuenta = tc.id_tipo " +
@@ -94,6 +94,7 @@ public class Transferencias {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 idCuentaOrigenValida = rs.getInt("id_cuenta");
+                idUsuarioRealizador  = rs.getInt("id_usuario"); // CORREGIDO: usuario real
                 saldoOrigenActual = rs.getDouble("saldo");
                 String moneda = rs.getString("moneda");
                 String titular = rs.getString("nombre") + " " + rs.getString("apellido");

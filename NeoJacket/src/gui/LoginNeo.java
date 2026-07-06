@@ -13,7 +13,6 @@ public class LoginNeo extends JFrame {
     // TEXTFIELD REDONDEADO
     // ============================
     class RoundedTextField extends JTextField {
-
         public RoundedTextField(int size) {
             super(size);
             setOpaque(false);
@@ -43,7 +42,6 @@ public class LoginNeo extends JFrame {
     // PASSFIELD REDONDEADO
     // ============================
     class RoundedPassField extends JPasswordField {
-
         public RoundedPassField(int size) {
             super(size);
             setOpaque(false);
@@ -73,7 +71,6 @@ public class LoginNeo extends JFrame {
     // BOTÓN NEO
     // ============================
     class BotonNeo extends JButton {
-
         public BotonNeo(String texto) {
             super(texto);
             setContentAreaFilled(false);
@@ -182,6 +179,8 @@ public class LoginNeo extends JFrame {
             BotonNeo btnLogin = new BotonNeo("→ Iniciar sesión");
             btnLogin.setBounds(40, 340, 330, 55);
             panelLogin.add(btnLogin);
+            
+            
 
             // =========================================================
             // BOTÓN REGRESAR EN LA PARTE INFERIOR DE LA PANTALLA
@@ -206,31 +205,43 @@ public class LoginNeo extends JFrame {
                 String password = new String(txtPass.getPassword());
 
                 try {
-                    funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
-                    String rol = auth.iniciarSesion(nombre, password);
+                   funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
+String rol = auth.iniciarSesion(nombre, password);
 
-                    if (rol != null) {
-                        int idUsuario = auth.obtenerIdUsuario(nombre, password); // este método debe devolver el id real
-                        if (idUsuario > 0) {
-                            SesionUsuario.setIdUsuario(idUsuario); // 🔹 aquí guardas el id en sesión
-                            System.out.println("Usuario en sesión: " + SesionUsuario.getIdUsuario());
-                        }
+if (rol != null) {
+    int idUsuario = auth.obtenerIdUsuario(nombre, password);
+    if (idUsuario > 0) {
+        SesionUsuario.setIdUsuario(idUsuario);
+    }
 
-                        if ("ADMIN".equals(rol)) {
-                            PanelControlAdmin adminWin = new PanelControlAdmin();
-                            adminWin.setVisible(true);
-                            dispose();
-                        } else {
-                            Dashboard dashWin = new Dashboard();
-                            dashWin.setVisible(true);
-                            dispose();
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(null,
-                                "Credenciales incorrectas o cuenta inactiva.",
-                                "Error de autenticación",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
+    // DEBUG TEMPORAL
+    System.out.println("=== DEBUG LOGIN ===");
+    System.out.println("ID: " + idUsuario);
+    System.out.println("ES MENOR: " + new funcionalidades.SupervisionDAO().esMenorSupervisado(idUsuario));
+    System.out.println("==================");
+
+    if ("ADMIN".equals(rol)) {
+        new PanelControlAdmin().setVisible(true);
+        dispose();
+    } else {
+        // Detectar si es menor por el campo perfil en usuarios
+        funcionalidades.SupervisionDAO dao = new funcionalidades.SupervisionDAO();
+        boolean esMenor = idUsuario > 0 && dao.esMenorSupervisado(idUsuario);
+
+        if (esMenor) {
+            dao.registrarSesionMenor(idUsuario, "inicio_sesion");
+            new DashboardMenor(idUsuario).setVisible(true);
+        } else {
+            new Dashboard(idUsuario).setVisible(true);
+        }
+        dispose();
+    }
+} else {
+    JOptionPane.showMessageDialog(null,
+            "Credenciales incorrectas o cuenta inactiva.",
+            "Error de autenticación",
+            JOptionPane.ERROR_MESSAGE);
+}
 
                 } catch (IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);

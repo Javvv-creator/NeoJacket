@@ -1,12 +1,14 @@
 package gui;
 
-import java.awt.*; // Importación directa de la interfaz de Saldos
+import java.awt.*;
 import javax.swing.*;
+import funcionalidades.SupervisionDAO;
 
 public class Dashboard extends javax.swing.JFrame {
 
     private Image fondo;
     private Image logo;
+    private Integer idUsuarioActual;
 
     // ==========================================
     // TEXTFIELD REDONDEADO
@@ -65,6 +67,11 @@ public class Dashboard extends javax.swing.JFrame {
     // CONSTRUCTOR
     // ==========================================
     public Dashboard() {
+        this(null);
+    }
+
+    public Dashboard(Integer idUsuarioActual) {
+        this.idUsuarioActual = idUsuarioActual;
         initComponents();
         
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
@@ -97,7 +104,7 @@ public class Dashboard extends javax.swing.JFrame {
             JPanel sidebar = new JPanel();
             sidebar.setLayout(null);
             sidebar.setBackground(new Color(25, 38, 35, 220));
-            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setBounds(20, 20, 300, 870);
 
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
             JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
@@ -150,14 +157,38 @@ public class Dashboard extends javax.swing.JFrame {
                 y += 70;
             }
 
+            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+            if (idUsuarioActual != null) {
+                SupervisionDAO dao = new SupervisionDAO();
+                if (dao.tieneMenoresACargo(idUsuarioActual)) {
+                    JButton btnSupervision = new JButton("Supervisión");
+                    btnSupervision.setBounds(20, y, 250, 55);
+                    btnSupervision.setFocusPainted(false);
+                    btnSupervision.setBorderPainted(false);
+                    btnSupervision.setBackground(new Color(251, 232, 138));
+                    btnSupervision.setForeground(new Color(25, 38, 35));
+                    btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                    btnSupervision.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    btnSupervision.addActionListener(e -> {
+                        new PanelSupervision(idUsuarioActual).setVisible(true);
+                        dispose();
+                    });
+                    sidebar.add(btnSupervision);
+                }
+            }
+
             JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
+            btnCerrarSesion.setBounds(20, 800, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
             btnCerrarSesion.setBorderPainted(false);
             btnCerrarSesion.setBackground(new Color(191, 76, 58));
             btnCerrarSesion.setForeground(Color.WHITE);
             btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnCerrarSesion.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnCerrarSesion.addActionListener(e -> {
+                JOptionPane.showMessageDialog(null,
+                    "✅ Sesión cerrada correctamente.\n¡Hasta pronto!",
+                    "Sesión cerrada", JOptionPane.INFORMATION_MESSAGE);
                 new InicioNeo().setVisible(true);
                 dispose();
             });

@@ -2,11 +2,13 @@ package gui;
 
 import javax.swing.*;
 import java.awt.*;
+import funcionalidades.SupervisionDAO;
 
 public class Transferencias extends javax.swing.JFrame {
 
     private Image fondo;
     private Image logo;
+    private Integer idMenor;
 
     // TIPOGRAFÍAS DE LA IDENTIDAD VISUAL
     private final Font tituloPantalla = new Font("Segoe UI", Font.BOLD, 34);
@@ -31,6 +33,11 @@ public class Transferencias extends javax.swing.JFrame {
     public JButton btnTransferir, btnCancelar, btnImprimir; 
 
     public Transferencias() {
+        this(null);
+    }
+
+    public Transferencias(Integer idMenor) {
+        this.idMenor = idMenor;
         initComponents();
         
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondoUsuario.png")).getImage();
@@ -51,121 +58,78 @@ public class Transferencias extends javax.swing.JFrame {
 
         public FondoPanel() {
             setLayout(null);
-            crearSidebar(this);
+            crearSidebar();
             crearContenido();
         }
 
-         private void crearSidebar(JPanel panel) {
+        private void crearSidebar() {
+            JPanel sidebar = new JPanel();
+            sidebar.setLayout(null);
+            sidebar.setBackground(new Color(25, 38, 35, 220));
+            sidebar.setBounds(20, 20, 300, 950);
 
-    JPanel sidebar = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setColor(new Color(25, 38, 35, 220));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
-            g2.dispose();
-        }
-    };
+            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+            lblLogo.setBounds(20, 10, 250, 110);
+            sidebar.add(lblLogo);
 
-    sidebar.setOpaque(false);
-    sidebar.setBounds(20, 20, 300, 950);
-    sidebar.setLayout(null);
-    
-    // ============================
-    // BOTONES PRINCIPALES DE ACCESO
-    // ============================
-    Color verdeTrans = new Color(25, 38, 35, 180);
-    Color verdeHover = new Color(94, 116, 73, 220);
+            JButton btnSaldos = new JButton("Saldos");
+            btnSaldos.setBounds(20, 140, 250, 55);
+            btnSaldos.setFocusPainted(false);
+            btnSaldos.setBorderPainted(false);
+            btnSaldos.setBackground(new Color(94, 116, 73));
+            btnSaldos.setForeground(Color.WHITE);
+            btnSaldos.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnSaldos.addActionListener(e -> { 
+                new Saldos().setVisible(true); 
+                dispose(); 
+            });
+            sidebar.add(btnSaldos);
 
-    Color amarillo = new Color(251, 232, 138);
-    Color amarilloHover = new Color(255, 245, 180);
+            JButton btnBancos = new JButton("Bancos conectados");
+            btnBancos.setBounds(20, 210, 250, 55);
+            btnBancos.setFocusPainted(false);
+            btnBancos.setBorderPainted(false);
+            btnBancos.setBackground(new Color(94, 116, 73));
+            btnBancos.setForeground(Color.WHITE);
+            btnBancos.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnBancos.addActionListener(e -> { 
+                new BancosConectados().setVisible(true); 
+                dispose(); 
+            });
+            sidebar.add(btnBancos);
 
-    Color fondoTransparente = new Color(0, 0, 0, 0); 
-    Color amarilloBorde = new Color(251, 232, 138);
+            JButton btnTransferencias = new JButton("Transferencias");
+            btnTransferencias.setBounds(20, 280, 250, 55);
+            btnTransferencias.setBackground(new Color(251, 232, 138)); 
+            btnTransferencias.setForeground(Color.BLACK);
+            btnTransferencias.setFocusPainted(false);
+            btnTransferencias.setBorderPainted(false);
+            btnTransferencias.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            sidebar.add(btnTransferencias);
 
-    // Logo
-    Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-    JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-    lblLogo.setBounds(20, 10, 250, 110);
-    sidebar.add(lblLogo);
-
-    String[] opciones = {
-        "Saldos",
-        "Bancos Conectados",
-        "Transferencias",
-        "Historial"
-    };
-
-    int y = 140;
-
-    for (String texto : opciones) {
-        
-        JButton btn = new JButton(texto) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                
-                if (getBackground() != amarillo) {
-                    g2.setColor(amarilloBorde);
-                    g2.setStroke(new BasicStroke(1f));
-                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
-                }
-                
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-
-        // Ajustamos la altura a 46 para un look más estilizado
-        btn.setBounds(20, y, 250, 46);
-        btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false); 
-        btn.setBorderPainted(false);     
-        btn.setOpaque(false);
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(fondoTransparente);
-
-        Font fuenteActual = btn.getFont();
-        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
-
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(amarillo);
-                btn.setForeground(Color.BLACK);
-            }
-
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(fondoTransparente);
+            String[] restoMenu = {"Historial"};
+            int y = 350;
+            for (String textoBtn : restoMenu) {
+                JButton btn = new JButton(textoBtn);
+                btn.setBounds(20, y, 250, 55);
+                btn.setBackground(new Color(94, 116, 73)); 
                 btn.setForeground(Color.WHITE);
-            }
-        });
+                btn.setFocusPainted(false);
+                btn.setBorderPainted(false);
+                btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                btn.addActionListener(e -> {
 
-        if (texto.equals("Saldos")) {
-            btn.addActionListener(e -> { 
-                new Saldos().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Bancos Conectados")) {
-            btn.addActionListener(e -> { 
-                new BancosConectados().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Historial")) {
-            btn.addActionListener(e -> { 
-                new Historial().setVisible(true);
-                dispose(); 
-            });
-        }
-                
-        JButton btnCerrarSesion = new JButton("Cerrar sesión");
+                    if (textoBtn.equals("Historial")) {
+                    new Historial().setVisible(true);
+                    }
+                    dispose();
+                });
+                sidebar.add(btn);
+                y += 70;
+            }
+
+            JButton btnCerrarSesion = new JButton("Cerrar sesión");
             btnCerrarSesion.setBounds(20, 880, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
             btnCerrarSesion.setBorderPainted(false);
@@ -178,14 +142,9 @@ public class Transferencias extends javax.swing.JFrame {
             });
             sidebar.add(btnCerrarSesion);
 
-        sidebar.add(btn);
-        
-        // Aumentamos el salto a 68 píxeles para darles más separación física
-        y += 68;
-    }
+            add(sidebar);
+        }
 
-    panel.add(sidebar);
-}
         private void crearContenido() {
             PanelContenedorVerde contenedor = new PanelContenedorVerde();
             contenedor.setBounds(350, 40, 1300, 910);
@@ -525,6 +484,30 @@ public class Transferencias extends javax.swing.JFrame {
             btnTransferir.setContentAreaFilled(false);
             btnTransferir.setBorderPainted(false);
             btnTransferir.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            // PUNTO 1 — Validación de límites para menor supervisado
+            // Se ejecuta ANTES de que funcionalidades.Transferencias procese el botón
+            btnTransferir.addActionListener(e -> {
+                if (idMenor != null) {
+                    String montoTexto = txtMonto.getText().trim();
+                    try {
+                        double monto = Double.parseDouble(montoTexto.replace(",", "."));
+                        SupervisionDAO dao = new SupervisionDAO();
+                        String errorLimite = dao.validarLimite(idMenor, monto);
+                        if (errorLimite != null) {
+                            JOptionPane.showMessageDialog(null,
+                                errorLimite,
+                                "Límite de gasto excedido",
+                                JOptionPane.WARNING_MESSAGE);
+                            // Consume el evento — funcionalidades.Transferencias no procesa
+                            return;
+                        }
+                    } catch (NumberFormatException ex) {
+                        // Si el monto no es válido, dejar que funcionalidades.Transferencias lo maneje
+                    }
+                }
+            });
+
             pResumen.add(btnTransferir);
         }
 

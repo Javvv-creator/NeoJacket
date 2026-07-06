@@ -2,6 +2,9 @@ package gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import funcionalidades.SupervisionDAO;
 
 public class Historial extends javax.swing.JFrame {
 
@@ -39,7 +42,14 @@ public class Historial extends javax.swing.JFrame {
     public JLabel lblHist1_Titulo, lblHist1_Meta, lblHist2_Titulo, lblHist2_Meta, 
                   lblHist3_Titulo, lblHist3_Meta, lblHist4_Titulo, lblHist4_Meta;
 
+    private Integer idMenor;
+
     public Historial() {
+        this(null);
+    }
+
+    public Historial(Integer idMenor) {
+        this.idMenor = idMenor;
         initComponents();
         
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondoUsuario.png")).getImage();
@@ -51,6 +61,52 @@ public class Historial extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         
         setContentPane(new FondoPanel());
+
+        // Cargar datos de BD si es menor supervisado
+        if (idMenor != null) cargarDatosMenor();
+    }
+
+    private void cargarDatosMenor() {
+        SupervisionDAO dao = new SupervisionDAO();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+
+        // Transacciones recientes → lblTransReciente1-4
+        List<SupervisionDAO.MovimientoCuenta> trans = dao.obtenerTransaccionesRecientes(idMenor, 4);
+        JLabel[] lblsTrans = {lblTransReciente1, lblTransReciente2, lblTransReciente3, lblTransReciente4};
+        for (int i = 0; i < lblsTrans.length; i++) {
+            if (lblsTrans[i] == null) continue;
+            if (i < trans.size()) {
+                SupervisionDAO.MovimientoCuenta m = trans.get(i);
+                lblsTrans[i].setText(String.format("%s  —  Q %.2f  [%s]  %s",
+                    m.tipoTransaccion, m.monto, m.estado,
+                    m.fecha != null ? sdf.format(m.fecha) : ""));
+            } else {
+                lblsTrans[i].setText("Sin movimientos registrados");
+            }
+        }
+
+        // Sesiones recientes → lblHist1-4
+        List<SupervisionDAO.EventoSesion> sesiones = dao.obtenerSesionesRecientes(idMenor, 4);
+        JLabel[] lblsTit = {lblHist1_Titulo, lblHist2_Titulo, lblHist3_Titulo, lblHist4_Titulo};
+        JLabel[] lblsMeta = {lblHist1_Meta, lblHist2_Meta, lblHist3_Meta, lblHist4_Meta};
+        for (int i = 0; i < lblsTit.length; i++) {
+            if (lblsTit[i] == null) continue;
+            if (i < sesiones.size()) {
+                SupervisionDAO.EventoSesion ev = sesiones.get(i);
+                lblsTit[i].setText(ev.tipoEvento.replace("_", " ").toUpperCase());
+                lblsMeta[i].setText(
+                    (ev.dispositivo != null ? ev.dispositivo : "—") + "  •  " +
+                    (ev.ocurridoEn != null ? sdf.format(ev.ocurridoEn) : ""));
+            } else {
+                lblsTit[i].setText("Sin accesos registrados");
+                if (lblsMeta[i] != null) lblsMeta[i].setText("");
+            }
+        }
+
+        // Saldo total → lblCtaPrincipal
+        if (lblCtaPrincipal != null) {
+            lblCtaPrincipal.setText(String.format("Saldo total: Q %.2f", dao.obtenerSaldoTotal(idMenor)));
+        }
     }
 
     class FondoPanel extends JPanel {
@@ -166,7 +222,7 @@ public class Historial extends javax.swing.JFrame {
         }
         if (texto.equals("Transferencias")) {
             btn.addActionListener(e -> { 
-                new Transferencias().setVisible(true);
+                new Transferencias(idMenor).setVisible(true);
                 dispose(); 
             });
         }
