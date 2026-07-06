@@ -1,6 +1,7 @@
 package gui;
 
 import funcionalidades.AgregarTarjeta;
+import funcionalidades.CrearUsuario;
 import java.awt.*;
 import javax.swing.*;
 
@@ -10,11 +11,13 @@ public class DatosTarjeta extends JFrame {
     private Image logo;
     private String correoUsuario;
     private String dpiUsuario;
+    private String tipoCuenta;
 
     // ============================
     // TEXTFIELD REDONDEADO
     // ============================
     class RoundedTextField extends JTextField {
+
         public RoundedTextField(int size) {
             super(size);
             setOpaque(false);
@@ -44,6 +47,7 @@ public class DatosTarjeta extends JFrame {
     // BOTÓN NEO
     // ============================
     class BotonNeo extends JButton {
+
         private Color normal;
         private Color hover;
 
@@ -76,9 +80,11 @@ public class DatosTarjeta extends JFrame {
     // ============================
     // CONSTRUCTOR
     // ============================
-    public DatosTarjeta(String correoUsuario, String dpiUsuario) {
+    public DatosTarjeta(String correoUsuario, String dpiUsuario, String tipoCuenta) {
+
         this.correoUsuario = correoUsuario;
         this.dpiUsuario = dpiUsuario;
+        this.tipoCuenta = tipoCuenta;
 
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
@@ -162,12 +168,31 @@ public class DatosTarjeta extends JFrame {
 
                 try {
                     AgregarTarjeta servicio = new AgregarTarjeta();
-                    boolean guardado = servicio.registrarTarjeta(correoUsuario, dpiUsuario, tipo, pais, numero, banco);
+
+                    boolean guardado = servicio.registrarTarjeta(
+                            correoUsuario,
+                            dpiUsuario,
+                            tipo,
+                            pais,
+                            numero,
+                            banco);
+
                     if (guardado) {
+
+                        CrearUsuario crear = new CrearUsuario();
+
+                        int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
+
+                        crear.crearCuentaBancaria(idUsuario, 1, tipoCuenta);
+                        crear.crearCuentaBancaria(idUsuario, 2, tipoCuenta);
+                        crear.crearCuentaBancaria(idUsuario, 3, tipoCuenta);
+                        crear.crearCuentaBancaria(idUsuario, 4, tipoCuenta);
+
                         JOptionPane.showMessageDialog(null,
-                                "✅ Tarjeta registrada correctamente.",
+                                "✅ Tarjeta y cuentas bancarias creadas correctamente.",
                                 "Éxito",
                                 JOptionPane.INFORMATION_MESSAGE);
+
                         new InicioNeo().setVisible(true);
                         dispose();
                     }
@@ -221,4 +246,3 @@ public class DatosTarjeta extends JFrame {
         }
     }
 }
-

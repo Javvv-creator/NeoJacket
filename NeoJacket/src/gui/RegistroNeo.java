@@ -13,15 +13,15 @@ public class RegistroNeo extends JFrame {
     // ============================
     // PALETA DE COLORES
     // ============================
-    private static final Color VERDE_OSCURO   = new Color(25, 38, 35);
-    private static final Color VERDE_CARD     = new Color(22, 34, 31, 215);
-    private static final Color VERDE_CAMPO    = new Color(20, 32, 29, 200);
-    private static final Color VERDE_BOTON    = new Color(94, 116, 73);
+    private static final Color VERDE_OSCURO = new Color(25, 38, 35);
+    private static final Color VERDE_CARD = new Color(22, 34, 31, 215);
+    private static final Color VERDE_CAMPO = new Color(20, 32, 29, 200);
+    private static final Color VERDE_BOTON = new Color(94, 116, 73);
     private static final Color VERDE_BOTON_HOVER = new Color(120, 150, 90);
-    private static final Color DORADO         = new Color(251, 232, 138);
-    private static final Color DORADO_HOVER   = new Color(255, 245, 180);
-    private static final Color BLANCO_SUAVE   = new Color(235, 235, 230);
-    private static final Color GRIS_HINT      = new Color(190, 195, 190);
+    private static final Color DORADO = new Color(251, 232, 138);
+    private static final Color DORADO_HOVER = new Color(255, 245, 180);
+    private static final Color BLANCO_SUAVE = new Color(235, 235, 230);
+    private static final Color GRIS_HINT = new Color(190, 195, 190);
 
     // ============================
     // DIMENSIONES DE LA TARJETA
@@ -42,6 +42,7 @@ public class RegistroNeo extends JFrame {
     // TEXTFIELD REDONDEADO
     // ============================
     class RoundedTextField extends JTextField {
+
         public RoundedTextField(int size) {
             super(size);
             setOpaque(false);
@@ -72,6 +73,7 @@ public class RegistroNeo extends JFrame {
     // PASSFIELD REDONDEADO
     // ============================
     class RoundedPassField extends JPasswordField {
+
         public RoundedPassField(int size) {
             super(size);
             setOpaque(false);
@@ -103,6 +105,7 @@ public class RegistroNeo extends JFrame {
     // COMBOBOX REDONDEADO (mismo lenguaje visual que los campos de texto)
     // ============================
     class RoundedComboBox<T> extends JComboBox<T> {
+
         public RoundedComboBox(T[] items) {
             super(items);
             setOpaque(false);
@@ -161,6 +164,7 @@ public class RegistroNeo extends JFrame {
     // RADIO BUTTON CON ICONO PROPIO
     // ============================
     class NeoRadioButton extends JRadioButton {
+
         public NeoRadioButton(String texto) {
             super(texto);
             setOpaque(false);
@@ -188,10 +192,14 @@ public class RegistroNeo extends JFrame {
                 }
 
                 @Override
-                public int getIconWidth() { return 18; }
+                public int getIconWidth() {
+                    return 18;
+                }
 
                 @Override
-                public int getIconHeight() { return 18; }
+                public int getIconHeight() {
+                    return 18;
+                }
             });
         }
     }
@@ -200,6 +208,7 @@ public class RegistroNeo extends JFrame {
     // BOTÓN NEO
     // ============================
     class BotonNeo extends JButton {
+
         private final Color normal;
         private final Color hover;
 
@@ -238,6 +247,7 @@ public class RegistroNeo extends JFrame {
     // TARJETA CON SOMBRA Y BORDES REDONDEADOS
     // ============================
     class RoundedCardPanel extends JPanel {
+
         public RoundedCardPanel() {
             setLayout(null);
             setOpaque(false);
@@ -305,7 +315,9 @@ public class RegistroNeo extends JFrame {
         }
 
         private void centrarTarjeta() {
-            if (panelReg == null) return;
+            if (panelReg == null) {
+                return;
+            }
             int px = Math.max(MARGIN_X, (getWidth() - PANEL_W) / 2);
             int py = Math.max(30, (getHeight() - PANEL_H) / 2);
             panelReg.setBounds(px, py, PANEL_W, PANEL_H);
@@ -357,7 +369,7 @@ public class RegistroNeo extends JFrame {
             panelReg.add(txtPass);
 
             panelReg.add(crearLabel("Tipo de cuenta", COL2_X, y));
-            RoundedComboBox<String> cbTipo = new RoundedComboBox<>(new String[]{"Monetaria"});
+            RoundedComboBox<String> cbTipo = new RoundedComboBox<>(new String[]{"Monetaria", "Ahorro", "Corriente"});
             cbTipo.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
             cbTipo.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbTipo);
@@ -401,7 +413,7 @@ public class RegistroNeo extends JFrame {
 
             // ---------- FILA 4: Correo / Teléfono ----------
             // Posición base: y + 100. Cuando el tutor está visible se desplaza +tutorRowH
-            int[] yF4 = { y + 100 }; // array para modificar dentro de lambdas
+            int[] yF4 = {y + 100}; // array para modificar dentro de lambdas
 
             JLabel lblCorreoLabel = crearLabel("Correo electrónico", COL1_X, yF4[0]);
             panelReg.add(lblCorreoLabel);
@@ -416,7 +428,7 @@ public class RegistroNeo extends JFrame {
             panelReg.add(txtTelefono);
 
             // ---------- FILA 5: Fecha / Identificación ----------
-            int[] yF5 = { yF4[0] + 100 };
+            int[] yF5 = {yF4[0] + 100};
 
             JLabel lblFechaLabel = crearLabel("Fecha de nacimiento", COL1_X, yF5[0]);
             panelReg.add(lblFechaLabel);
@@ -441,7 +453,7 @@ public class RegistroNeo extends JFrame {
             txtIdent.setVisible(!rbMenor.isSelected());
 
             // ---------- BOTONES ----------
-            int[] btnYArr = { yF5[0] + 100 };
+            int[] btnYArr = {yF5[0] + 100};
             int btnW = 160;
             int btnH = 50;
             int gap = 20;
@@ -450,12 +462,18 @@ public class RegistroNeo extends JFrame {
             btnTutor.setForeground(Color.WHITE);
             btnTutor.setBounds(MARGIN_X, btnYArr[0], btnW, btnH);
             panelReg.add(btnTutor);
-            btnTutor.addActionListener(e -> { new RegistroTutor().setVisible(true); dispose(); });
+            btnTutor.addActionListener(e -> {
+                new RegistroTutor().setVisible(true);
+                dispose();
+            });
 
             BotonNeo btnRegresar = new BotonNeo("Regresar", DORADO, DORADO_HOVER);
             btnRegresar.setBounds(MARGIN_X + btnW + gap, btnYArr[0], btnW, btnH);
             panelReg.add(btnRegresar);
-            btnRegresar.addActionListener(e -> { new InicioNeo().setVisible(true); dispose(); });
+            btnRegresar.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
 
             BotonNeo btnIngresar = new BotonNeo("Registrarse", DORADO, DORADO_HOVER);
             btnIngresar.setBounds(MARGIN_X + 2 * (btnW + gap), btnYArr[0], btnW, btnH);
@@ -544,8 +562,8 @@ public class RegistroNeo extends JFrame {
                     String correoTutor = txtCorreoTutor.getText().trim();
                     if (correoTutor.isEmpty()) {
                         JOptionPane.showMessageDialog(null,
-                            "Debes ingresar el correo del tutor para registrarte como menor supervisado.",
-                            "Campo requerido", JOptionPane.WARNING_MESSAGE);
+                                "Debes ingresar el correo del tutor para registrarte como menor supervisado.",
+                                "Campo requerido", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
 
@@ -553,23 +571,39 @@ public class RegistroNeo extends JFrame {
                     Integer idAdulto = dao.buscarIdUsuarioPorCorreo(correoTutor);
                     if (idAdulto == null) {
                         JOptionPane.showMessageDialog(null,
-                            "No se encontró ningún tutor registrado con ese correo.\nVerifica que el tutor ya tenga una cuenta creada.",
-                            "Tutor no encontrado", JOptionPane.WARNING_MESSAGE);
+                                "No se encontró ningún tutor registrado con ese correo.\nVerifica que el tutor ya tenga una cuenta creada.",
+                                "Tutor no encontrado", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
 
                     CrearUsuario crearUsuario = new CrearUsuario();
-                    boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
+                    boolean creado = crearUsuario.crearDesdeRegistroNeo(
+                            nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero
+                    );
                     if (creado) {
+
+                        int idUsuario = crearUsuario.obtenerIdUsuario(correo, dpiNumero);
+
+                        // 🔹 Crear cuentas en los 4 bancos automáticamente
+                        crearUsuario.crearCuentaBancaria(idUsuario, 1, tipoCuenta); // Banco Industrial
+                        crearUsuario.crearCuentaBancaria(idUsuario, 3, tipoCuenta); // Banrural
+                        crearUsuario.crearCuentaBancaria(idUsuario, 2, tipoCuenta); // BAC Credomatic
+                        crearUsuario.crearCuentaBancaria(idUsuario, 4, tipoCuenta); // G&T Continental
+
+                        JOptionPane.showMessageDialog(this, "Cuentas bancarias creadas en los 4 bancos exitosamente.");
                         // Vincular menor con tutor en tabla supervisiones
+
+                        new DatosTarjeta(correo, dpiNumero, tipoCuenta).setVisible(true);
+                        dispose();
+
                         Integer idMenor = dao.buscarIdUsuarioPorCorreo(correo);
                         if (idMenor != null) {
                             dao.crearSupervision(idAdulto, idMenor);
                         }
                         // El menor no tiene tarjeta — ir directo al inicio
                         JOptionPane.showMessageDialog(null,
-                            "✅ Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",
-                            "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
+                                "✅ Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",
+                                "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
                         new InicioNeo().setVisible(true);
                         dispose();
                     }
@@ -577,7 +611,7 @@ public class RegistroNeo extends JFrame {
                     CrearUsuario crearUsuario = new CrearUsuario();
                     boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
                     if (creado) {
-                        new DatosTarjeta(correo, dpiNumero).setVisible(true);
+                       new DatosTarjeta(correo, dpiNumero, tipoCuenta).setVisible(true);
                         dispose();
                     }
                 }

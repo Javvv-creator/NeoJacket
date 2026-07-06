@@ -221,6 +221,9 @@ public class CRUD {
         psUpdate.setInt(3, idBanco);
         psUpdate.executeUpdate();
 
+        System.out.println("Usuario: " + idUsuario);
+System.out.println("Banco: " + idBanco);
+        
         // 2. Insertar transacción tipo "deposito"
         PreparedStatement psInsert = con.prepareStatement(
             "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, descripcion, moneda_origen) " +
@@ -278,9 +281,9 @@ public boolean actualizarSaldo(int idUsuario, int idBanco, double montoActual, d
 
             // 3. Insertar transacción tipo "actualizacion"
             PreparedStatement psInsert = con.prepareStatement(
-                "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, descripcion, moneda_origen) " +
-                "VALUES ((SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ? LIMIT 1), ?, 'actualizacion', ?, ?, 'GTQ')"
-            );
+    "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, descripcion, moneda_origen) " +
+    "VALUES ((SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ? LIMIT 1), ?, 'deposito', ?, ?, 'GTQ')"
+);
             psInsert.setInt(1, idUsuario);
             psInsert.setInt(2, idBanco);
             psInsert.setInt(3, idUsuario);
