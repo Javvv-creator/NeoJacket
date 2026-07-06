@@ -236,4 +236,10 @@ CREATE INDEX idx_trans_destino ON transacciones(id_cuenta_destino);
 CREATE INDEX idx_trans_usuario ON transacciones(id_usuario_realizador);
 CREATE INDEX idx_auditoria_admin ON auditoria_logs(id_admin);
 
+insert into usuarios(id_rol, nombre, apellido, correo, fecha_nacimiento, password_hash)
+values(1, "Javier", "Top", "javier@ex.com", "1111-11-11", "123456789");
+
+ALTER TABLE transacciones ADD COLUMN descripcion VARCHAR(255);
+ALTER TABLE usuarios ADD COLUMN perfil VARCHAR(50); 
+
 select * from Usuarios;
