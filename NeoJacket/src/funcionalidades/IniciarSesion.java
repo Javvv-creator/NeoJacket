@@ -63,6 +63,15 @@ public class IniciarSesion {
                 if (rs != null) rs.close();
                 if (ps != null) ps.close();
                 if (con != null) con.close();
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -83,7 +92,7 @@ public class IniciarSesion {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                idUsuario = rs.getInt("id_usuario");
+                return rs.getInt("id_usuario");
             }
 
             rs.close();
@@ -91,6 +100,7 @@ public class IniciarSesion {
             con.close();
         } catch (Exception e) {
             e.printStackTrace();
+             return 0; 
         }
         return idUsuario;
     }

@@ -10,6 +10,7 @@ public class DatosPersonales extends JFrame {
 
     private RoundedTextField txtNombreCompleto;
     private RoundedTextField txtDpiCui;
+    private String tipoCuenta;
     private RoundedTextField txtFechaNacimiento;
     private RoundedTextField txtCorreoElectronico;
     private RoundedTextField txtTelefono;
@@ -79,19 +80,21 @@ public class DatosPersonales extends JFrame {
     // ============================
     // CONSTRUCTOR
     // ============================
-    public DatosPersonales() {
+    public DatosPersonales(String tipoCuenta) {
 
-        fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
-        logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
+    this.tipoCuenta = tipoCuenta;
 
-        setTitle("Neo Jacket - Datos Personales");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setResizable(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setContentPane(new FondoPanel());
-        setVisible(true);
-    }
+    fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
+    logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
+
+    setTitle("Neo Jacket - Datos Personales");
+    setExtendedState(JFrame.MAXIMIZED_BOTH);
+    setResizable(true);
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setLocationRelativeTo(null);
+    setContentPane(new FondoPanel());
+    setVisible(true);
+}
 
     // ============================
     // PANEL PRINCIPAL
@@ -168,7 +171,7 @@ public class DatosPersonales extends JFrame {
                     return;
                 }
 
-                new DatosTarjeta(correo, dpi);
+                new DatosTarjeta(correo, dpi, tipoCuenta);
                 dispose();
             });
         }

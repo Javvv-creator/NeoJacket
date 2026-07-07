@@ -282,18 +282,23 @@ public class LoginNeo extends JFrame {
                     funcionalidades.IniciarSesion auth = new funcionalidades.IniciarSesion();
                     String rol = auth.iniciarSesion(nombre, password);
 
-                    if (rol != null) {
-                        int idUsuario = auth.obtenerIdUsuario(nombre, password);
+                     if (rol != null) {
+                        int idUsuario = auth.obtenerIdUsuario(nombre, password); // este método debe devolver el id real
                         if (idUsuario > 0) {
-                            SesionUsuario.setIdUsuario(idUsuario);
+                            SesionUsuario.setIdUsuario(idUsuario); // 🔹 aquí guardas el id en sesión
+                            System.out.println("Usuario en sesión: " + SesionUsuario.getIdUsuario());
                         }
 
-                        if ("ADMIN".equals(rol)) {
-                            new PanelControlAdmin().setVisible(true);
+                         if ("ADMIN".equals(rol)) {
+                            PanelControlAdmin adminWin = new PanelControlAdmin();
+                            adminWin.setVisible(true);
                             dispose();
                         } else {
+                               Dashboard dashWin = new Dashboard();
+                            dashWin.setVisible(true);                           
                             funcionalidades.SupervisionDAO dao = new funcionalidades.SupervisionDAO();
                             boolean esMenor = idUsuario > 0 && dao.esMenorSupervisado(idUsuario);
+                             dispose();
 
                             if (esMenor) {
                                 dao.registrarSesionMenor(idUsuario, "inicio_sesion");
@@ -304,7 +309,10 @@ public class LoginNeo extends JFrame {
                             dispose();
                         }
                     } else {
-                        lblEstado.setText("Credenciales incorrectas o cuenta inactiva.");
+                       JOptionPane.showMessageDialog(null,
+                                "Credenciales incorrectas o cuenta inactiva.",
+                                "Error de autenticación",
+                                JOptionPane.ERROR_MESSAGE);
                     }
 
                 } catch (IllegalArgumentException ex) {
