@@ -187,7 +187,25 @@ public class Saldos extends javax.swing.JFrame {
                     new InicioNeo().setVisible(true);
                     dispose();
                 });
-                sidebar.add(btnCerrarSesion);
+                            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
+            int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
+            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
+                JButton btnSupervision = new JButton("Supervisión");
+                btnSupervision.setBounds(20, 740, 250, 55);
+                btnSupervision.setFocusPainted(false);
+                btnSupervision.setBorderPainted(false);
+                btnSupervision.setBackground(new Color(251, 232, 138));
+                btnSupervision.setForeground(new Color(25, 38, 35));
+                btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                btnSupervision.addActionListener(e -> {
+                    new PanelSupervision(idSesion).setVisible(true);
+                    dispose();
+                });
+                sidebar.add(btnSupervision);
+            }
+sidebar.add(btnCerrarSesion);
 
                 sidebar.add(btn);
                 y += 68;

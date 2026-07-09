@@ -150,15 +150,15 @@ public class DashboardMenor extends javax.swing.JFrame {
 
                 if (textoBtn.equals("Transferencias")) {
                     btn.addActionListener(e -> {
-                        if (tienePermisoAprobado("transferencia")) { new Transferencias(idMenor).setVisible(true); dispose(); }
+                        if (tienePermisoAprobado("transferencia")) { new TransferenciasMenor(idMenor).setVisible(true); dispose(); }
                         else mostrarFuncionBloqueada("transferencia", "Realizar una transferencia", 0);
                     });
                 }
                 if (textoBtn.equals("Divisas")) {
-                    btn.addActionListener(e -> { new Divisas(idMenor).setVisible(true); dispose(); });
+                    btn.addActionListener(e -> { new DivisasMenor(idMenor).setVisible(true); dispose(); });
                 }
                 if (textoBtn.equals("Historial")) {
-                    btn.addActionListener(e -> { new Historial(idMenor).setVisible(true); dispose(); });
+                    btn.addActionListener(e -> { new HistorialMenor(idMenor).setVisible(true); dispose(); });
                 }
 
                 sidebar.add(btn);
@@ -256,7 +256,7 @@ public class DashboardMenor extends javax.swing.JFrame {
             BotonNeo btnTransfer = new BotonNeo(transAprobada ? "Ir a Transferencias →" : "Solicitar permiso");
             btnTransfer.setBounds(20, 110, 240, 40);
             btnTransfer.addActionListener(e -> {
-                if (tienePermisoAprobado("transferencia")) { new Transferencias(idMenor).setVisible(true); dispose(); }
+                if (tienePermisoAprobado("transferencia")) { new TransferenciasMenor(idMenor).setVisible(true); dispose(); }
                 else mostrarFuncionBloqueada("transferencia", "Realizar una transferencia", 0);
             });
             transferencias.add(btnTransfer);
@@ -283,7 +283,7 @@ public class DashboardMenor extends javax.swing.JFrame {
 
             BotonNeo btnDivisas = new BotonNeo("Ver tipos de cambio →");
             btnDivisas.setBounds(20, 110, 240, 40);
-            btnDivisas.addActionListener(e -> { new Divisas(idMenor).setVisible(true); dispose(); });
+            btnDivisas.addActionListener(e -> { new DivisasMenor(idMenor).setVisible(true); dispose(); });
             divisas.add(btnDivisas);
 
             // TARJETA HISTORIAL con JTable

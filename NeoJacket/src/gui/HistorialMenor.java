@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import funcionalidades.SupervisionDAO;
 
-public class Historial extends javax.swing.JFrame {
+public class HistorialMenor extends javax.swing.JFrame {
 
     private Image fondo;
     private Image logo;
@@ -44,11 +44,11 @@ public class Historial extends javax.swing.JFrame {
 
     private Integer idMenor;
 
-    public Historial() {
+    public HistorialMenor() {
         this(null);
     }
 
-    public Historial(Integer idMenor) {
+    public HistorialMenor(Integer idMenor) {
         this.idMenor = idMenor;
         initComponents();
         
@@ -118,154 +118,68 @@ public class Historial extends javax.swing.JFrame {
         }
 
        private void crearSidebar(JPanel panel) {
-
-    JPanel sidebar = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setColor(new Color(25, 38, 35, 220));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
-            g2.dispose();
-        }
-    };
-
-    sidebar.setOpaque(false);
-    sidebar.setBounds(20, 20, 300, 950);
+    JPanel sidebar = new JPanel();
     sidebar.setLayout(null);
-    
-    // ============================
-    // BOTONES PRINCIPALES DE ACCESO
-    // ============================
-    Color verdeTrans = new Color(25, 38, 35, 180);
-    Color verdeHover = new Color(94, 116, 73, 220);
+    sidebar.setBackground(new Color(25, 38, 35, 220));
+    sidebar.setBounds(20, 20, 300, 870);
 
-    Color amarillo = new Color(251, 232, 138);
-    Color amarilloHover = new Color(255, 245, 180);
-
-    Color fondoTransparente = new Color(0, 0, 0, 0); 
-    Color amarilloBorde = new Color(251, 232, 138);
-
-    // Logo
     Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
     JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
     lblLogo.setBounds(20, 10, 250, 110);
     sidebar.add(lblLogo);
 
-    String[] opciones = {
-        "Saldos",
-        "Bancos Conectados",
-        "Transferencias",
-        "Historial"
-    };
+    JLabel lblAviso = new JLabel("Cuenta supervisada");
+    lblAviso.setForeground(new Color(251, 232, 138));
+    lblAviso.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    lblAviso.setHorizontalAlignment(SwingConstants.CENTER);
+    lblAviso.setBounds(20, 122, 250, 18);
+    sidebar.add(lblAviso);
 
-    int y = 140;
-
-    for (String texto : opciones) {
-        
-        JButton btn = new JButton(texto) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                
-                if (getBackground() != amarillo) {
-                    g2.setColor(amarilloBorde);
-                    g2.setStroke(new BasicStroke(1f));
-                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
-                }
-                
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-
-        // Ajustamos la altura a 46 para un look más estilizado
-        btn.setBounds(20, y, 250, 46);
+    String[] botones = {"Transferencias", "Divisas", "Historial"};
+    int y = 150;
+    for (String nombre : botones) {
+        JButton btn = new JButton(nombre);
+        btn.setBounds(20, y, 250, 55);
         btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false); 
-        btn.setBorderPainted(false);     
-        btn.setOpaque(false);
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(fondoTransparente);
-
-        Font fuenteActual = btn.getFont();
-        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
-
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(amarillo);
-                btn.setForeground(Color.BLACK);
-            }
-
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(fondoTransparente);
-                btn.setForeground(Color.WHITE);
-            }
+        btn.setBorderPainted(false);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        if (nombre.equals("Historial")) {
+            btn.setBackground(new Color(251, 232, 138));
+            btn.setForeground(Color.BLACK);
+        } else {
+            btn.setBackground(new Color(94, 116, 73));
+            btn.setForeground(Color.WHITE);
+        }
+        btn.addActionListener(e -> {
+            if (nombre.equals("Transferencias")) { new TransferenciasMenor(idMenor).setVisible(true); dispose(); }
+            if (nombre.equals("Divisas"))        { new DivisasMenor(idMenor).setVisible(true); dispose(); }
         });
-
-        if (texto.equals("Saldos")) {
-            btn.addActionListener(e -> { 
-                new Saldos().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Bancos Conectados")) {
-            btn.addActionListener(e -> { 
-                new BancosConectados().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Transferencias")) {
-            btn.addActionListener(e -> { 
-                new Transferencias(idMenor).setVisible(true);
-                dispose(); 
-            });
-        }
-                
-        JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
-                        // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
-            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
-            int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
-            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
-                JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, 740, 250, 55);
-                btnSupervision.setFocusPainted(false);
-                btnSupervision.setBorderPainted(false);
-                btnSupervision.setBackground(new Color(251, 232, 138));
-                btnSupervision.setForeground(new Color(25, 38, 35));
-                btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-                btnSupervision.addActionListener(e -> {
-                    new PanelSupervision(idSesion).setVisible(true);
-                    dispose();
-                });
-                sidebar.add(btnSupervision);
-            }
-sidebar.add(btnCerrarSesion);
-
         sidebar.add(btn);
-        
-        // Aumentamos el salto a 68 píxeles para darles más separación física
-        y += 68;
+        y += 70;
     }
-     panel.add(sidebar);
+
+    JButton btnRegresar = new JButton("← Regresar") {
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(60, 60, 60));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+            g2.dispose(); super.paintComponent(g);
+        }
+    };
+    btnRegresar.setBounds(20, 760, 250, 50);
+    btnRegresar.setForeground(Color.WHITE);
+    btnRegresar.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    btnRegresar.setFocusPainted(false);
+    btnRegresar.setContentAreaFilled(false);
+    btnRegresar.setBorderPainted(false);
+    btnRegresar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    btnRegresar.addActionListener(e -> { new DashboardMenor(idMenor).setVisible(true); dispose(); });
+    sidebar.add(btnRegresar);
+
+    panel.add(sidebar);
 }
-    
+
         private void crearContenido() {
             PanelContenedorVerde contenedor = new PanelContenedorVerde();
             contenedor.setBounds(350, 40, 1300, 910);
@@ -589,11 +503,11 @@ sidebar.add(btnCerrarSesion);
                 }
             }
         } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(Historial.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(HistorialMenor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
         SwingUtilities.invokeLater(() -> {
-            new Historial().setVisible(true);
+            new HistorialMenor().setVisible(true);
         });
     }
 }

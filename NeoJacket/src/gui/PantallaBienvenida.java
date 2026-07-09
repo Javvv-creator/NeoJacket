@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.URL;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -53,7 +57,22 @@ public class PantallaBienvenida extends JFrame {
         timer.setRepeats(false);
         timer.start();
 
-        // Hace visible la ventana
-        setVisible(true);
+        // Omitir con cualquier tecla o clic del mouse
+        Runnable omitir = () -> {
+            if (timer.isRunning()) timer.stop();
+            new InicioNeo().setVisible(true);
+            dispose();
+        };
+
+        addKeyListener(new KeyAdapter() {
+            @Override public void keyPressed(KeyEvent e) { omitir.run(); }
+        });
+
+        fondo.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) { omitir.run(); }
+        });
+
+        setFocusable(true);
+        requestFocus();
     }
 }

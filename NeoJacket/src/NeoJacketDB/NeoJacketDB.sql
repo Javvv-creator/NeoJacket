@@ -25,6 +25,7 @@ CREATE TABLE usuarios (
     password_hash VARCHAR(255) NOT NULL, 
     dpi_numero VARCHAR(20) UNIQUE,        
     estado ENUM('activo','inactivo','suspendido','bloqueado') NOT NULL DEFAULT 'activo',
+    perfil VARCHAR(30) NOT NULL DEFAULT 'Adulto',
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_usuarios_roles FOREIGN KEY (id_rol) REFERENCES roles(id_rol)
 );
@@ -77,6 +78,20 @@ CREATE TABLE supervisiones (
     UNIQUE (id_adulto, id_menor) 
 );
 
+CREATE TABLE solicitudes_permiso (
+    id_solicitud    INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_menor        INT UNSIGNED NOT NULL,
+    id_adulto       INT UNSIGNED NOT NULL,
+    tipo_accion     VARCHAR(50)   NOT NULL,
+    descripcion     VARCHAR(255)  NOT NULL,
+    monto           DECIMAL(14,2) DEFAULT 0.00,
+    estado          ENUM('pendiente','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
+    fecha_solicitud TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_respuesta DATETIME      DEFAULT NULL,
+    CONSTRAINT fk_solicitud_menor  FOREIGN KEY (id_menor)  REFERENCES usuarios(id_usuario),
+    CONSTRAINT fk_solicitud_adulto FOREIGN KEY (id_adulto) REFERENCES usuarios(id_usuario)
+);
+
 -- =========================================================================
 -- 3. MÓDULO FINANCIERO BASE (Monedas, Tasas de Cambio, Bancos)
 -- =========================================================================
@@ -90,7 +105,12 @@ CREATE TABLE monedas (
 INSERT IGNORE INTO monedas (codigo, nombre, simbolo, activa) VALUES
     ('GTQ', 'Quetzal', 'Q', TRUE),
     ('USD', 'Dólar estadounidense', '$', TRUE),
-    ('EUR', 'Euro', '€', TRUE);
+    ('EUR', 'Euro', '€', TRUE),
+    ('MXN', 'Peso mexicano', '$', TRUE),
+    ('COP', 'Peso colombiano', '$', TRUE),
+    ('ARS', 'Peso argentino', '$', TRUE),
+    ('GBP', 'Libra esterlina', '£', TRUE),
+    ('BRL', 'Real brasileño', 'R$', TRUE);
 
 CREATE TABLE tipos_cambio (
     id_tipo_cambio INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -221,19 +241,9 @@ CREATE TABLE auditoria_logs (
     CONSTRAINT fk_auditoria_usuarios FOREIGN KEY (id_admin) REFERENCES usuarios(id_usuario)
 );
 
-CREATE TABLE solicitudes_permiso (
-    id_solicitud    INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    id_menor        INT UNSIGNED NOT NULL,
-    id_adulto       INT UNSIGNED NOT NULL,
-    tipo_accion     VARCHAR(50)   NOT NULL,
-    descripcion     VARCHAR(255)  NOT NULL,
-    monto           DECIMAL(14,2) DEFAULT 0.00,
-    estado          ENUM('pendiente','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
-    fecha_solicitud TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_respuesta DATETIME      DEFAULT NULL,
-    CONSTRAINT fk_solicitud_menor  FOREIGN KEY (id_menor)  REFERENCES usuarios(id_usuario),
-    CONSTRAINT fk_solicitud_adulto FOREIGN KEY (id_adulto) REFERENCES usuarios(id_usuario)
-);
+-- Corregida la inserción: ahora incluye id_rol válido e inicializa campos requeridos
+INSERT INTO usuarios (id_rol, nombre, apellido, correo, fecha_nacimiento, password_hash)
+VALUES (1, 'Javier', 'Top', 'javier@ex.com', '2000-01-01', '123456789');
 
 -- =========================================================================
 -- 6. ÍNDICES EXPLÍCITOS PARA LLAVES FORÁNEAS (Optimización de Rendimiento)
@@ -249,11 +259,7 @@ CREATE INDEX idx_trans_origen ON transacciones(id_cuenta_origen);
 CREATE INDEX idx_trans_destino ON transacciones(id_cuenta_destino);
 CREATE INDEX idx_trans_usuario ON transacciones(id_usuario_realizador);
 CREATE INDEX idx_auditoria_admin ON auditoria_logs(id_admin);
+CREATE INDEX idx_solicitudes_adulto ON solicitudes_permiso(id_adulto);
+CREATE INDEX idx_solicitudes_menor  ON solicitudes_permiso(id_menor);
 
-insert into usuarios(id_rol, nombre, apellido, correo, fecha_nacimiento, password_hash)
-values(1, "Javier", "Top", "javier@ex.com", "1111-11-11", "123456789");
-
-ALTER TABLE transacciones ADD COLUMN descripcion VARCHAR(255);
-ALTER TABLE usuarios ADD COLUMN perfil VARCHAR(50); 
-
-select * from Usuarios;
+SELECT * FROM usuarios;

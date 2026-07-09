@@ -584,22 +584,18 @@ public class RegistroNeo extends JFrame {
 
                         int idUsuario = crearUsuario.obtenerIdUsuario(correo, dpiNumero);
 
-                        // 🔹 Crear cuentas en los 4 bancos automáticamente
-                        crearUsuario.crearCuentaBancaria(idUsuario, 1, tipoCuenta); // Banco Industrial
-                        crearUsuario.crearCuentaBancaria(idUsuario, 3, tipoCuenta); // Banrural
-                        crearUsuario.crearCuentaBancaria(idUsuario, 2, tipoCuenta); // BAC Credomatic
-                        crearUsuario.crearCuentaBancaria(idUsuario, 4, tipoCuenta); // G&T Continental
+                        // Crear cuentas en los 4 bancos automáticamente
+                        crearUsuario.crearCuentaBancaria(idUsuario, 1, tipoCuenta);
+                        crearUsuario.crearCuentaBancaria(idUsuario, 3, tipoCuenta);
+                        crearUsuario.crearCuentaBancaria(idUsuario, 2, tipoCuenta);
+                        crearUsuario.crearCuentaBancaria(idUsuario, 4, tipoCuenta);
 
-                        JOptionPane.showMessageDialog(this, "Cuentas bancarias creadas en los 4 bancos exitosamente.");
-                        // Vincular menor con tutor en tabla supervisiones
-
-                        new DatosTarjeta(correo, dpiNumero, tipoCuenta).setVisible(true);
-                        dispose();
-
+                        // Vincular menor con tutor
                         Integer idMenor = dao.buscarIdUsuarioPorCorreo(correo);
                         if (idMenor != null) {
                             dao.crearSupervision(idAdulto, idMenor);
                         }
+
                         // El menor no tiene tarjeta — ir directo al inicio
                         JOptionPane.showMessageDialog(null,
                                 "✅ Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",

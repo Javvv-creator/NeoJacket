@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import funcionalidades.SupervisionDAO;
 
-public class Transferencias extends javax.swing.JFrame {
+public class TransferenciasMenor extends javax.swing.JFrame {
 
     private Image fondo;
     private Image logo;
@@ -32,11 +32,11 @@ public class Transferencias extends javax.swing.JFrame {
     public JLabel lblD_Cuenta, lblD_Nombre, lblD_Tipo, lblD_Banco, lblD_Monto;
     public JButton btnTransferir, btnCancelar, btnImprimir; 
 
-    public Transferencias() {
+    public TransferenciasMenor() {
         this(null);
     }
 
-    public Transferencias(Integer idMenor) {
+    public TransferenciasMenor(Integer idMenor) {
         this.idMenor = idMenor;
         initComponents();
         
@@ -49,9 +49,6 @@ public class Transferencias extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         
         setContentPane(new FondoPanel());
-        
-        // --- INICIALIZACIÓN DE LA FUNCIONALIDAD ---
-        new funcionalidades.Transferencias(this);
     }
 
  class FondoPanel extends JPanel {
@@ -66,99 +63,61 @@ public class Transferencias extends javax.swing.JFrame {
             JPanel sidebar = new JPanel();
             sidebar.setLayout(null);
             sidebar.setBackground(new Color(25, 38, 35, 220));
-            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setBounds(20, 20, 300, 870);
 
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
             JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            JButton btnSaldos = new JButton("Saldos");
-            btnSaldos.setBounds(20, 140, 250, 55);
-            btnSaldos.setFocusPainted(false);
-            btnSaldos.setBorderPainted(false);
-            btnSaldos.setBackground(new Color(94, 116, 73));
-            btnSaldos.setForeground(Color.WHITE);
-            btnSaldos.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnSaldos.addActionListener(e -> { 
-                new Saldos().setVisible(true); 
-                dispose(); 
-            });
-            sidebar.add(btnSaldos);
+            JLabel lblAviso = new JLabel("Cuenta supervisada");
+            lblAviso.setForeground(new Color(251, 232, 138));
+            lblAviso.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            lblAviso.setHorizontalAlignment(SwingConstants.CENTER);
+            lblAviso.setBounds(20, 122, 250, 18);
+            sidebar.add(lblAviso);
 
-            JButton btnBancos = new JButton("Bancos conectados");
-            btnBancos.setBounds(20, 210, 250, 55);
-            btnBancos.setFocusPainted(false);
-            btnBancos.setBorderPainted(false);
-            btnBancos.setBackground(new Color(94, 116, 73));
-            btnBancos.setForeground(Color.WHITE);
-            btnBancos.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnBancos.addActionListener(e -> { 
-                new BancosConectados().setVisible(true); 
-                dispose(); 
-            });
-            sidebar.add(btnBancos);
-
-            JButton btnTransferencias = new JButton("Transferencias");
-            btnTransferencias.setBounds(20, 280, 250, 55);
-            btnTransferencias.setBackground(new Color(251, 232, 138)); 
-            btnTransferencias.setForeground(Color.BLACK);
-            btnTransferencias.setFocusPainted(false);
-            btnTransferencias.setBorderPainted(false);
-            btnTransferencias.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            sidebar.add(btnTransferencias);
-
-            String[] restoMenu = {"Historial"};
-            int y = 350;
-            for (String textoBtn : restoMenu) {
-                JButton btn = new JButton(textoBtn);
+            String[] botones = {"Transferencias", "Divisas", "Historial"};
+            int y = 150;
+            for (String nombre : botones) {
+                JButton btn = new JButton(nombre);
                 btn.setBounds(20, y, 250, 55);
-                btn.setBackground(new Color(94, 116, 73)); 
-                btn.setForeground(Color.WHITE);
                 btn.setFocusPainted(false);
                 btn.setBorderPainted(false);
                 btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                if (nombre.equals("Transferencias")) {
+                    btn.setBackground(new Color(251, 232, 138));
+                    btn.setForeground(Color.BLACK);
+                } else {
+                    btn.setBackground(new Color(94, 116, 73));
+                    btn.setForeground(Color.WHITE);
+                }
                 btn.addActionListener(e -> {
-
-                    if (textoBtn.equals("Historial")) {
-                    new Historial().setVisible(true);
-                    }
-                    dispose();
+                    if (nombre.equals("Divisas"))   { new DivisasMenor(idMenor).setVisible(true); dispose(); }
+                    if (nombre.equals("Historial")) { new HistorialMenor(idMenor).setVisible(true); dispose(); }
                 });
                 sidebar.add(btn);
                 y += 70;
             }
 
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
-                        // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
-            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
-            int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
-            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
-                JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, 740, 250, 55);
-                btnSupervision.setFocusPainted(false);
-                btnSupervision.setBorderPainted(false);
-                btnSupervision.setBackground(new Color(251, 232, 138));
-                btnSupervision.setForeground(new Color(25, 38, 35));
-                btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-                btnSupervision.addActionListener(e -> {
-                    new PanelSupervision(idSesion).setVisible(true);
-                    dispose();
-                });
-                sidebar.add(btnSupervision);
-            }
-sidebar.add(btnCerrarSesion);
+            JButton btnRegresar = new JButton("← Regresar") {
+                @Override protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(60, 60, 60));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                    g2.dispose(); super.paintComponent(g);
+                }
+            };
+            btnRegresar.setBounds(20, 760, 250, 50);
+            btnRegresar.setForeground(Color.WHITE);
+            btnRegresar.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            btnRegresar.setFocusPainted(false);
+            btnRegresar.setContentAreaFilled(false);
+            btnRegresar.setBorderPainted(false);
+            btnRegresar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btnRegresar.addActionListener(e -> { new DashboardMenor(idMenor).setVisible(true); dispose(); });
+            sidebar.add(btnRegresar);
 
             add(sidebar);
         }
@@ -660,11 +619,11 @@ sidebar.add(btnCerrarSesion);
                 }
             }
         } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(Transferencias.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TransferenciasMenor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
         SwingUtilities.invokeLater(() -> {
-            new Transferencias().setVisible(true);
+            new TransferenciasMenor().setVisible(true);
         });
     }
 }

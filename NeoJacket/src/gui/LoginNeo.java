@@ -290,15 +290,11 @@ public class LoginNeo extends JFrame {
                         }
 
                          if ("ADMIN".equals(rol)) {
-                            PanelControlAdmin adminWin = new PanelControlAdmin();
-                            adminWin.setVisible(true);
+                            new PanelControlAdmin().setVisible(true);
                             dispose();
                         } else {
-                               Dashboard dashWin = new Dashboard();
-                            dashWin.setVisible(true);                           
                             funcionalidades.SupervisionDAO dao = new funcionalidades.SupervisionDAO();
                             boolean esMenor = idUsuario > 0 && dao.esMenorSupervisado(idUsuario);
-                             dispose();
 
                             if (esMenor) {
                                 dao.registrarSesionMenor(idUsuario, "inicio_sesion");
