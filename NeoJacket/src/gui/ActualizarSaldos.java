@@ -165,12 +165,11 @@ public class ActualizarSaldos extends JFrame {
         }
 
         private void crearContenido() {
-            // DETALLE 1: El contenedor de fondo ahora tiene exactamente la misma transparencia y color del Sidebar
             JPanel contenedor = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setColor(new Color(25, 38, 35, 220)); // Mismo color exacto del Sidebar
+                    g2.setColor(new Color(25, 38, 35, 220));
                     g2.fillRect(0, 0, getWidth(), getHeight());
                     g2.dispose();
                     super.paintComponent(g);
@@ -211,22 +210,23 @@ public class ActualizarSaldos extends JFrame {
             });
             barraSuperior.add(btnTab3);
 
-            // DETALLE 2: Reducción de tamaño del cuadro interno a proporciones perfectas (Estilo Agregar Fondos)
+            // 🌟 CAMBIO AQUÍ: Se agrandó el alto de panelForm de 510 a 575 para alojar todos los campos ordenadamente
             PanelFormularioRedondeado panelForm = new PanelFormularioRedondeado();
-            panelForm.setBounds(425, 120, 450, 510); // Rediseñado a un ancho compacto de 450px y centrado
+            panelForm.setBounds(425, 90, 450, 575);
             panelForm.setLayout(null);
             contenedor.add(panelForm);
 
+            // 1. SELECCIONA TU BANCO
             JLabel lblBanco = new JLabel("Selecciona tu banco");
             lblBanco.setForeground(Color.WHITE);
             lblBanco.setFont(tituloCampos);
-            lblBanco.setBounds(30, 25, 390, 25);
+            lblBanco.setBounds(30, 20, 390, 25);
             panelForm.add(lblBanco);
 
             JComboBox<String> cbBancos = new JComboBox<>(new String[]{
                 "Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"
             });
-            cbBancos.setBounds(30, 55, 390, 45);
+            cbBancos.setBounds(30, 50, 390, 45);
             cbBancos.setFont(textoInputs);
             cbBancos.setBackground(new Color(13, 18, 16));
             cbBancos.setForeground(Color.WHITE);
@@ -250,39 +250,55 @@ public class ActualizarSaldos extends JFrame {
             });
             panelForm.add(cbBancos);
 
+            // 2. NÚMERO DE TARJETA (Ahora justo abajo del ComboBox)
+            JLabel lblTarjeta = new JLabel("Número de tarjeta");
+            lblTarjeta.setForeground(Color.WHITE);
+            lblTarjeta.setFont(tituloCampos);
+            lblTarjeta.setBounds(30, 110, 390, 25);
+            panelForm.add(lblTarjeta);
+
+            JTextFieldRedondeado txtTarjeta = new JTextFieldRedondeado();
+            txtTarjeta.setBounds(30, 140, 390, 45);
+            txtTarjeta.setFont(textoInputs);
+            panelForm.add(txtTarjeta);
+
+            // 3. MONTO GASTADO
             JLabel lblMontoGastado = new JLabel("Monto gastado");
             lblMontoGastado.setForeground(Color.WHITE);
             lblMontoGastado.setFont(tituloCampos);
-            lblMontoGastado.setBounds(30, 120, 390, 25);
+            lblMontoGastado.setBounds(30, 200, 390, 25);
             panelForm.add(lblMontoGastado);
 
             JTextFieldRedondeado txtMontoGastado = new JTextFieldRedondeado();
-            txtMontoGastado.setBounds(30, 150, 390, 45);
+            txtMontoGastado.setBounds(30, 230, 390, 45);
             txtMontoGastado.setFont(textoInputs);
             panelForm.add(txtMontoGastado);
 
+            // 4. NUEVO SALDO DESPUÉS DEL GASTO
             JLabel lblNuevoSaldo = new JLabel("Nuevo saldo después del gasto");
             lblNuevoSaldo.setForeground(Color.WHITE);
             lblNuevoSaldo.setFont(tituloCampos);
-            lblNuevoSaldo.setBounds(30, 215, 390, 25);
+            lblNuevoSaldo.setBounds(30, 290, 390, 25);
             panelForm.add(lblNuevoSaldo);
 
             JTextFieldRedondeado txtNuevoSaldo = new JTextFieldRedondeado();
-            txtNuevoSaldo.setBounds(30, 245, 390, 45);
+            txtNuevoSaldo.setBounds(30, 320, 390, 45);
             txtNuevoSaldo.setFont(textoInputs);
             panelForm.add(txtNuevoSaldo);
 
+            // 5. DESCRIPCIÓN
             JLabel lblDescripcion = new JLabel("Descripción");
             lblDescripcion.setForeground(Color.WHITE);
             lblDescripcion.setFont(tituloCampos);
-            lblDescripcion.setBounds(30, 310, 390, 25);
+            lblDescripcion.setBounds(30, 380, 390, 25);
             panelForm.add(lblDescripcion);
 
             JTextFieldRedondeado txtDescripcion = new JTextFieldRedondeado();
-            txtDescripcion.setBounds(30, 340, 390, 45);
+            txtDescripcion.setBounds(30, 410, 390, 45);
             txtDescripcion.setFont(textoInputs);
             panelForm.add(txtDescripcion);
 
+            // 6. BOTÓN GUARDAR
             JButton btnGuardar = new JButton("Guardar") {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -294,7 +310,7 @@ public class ActualizarSaldos extends JFrame {
                     super.paintComponent(g);
                 }
             };
-            btnGuardar.setBounds(30, 425, 390, 50);
+            btnGuardar.setBounds(30, 495, 390, 50);
             btnGuardar.setBackground(new Color(251, 232, 138));
             btnGuardar.setForeground(Color.BLACK);
             btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 15));
@@ -325,7 +341,16 @@ public class ActualizarSaldos extends JFrame {
                     double nuevoMonto = Double.parseDouble(txtNuevoSaldo.getText());
                     String motivo = txtDescripcion.getText();
 
-                    // 🔹 Mapeo de nombres del ComboBox a los nombres reales en la BD
+                    String numeroTarjeta = txtTarjeta.getText().trim();
+                    if (numeroTarjeta.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "Debes ingresar un número de tarjeta.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    if (!numeroTarjeta.matches("\\d{16}")) {
+                        JOptionPane.showMessageDialog(this, "El número de tarjeta debe contener 16 dígitos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
                     String nombreBD = "";
                     switch (bancoSeleccionado) {
                         case "Banco Industrial":
@@ -347,26 +372,56 @@ public class ActualizarSaldos extends JFrame {
                     psBanco.setString(1, nombreBD);
                     ResultSet rsBanco = psBanco.executeQuery();
 
-                    if (rsBanco.next()) {
-                        int idBanco = rsBanco.getInt("id_banco");
+                    if (!rsBanco.next()) {
+                        JOptionPane.showMessageDialog(this, "Banco no válido.", "Error", JOptionPane.ERROR_MESSAGE);
+                        rsBanco.close();
+                        psBanco.close();
+                        con.close();
+                        return;
+                    }
+                    int idBanco = rsBanco.getInt("id_banco");
 
-                        boolean ok = crud.actualizarSaldo(idUsuario, idBanco, montoActual, nuevoMonto, motivo);
-                        if (ok) {
-                            // 🔹 Registrar la transacción en la tabla
-                            PreparedStatement psTrans = con.prepareStatement(
-                                    "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, moneda_origen, estado) "
-                                    + "VALUES (?, ?, 'deposito', ?, 'GTQ', 'completada')"
-                            );
-                            psTrans.setInt(1, idBanco);      // aquí puedes usar idCuenta si lo tienes
-                            psTrans.setInt(2, idUsuario);
-                            psTrans.setDouble(3, nuevoMonto);
-                            psTrans.executeUpdate();
-                            psTrans.close();
+                    PreparedStatement psTarjeta = con.prepareStatement(
+                            "SELECT t.id_tarjeta, c.id_cuenta "
+                            + "FROM tarjetas_bancarias t "
+                            + "JOIN cuentas_bancarias c ON t.id_cuenta = c.id_cuenta "
+                            + "WHERE t.numero_tarjeta = ? AND t.id_usuario = ? AND t.id_banco = ? AND t.estado = 'activa'"
+                    );
+                    psTarjeta.setString(1, numeroTarjeta);
+                    psTarjeta.setInt(2, idUsuario);
+                    psTarjeta.setInt(3, idBanco);
 
-                            JOptionPane.showMessageDialog(this, "Saldo actualizado con éxito");
-                        }
+                    ResultSet rsTarjeta = psTarjeta.executeQuery();
+
+                    if (!rsTarjeta.next()) {
+                        JOptionPane.showMessageDialog(this, "Número de tarjeta inválido o banco no registrado.", "Error", JOptionPane.ERROR_MESSAGE);
+                        rsTarjeta.close();
+                        psTarjeta.close();
+                        rsBanco.close();
+                        psBanco.close();
+                        con.close();
+                        return;
                     }
 
+                    int idCuenta = rsTarjeta.getInt("id_cuenta");
+
+                    boolean ok = crud.actualizarSaldo(idUsuario, idBanco, idCuenta, montoActual, nuevoMonto, motivo);
+                    if (ok) {
+                        PreparedStatement psTrans = con.prepareStatement(
+                                "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, moneda_origen, estado) "
+                                + "VALUES (?, ?, 'actualizacion', ?, 'GTQ', 'completada')"
+                        );
+                        psTrans.setInt(1, idCuenta);
+                        psTrans.setInt(2, idUsuario);
+                        psTrans.setDouble(3, nuevoMonto);
+                        psTrans.executeUpdate();
+                        psTrans.close();
+
+                        JOptionPane.showMessageDialog(this, "Saldo actualizado con éxito");
+                    }
+
+                    rsTarjeta.close();
+                    psTarjeta.close();
                     rsBanco.close();
                     psBanco.close();
                     con.close();

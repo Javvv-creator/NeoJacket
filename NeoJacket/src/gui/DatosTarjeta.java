@@ -183,10 +183,34 @@ public class DatosTarjeta extends JFrame {
 
                         int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
 
+// Crear cuentas en los bancos
                         crear.crearCuentaBancaria(idUsuario, 1, tipoCuenta);
                         crear.crearCuentaBancaria(idUsuario, 2, tipoCuenta);
                         crear.crearCuentaBancaria(idUsuario, 3, tipoCuenta);
                         crear.crearCuentaBancaria(idUsuario, 4, tipoCuenta);
+
+// Obtener idBanco según selección
+                        int idBancoSeleccionado = 0;
+                        switch (banco) {
+                            case "Bi":
+                                idBancoSeleccionado = 1;
+                                break;
+                            case "bac":
+                                idBancoSeleccionado = 2;
+                                break;
+                            case "banrural":
+                                idBancoSeleccionado = 3;
+                                break;
+                            case "gyt":
+                                idBancoSeleccionado = 4;
+                                break;
+                        }
+
+// Recuperar idCuenta de ese banco
+                        int idCuenta = crear.obtenerIdCuenta(idUsuario, idBancoSeleccionado);
+
+// Vincular tarjeta con la cuenta
+                        servicio.vincularTarjetaConCuenta(numero, idCuenta);
 
                         JOptionPane.showMessageDialog(null,
                                 "✅ Tarjeta y cuentas bancarias creadas correctamente.",

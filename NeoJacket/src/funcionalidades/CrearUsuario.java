@@ -20,10 +20,9 @@ public class CrearUsuario {
     }
 
     /**
-     * Versión que se adapta a tus campos actuales de RegistroNeo.
-     * - txtUsuario -> nombre (usaremos todo como nombre)
-     * - txtIdent -> dpiNumero
-     * Lo demás lo dejamos como "faltante" y bloqueamos el registro si falta información.
+     * Versión que se adapta a tus campos actuales de RegistroNeo. - txtUsuario
+     * -> nombre (usaremos todo como nombre) - txtIdent -> dpiNumero Lo demás lo
+     * dejamos como "faltante" y bloqueamos el registro si falta información.
      */
     public boolean crearDesdeRegistroNeo(
             String nombre,
@@ -75,7 +74,7 @@ public class CrearUsuario {
                     genero.trim(),
                     password,
                     dpiFinal,
-                    perfil  // CORREGIDO: pasa el perfil para que se guarde en BD
+                    perfil // CORREGIDO: pasa el perfil para que se guarde en BD
             );
 
             JOptionPane.showMessageDialog(null,
@@ -97,7 +96,6 @@ public class CrearUsuario {
     // ============================
     // VALIDACIONES
     // ============================
-
     private void validarCamposObligatorios(String... campos) {
         for (String campo : campos) {
             if (campo == null || campo.trim().isEmpty()) {
@@ -105,8 +103,8 @@ public class CrearUsuario {
             }
         }
     }
-    
-     public boolean crearCuentaBancaria(int idUsuario, int idBanco, String tipoCuenta) {
+
+    public boolean crearCuentaBancaria(int idUsuario, int idBanco, String tipoCuenta) {
         try {
             Connection con = conexion.getConexion();
 
@@ -153,14 +151,14 @@ public class CrearUsuario {
 
             return filas > 0;
         } catch (Exception e) {
-    JOptionPane.showMessageDialog(
-        null,
-        e.getMessage(),
-        "Error al crear cuenta",
-        JOptionPane.ERROR_MESSAGE
-    );
-    e.printStackTrace();
-    return false;
+            JOptionPane.showMessageDialog(
+                    null,
+                    e.getMessage(),
+                    "Error al crear cuenta",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -187,12 +185,37 @@ public class CrearUsuario {
         }
         return idUsuario;
     }
+// Método para recuperar el id_cuenta de la cuenta creada para un usuario y banco
+
+    public int obtenerIdCuenta(int idUsuario, int idBanco) {
+        int idCuenta = -1;
+        try {
+            Connection con = conexion.getConexion();
+            PreparedStatement ps = con.prepareStatement(
+                    "SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ? ORDER BY id_cuenta DESC LIMIT 1"
+            );
+ 
+            ps.setInt(1, idUsuario);
+            ps.setInt(2, idBanco);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                idCuenta = rs.getInt("id_cuenta");
+            }
+
+            rs.close();
+            ps.close();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return idCuenta;
+    }
 
 // Método auxiliar para generar número de cuenta ficticio
     private String generarNumeroCuenta() {
         return "NC-" + System.currentTimeMillis();
     }
-    
 
     private void validarFechaNacimiento(String fechaNacimiento) {
         try {

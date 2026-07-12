@@ -11,11 +11,11 @@ import main.Conexion.conexion;
 public class AgregarTarjeta {
 
     public boolean registrarTarjeta(String correoUsuario,
-                                    String dpiUsuario,
-                                    String tipoTarjeta,
-                                    String pais,
-                                    String numeroCuenta,
-                                    String bancoNombre) {
+            String dpiUsuario,
+            String tipoTarjeta,
+            String pais,
+            String numeroCuenta,
+            String bancoNombre) {
 
         validarCampos(correoUsuario, dpiUsuario, tipoTarjeta, pais, numeroCuenta, bancoNombre);
 
@@ -43,9 +43,9 @@ public class AgregarTarjeta {
 
             Integer idCuenta = obtenerCuentaIdPorNumeroYBanco(con, numeroCuenta, idBanco);
 
-            String sql = "INSERT INTO tarjetas_bancarias " +
-                    "(id_usuario, id_cuenta, id_banco, tipo_tarjeta, pais, numero_tarjeta, estado) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, 'activa')";
+            String sql = "INSERT INTO tarjetas_bancarias "
+                    + "(id_usuario, id_cuenta, id_banco, tipo_tarjeta, pais, numero_tarjeta, estado) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, 'activa')";
 
             try (PreparedStatement ps = con.prepareStatement(sql)) {
                 ps.setInt(1, idUsuario);
@@ -81,11 +81,11 @@ public class AgregarTarjeta {
     }
 
     private void validarCampos(String correoUsuario,
-                               String dpiUsuario,
-                               String tipoTarjeta,
-                               String pais,
-                               String numeroCuenta,
-                               String bancoNombre) {
+            String dpiUsuario,
+            String tipoTarjeta,
+            String pais,
+            String numeroCuenta,
+            String bancoNombre) {
         if (correoUsuario == null || correoUsuario.trim().isEmpty()) {
             throw new IllegalArgumentException("El correo del usuario es obligatorio.");
         }
@@ -168,4 +168,21 @@ public class AgregarTarjeta {
             stmt.execute(ddl);
         }
     }
+
+    public void vincularTarjetaConCuenta(String numeroTarjeta, int idCuenta) {
+        try {
+            Connection con = conexion.getConexion();
+            PreparedStatement ps = con.prepareStatement(
+                    "UPDATE tarjetas_bancarias SET id_cuenta = ? WHERE numero_tarjeta = ?"
+            );
+            ps.setInt(1, idCuenta);
+            ps.setString(2, numeroTarjeta);
+            ps.executeUpdate();
+            ps.close();
+            con.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
 }

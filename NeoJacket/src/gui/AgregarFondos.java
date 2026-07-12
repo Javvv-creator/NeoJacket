@@ -10,8 +10,9 @@ import main.CRUD.CRUD;
 import main.Conexion.conexion;
 
 /**
- * Ventana principal para la gestión de depósito/ingreso de fondos en la aplicación.
- * Diseñada bajo un patrón de interfaz premium con renderizado personalizado (Custom Painting).
+ * Ventana principal para la gestión de depósito/ingreso de fondos en la
+ * aplicación. Diseñada bajo un patrón de interfaz premium con renderizado
+ * personalizado (Custom Painting).
  */
 public class AgregarFondos extends JFrame {
 
@@ -37,23 +38,23 @@ public class AgregarFondos extends JFrame {
     }
 
     /**
-     * Panel contenedor principal que maneja la distribución espacial de la UI
-     * y el renderizado del fondo de la pantalla.
+     * Panel contenedor principal que maneja la distribución espacial de la UI y
+     * el renderizado del fondo de la pantalla.
      */
     class FondoPanel extends JPanel {
 
         public FondoPanel() {
             // Se utiliza Layout nulo para un control de coordenadas absoluto (Diseño Pixel-Perfect)
             setLayout(null);
-            
+
             // Construcción secuencial de la UI para respetar las capas visuales (Sidebar va primero)
             crearSidebar(this);
             crearContenido();
         }
 
         /**
-         * Construye la barra de navegación lateral (Sidebar) con esquinas redondeadas
-         * y gestiona el enrutamiento de ventanas del sistema.
+         * Construye la barra de navegación lateral (Sidebar) con esquinas
+         * redondeadas y gestiona el enrutamiento de ventanas del sistema.
          */
         private void crearSidebar(JPanel panel) {
             JPanel sidebar = new JPanel() {
@@ -189,8 +190,8 @@ public class AgregarFondos extends JFrame {
         }
 
         /**
-         * Crea el área de contenido principal, las pestañas de navegación interna (Tabs)
-         * y el formulario de transacciones financieras.
+         * Crea el área de contenido principal, las pestañas de navegación
+         * interna (Tabs) y el formulario de transacciones financieras.
          */
         private void crearContenido() {
             // Contenedor unificado para preservar la paleta visual oscura y simétrica
@@ -257,7 +258,7 @@ public class AgregarFondos extends JFrame {
             };
             cartaCampos.setLayout(null);
             cartaCampos.setOpaque(false);
-            cartaCampos.setBounds(425, 110, 450, 550); 
+            cartaCampos.setBounds(425, 110, 450, 550);
             contenedor.add(cartaCampos);
 
             // --- DISEÑO INTERNO DEL FORMULARIO ---
@@ -365,8 +366,8 @@ public class AgregarFondos extends JFrame {
                 try {
                     CRUD crud = new CRUD();
                     String montoTexto = txtMonto.getText().trim();
-                    
-                    // 1. Capa de Validación de Datos de Entrada (Sanitización)
+
+                    // 1. Validación del monto
                     if (montoTexto.isEmpty()) {
                         JOptionPane.showMessageDialog(this, "Debes ingresar un monto válido.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
@@ -380,49 +381,94 @@ public class AgregarFondos extends JFrame {
                         return;
                     }
 
-                    // 2. Extracción de variables de contexto y UI
-                    int idUsuario = SesionUsuario.getIdUsuario(); // Recupera la sesión activa global
+                    // 2. Variables de contexto
+                    int idUsuario = SesionUsuario.getIdUsuario();
                     String bancoSeleccionado = (String) cbBancos.getSelectedItem();
                     String descripcion = txtDescripcion.getText();
+                    String numeroTarjeta = txtTarjeta.getText().trim();
 
-                    // 🔹 MAPEO DE LOGICA DE NEGOCIO: Homologa la selección legible de la UI con las claves de la base de datos
+                    // 3. Validación del número de tarjeta
+                    if (numeroTarjeta.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "Debes ingresar un número de tarjeta.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    if (!numeroTarjeta.matches("\\d{16}")) {
+                        JOptionPane.showMessageDialog(this, "El número de tarjeta debe contener 16 dígitos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // 4. Mapeo banco → nombre en BD
                     String nombreBD = "";
                     switch (bancoSeleccionado) {
-                        case "Banco Industrial":   nombreBD = "Bi";        break;
-                        case "BAC Credomatic":    nombreBD = "bac";       break;
-                        case "Banrural":          nombreBD = "banrural";  break;
-                        case "G&T Continental":   nombreBD = "gyt";       break;
+                        case "Banco Industrial":
+                            nombreBD = "Bi";
+                            break;
+                        case "BAC Credomatic":
+                            nombreBD = "bac";
+                            break;
+                        case "Banrural":
+                            nombreBD = "banrural";
+                            break;
+                        case "G&T Continental":
+                            nombreBD = "gyt";
+                            break;
                     }
 
-                    // 3. Consulta Relacional (Averigua la ID del Banco seleccionado usando su nombre mapeado)
                     Connection con = conexion.getConexion();
+
+                    // 5. Obtener idBanco
                     PreparedStatement psBanco = con.prepareStatement("SELECT id_banco FROM bancos WHERE nombre = ?");
-                    psBanco.setString(1, nombreBD);   
+                    psBanco.setString(1, nombreBD);
                     ResultSet rsBanco = psBanco.executeQuery();
 
-                    if (rsBanco.next()) {
-                        int idBanco = rsBanco.getInt("id_banco");
+                    if (!rsBanco.next()) {
+                        JOptionPane.showMessageDialog(this, "Banco no válido.", "Error", JOptionPane.ERROR_MESSAGE);
+                        rsBanco.close();
+                        psBanco.close();
+                        con.close();
+                        return;
+                    }
+                    int idBanco = rsBanco.getInt("id_banco");
 
-                        // Debug de auditoría interna por consola
-                        System.out.println("Monto: " + monto);
-                        System.out.println("Usuario: " + idUsuario);
-                        System.out.println("Banco: " + bancoSeleccionado);
-                        System.out.println("Descripción: " + descripcion);
+                    // 6. Validar tarjeta en la BD y obtener idCuenta
+                    PreparedStatement psTarjeta = con.prepareStatement(
+                            "SELECT t.id_tarjeta, c.id_cuenta "
+                            + "FROM tarjetas_bancarias t "
+                            + "JOIN cuentas_bancarias c ON t.id_cuenta = c.id_cuenta "
+                            + "WHERE t.numero_tarjeta = ? AND t.id_usuario = ? AND t.id_banco = ? AND t.estado = 'activa'"
+                    );
+                    psTarjeta.setString(1, numeroTarjeta);
+                    psTarjeta.setInt(2, idUsuario);
+                    psTarjeta.setInt(3, idBanco);
 
-                        // 4. Inserción/Transacción de los Fondos mediante el objeto de persistencia CRUD
-                        boolean ok = crud.agregarFondos(idUsuario, idBanco, monto, descripcion);
-                        if (ok) {
-                            JOptionPane.showMessageDialog(this, "Fondo agregado con éxito");
-                        }
+                    ResultSet rsTarjeta = psTarjeta.executeQuery();
+
+                    if (!rsTarjeta.next()) {
+                        JOptionPane.showMessageDialog(this, "Número de tarjeta inválido o banco no registrado.", "Error", JOptionPane.ERROR_MESSAGE);
+                        rsTarjeta.close();
+                        psTarjeta.close();
+                        rsBanco.close();
+                        psBanco.close();
+                        con.close();
+                        return;
                     }
 
-                    // 5. Cierre seguro de cursores de BD y canal de comunicación
+                    int idCuenta = rsTarjeta.getInt("id_cuenta");
+
+                    // 7. Insertar fondos en la cuenta correcta
+                    boolean ok = crud.agregarFondos(idUsuario, idBanco, idCuenta, monto, descripcion);
+                    if (ok) {
+                        JOptionPane.showMessageDialog(this, "Fondo agregado con éxito");
+                    }
+
+                    // 8. Cierre de recursos
+                    rsTarjeta.close();
+                    psTarjeta.close();
                     rsBanco.close();
                     psBanco.close();
                     con.close();
 
                 } catch (Exception ex) {
-                    // Gestión genérica de excepciones SQL y de desbordamientos
                     JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
                     ex.printStackTrace();
                 }
@@ -431,7 +477,8 @@ public class AgregarFondos extends JFrame {
         }
 
         /**
-         * Helper funcional encargado de estandarizar la creación visual de las pestañas superiores inactivas.
+         * Helper funcional encargado de estandarizar la creación visual de las
+         * pestañas superiores inactivas.
          */
         private JButton crearBotonPestaña(String texto, int xPos) {
             JButton btn = new JButton(texto);
@@ -467,8 +514,9 @@ public class AgregarFondos extends JFrame {
     }
 
     /**
-     * Componente Personalizado (Custom Input): Clona el comportamiento de un JTextField 
-     * pero inyecta un rediseño de bordes redondeados y colores integrados a la paleta Neo Jacket.
+     * Componente Personalizado (Custom Input): Clona el comportamiento de un
+     * JTextField pero inyecta un rediseño de bordes redondeados y colores
+     * integrados a la paleta Neo Jacket.
      */
     class JTextFieldBordeAmarillo extends JTextField {
 
@@ -489,7 +537,7 @@ public class AgregarFondos extends JFrame {
             g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
 
             // Dibuja la línea de contorno fina en color amarillo translúcido
-            g2.setColor(new Color(251, 232, 138, 130)); 
+            g2.setColor(new Color(251, 232, 138, 130));
             g2.setStroke(new BasicStroke(1f));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
 
