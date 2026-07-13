@@ -102,7 +102,7 @@ public class RegistroNeo extends JFrame {
     }
 
     // ============================
-    // COMBOBOX REDONDEADO (mismo lenguaje visual que los campos de texto)
+    // COMBOBOX REDONDEADO 
     // ============================
     class RoundedComboBox<T> extends JComboBox<T> {
 
@@ -112,6 +112,8 @@ public class RegistroNeo extends JFrame {
             setFocusable(false);
             setForeground(Color.WHITE);
             setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            setForeground(Color.WHITE);
+            setBackground(new Color(25, 38, 35));
             setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 10));
 
             setRenderer(new DefaultListCellRenderer() {
@@ -304,8 +306,7 @@ public class RegistroNeo extends JFrame {
             setLayout(null);
             crearRegistro();
 
-            // Reposiciona la tarjeta cada vez que la ventana cambia de tamaño,
-            // manteniéndola siempre centrada (antes tenía coordenadas fijas 620,120).
+           
             addComponentListener(new ComponentAdapter() {
                 @Override
                 public void componentResized(ComponentEvent e) {
@@ -370,7 +371,7 @@ public class RegistroNeo extends JFrame {
 
             panelReg.add(crearLabel("Tipo de cuenta", COL2_X, y));
             RoundedComboBox<String> cbTipo = new RoundedComboBox<>(new String[]{"Monetaria", "Ahorro", "Corriente"});
-            cbTipo.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
+            cbTipo.setForeground(Color.WHITE); // CORREGIDO: texto negro visible
             cbTipo.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbTipo);
 
@@ -393,7 +394,7 @@ public class RegistroNeo extends JFrame {
 
             panelReg.add(crearLabel("Género", COL2_X, y));
             RoundedComboBox<String> cbGenero = new RoundedComboBox<>(new String[]{"Masculino", "Femenino", "Otro"});
-            cbGenero.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
+            cbGenero.setForeground(Color.WHITE); // CORREGIDO: texto negro visible
             cbGenero.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbGenero);
 

@@ -78,7 +78,7 @@ public class DatosTarjeta extends JFrame {
     }
 
     // ============================
-    // COMBOBOX NEO (estilizado, sin fondo blanco en el popup)
+    // COMBOBOX NEO
     // ============================
     class ComboNeo extends JComboBox<String> {
 
@@ -86,15 +86,12 @@ public class DatosTarjeta extends JFrame {
             super(items);
             setOpaque(false);
             setFocusable(false);
-            // Evita el "ghosting" gris al abrir el popup sobre paneles semi-transparentes:
-            // fuerza a que el popup sea lightweight (pintado por Swing) en vez de heavyweight (ventana nativa del SO)
             setLightWeightPopupEnabled(true);
             setFont(new Font("Segoe UI", Font.PLAIN, 18));
             setForeground(Color.WHITE);
             setBackground(new Color(25, 38, 35));
             setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 5));
 
-            // Renderer de los items del popup (esto quita el fondo blanco)
             setRenderer(new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index,
@@ -114,9 +111,6 @@ public class DatosTarjeta extends JFrame {
                     return lbl;
                 }
             });
-
-            // UI personalizada: flecha estilizada + popup forzado a fondo oscuro
-            // (necesario porque Nimbus ignora setBackground() en el JScrollPane/JViewport del popup)
             setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
                 @Override
                 protected JButton createArrowButton() {
@@ -160,6 +154,27 @@ public class DatosTarjeta extends JFrame {
                     popup.setBackground(new Color(25, 38, 35));
                     popup.getList().setBackground(new Color(25, 38, 35));
                     return popup;
+                }
+            });
+
+           
+            addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+                @Override
+                public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+                    SwingUtilities.invokeLater(() -> {
+                        Window ventana = SwingUtilities.getWindowAncestor(ComboNeo.this);
+                        if (ventana != null) {
+                            ventana.repaint();
+                        }
+                    });
+                }
+
+                @Override
+                public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                }
+
+                @Override
+                public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
                 }
             });
         }
@@ -251,12 +266,12 @@ public class DatosTarjeta extends JFrame {
             cbBanco.setBounds(40, 425, 450, 50);
             panel.add(cbBanco);
 
-            // BOTÓN GUARDAR
+            // BOTÓN GUARDAR 
             Color amarillo = new Color(251, 232, 138);
             Color amarilloHover = new Color(255, 245, 180);
 
             BotonNeo btnGuardar = new BotonNeo("Guardar", amarillo, amarilloHover);
-            btnGuardar.setBounds(40, 500, 400, 55);
+            btnGuardar.setBounds(75, 500, 400, 55);
             panel.add(btnGuardar);
 
             btnGuardar.addActionListener(e -> {
@@ -333,13 +348,13 @@ public class DatosTarjeta extends JFrame {
                 }
             });
 
-            // BOTÓN VOLVER AL INICIO
+            // BOTÓN VOLVER AL INICIO (centrado igual que Guardar: x=75)
             Color verde = new Color(94, 116, 73, 200);
             Color verdeHover = new Color(120, 150, 90);
 
             BotonNeo btnVolver = new BotonNeo("Volver al inicio", verde, verdeHover);
             btnVolver.setForeground(Color.WHITE);
-            btnVolver.setBounds(40, 570, 400, 55);
+            btnVolver.setBounds(75, 570, 400, 55);
             panel.add(btnVolver);
 
             btnVolver.addActionListener(e -> {
