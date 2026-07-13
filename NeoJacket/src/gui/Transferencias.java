@@ -54,6 +54,55 @@ public class Transferencias extends javax.swing.JFrame {
         new funcionalidades.Transferencias(this);
     }
 
+    // ==========================================================
+    // BOTÓN DE SIDEBAR ESTILO "NEO" 
+    // ==========================================================
+    class BotonSidebarNeo extends JButton {
+
+        public BotonSidebarNeo(String texto) {
+            super(texto);
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setOpaque(false);
+            setForeground(Color.WHITE);
+            setBackground(new Color(0, 0, 0, 0));
+            Font fuenteActual = getFont();
+            setFont(new Font("Segoe UI", Font.BOLD, 16));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    setBackground(amarilloPastel);
+                    setForeground(Color.BLACK);
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    setBackground(new Color(0, 0, 0, 0));
+                    setForeground(Color.WHITE);
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+            if (getBackground().getAlpha() == 0) {
+                g2.setColor(amarilloPastel);
+                g2.setStroke(new BasicStroke(1f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+            }
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
  class FondoPanel extends JPanel {
 
         public FondoPanel() {
@@ -63,9 +112,18 @@ public class Transferencias extends javax.swing.JFrame {
         }
 
         private void crearSidebar() {
-            JPanel sidebar = new JPanel();
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+                    g2.dispose();
+                }
+            };
+            sidebar.setOpaque(false);
             sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
             sidebar.setBounds(20, 20, 300, 950);
 
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -73,57 +131,30 @@ public class Transferencias extends javax.swing.JFrame {
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            JButton btnSaldos = new JButton("Saldos");
-            btnSaldos.setBounds(20, 140, 250, 55);
-            btnSaldos.setFocusPainted(false);
-            btnSaldos.setBorderPainted(false);
-            btnSaldos.setBackground(new Color(94, 116, 73));
-            btnSaldos.setForeground(Color.WHITE);
-            btnSaldos.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnSaldos.addActionListener(e -> { 
-                new Saldos().setVisible(true); 
-                dispose(); 
-            });
-            sidebar.add(btnSaldos);
+            String[] opciones = {"Saldos", "Bancos conectados", "Transferencias", "Historial"};
+            int y = 140;
 
-            JButton btnBancos = new JButton("Bancos conectados");
-            btnBancos.setBounds(20, 210, 250, 55);
-            btnBancos.setFocusPainted(false);
-            btnBancos.setBorderPainted(false);
-            btnBancos.setBackground(new Color(94, 116, 73));
-            btnBancos.setForeground(Color.WHITE);
-            btnBancos.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnBancos.addActionListener(e -> { 
-                new BancosConectados().setVisible(true); 
-                dispose(); 
-            });
-            sidebar.add(btnBancos);
-
-            JButton btnTransferencias = new JButton("Transferencias");
-            btnTransferencias.setBounds(20, 280, 250, 55);
-            btnTransferencias.setBackground(new Color(251, 232, 138)); 
-            btnTransferencias.setForeground(Color.BLACK);
-            btnTransferencias.setFocusPainted(false);
-            btnTransferencias.setBorderPainted(false);
-            btnTransferencias.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            sidebar.add(btnTransferencias);
-
-            String[] restoMenu = {"Historial"};
-            int y = 350;
-            for (String textoBtn : restoMenu) {
-                JButton btn = new JButton(textoBtn);
+            for (String texto : opciones) {
+                BotonSidebarNeo btn = new BotonSidebarNeo(texto);
                 btn.setBounds(20, y, 250, 55);
-                btn.setBackground(new Color(94, 116, 73)); 
-                btn.setForeground(Color.WHITE);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 btn.addActionListener(e -> {
-
-                    if (textoBtn.equals("Historial")) {
-                    new Historial().setVisible(true);
+                    switch (texto) {
+                        case "Saldos":
+                            new Saldos().setVisible(true);
+                            dispose();
+                            break;
+                        case "Bancos conectados":
+                            new BancosConectados().setVisible(true);
+                            dispose();
+                            break;
+                        case "Transferencias":
+                            // ya estamos en esta pantalla, no se hace nada
+                            break;
+                        case "Historial":
+                            new Historial().setVisible(true);
+                            dispose();
+                            break;
                     }
-                    dispose();
                 });
                 sidebar.add(btn);
                 y += 70;
@@ -140,7 +171,7 @@ public class Transferencias extends javax.swing.JFrame {
                 new InicioNeo().setVisible(true);
                 dispose();
             });
-                        // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
             funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
             int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
@@ -158,7 +189,7 @@ public class Transferencias extends javax.swing.JFrame {
                 });
                 sidebar.add(btnSupervision);
             }
-sidebar.add(btnCerrarSesion);
+            sidebar.add(btnCerrarSesion);
 
             add(sidebar);
         }

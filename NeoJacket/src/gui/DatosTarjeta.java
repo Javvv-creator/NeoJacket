@@ -78,6 +78,109 @@ public class DatosTarjeta extends JFrame {
     }
 
     // ============================
+    // COMBOBOX NEO (estilizado, sin fondo blanco en el popup)
+    // ============================
+    class ComboNeo extends JComboBox<String> {
+
+        public ComboNeo(String[] items) {
+            super(items);
+            setOpaque(false);
+            setFocusable(false);
+            // Evita el "ghosting" gris al abrir el popup sobre paneles semi-transparentes:
+            // fuerza a que el popup sea lightweight (pintado por Swing) en vez de heavyweight (ventana nativa del SO)
+            setLightWeightPopupEnabled(true);
+            setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            setForeground(Color.WHITE);
+            setBackground(new Color(25, 38, 35));
+            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 5));
+
+            // Renderer de los items del popup (esto quita el fondo blanco)
+            setRenderer(new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                        boolean isSelected, boolean cellHasFocus) {
+                    JLabel lbl = (JLabel) super.getListCellRendererComponent(
+                            list, value, index, isSelected, cellHasFocus);
+
+                    list.setBackground(new Color(25, 38, 35));
+                    list.setSelectionBackground(new Color(60, 85, 70));
+                    list.setSelectionForeground(new Color(251, 232, 138));
+
+                    lbl.setOpaque(true);
+                    lbl.setBackground(isSelected ? new Color(60, 85, 70) : new Color(25, 38, 35));
+                    lbl.setForeground(isSelected ? new Color(251, 232, 138) : Color.WHITE);
+                    lbl.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+                    lbl.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+                    return lbl;
+                }
+            });
+
+            // UI personalizada: flecha estilizada + popup forzado a fondo oscuro
+            // (necesario porque Nimbus ignora setBackground() en el JScrollPane/JViewport del popup)
+            setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
+                @Override
+                protected JButton createArrowButton() {
+                    JButton btn = new JButton("▼");
+                    btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                    btn.setForeground(new Color(251, 232, 138));
+                    btn.setBackground(new Color(25, 38, 35));
+                    btn.setBorder(BorderFactory.createEmptyBorder());
+                    btn.setContentAreaFilled(false);
+                    btn.setFocusPainted(false);
+                    return btn;
+                }
+
+                @Override
+                protected javax.swing.plaf.basic.ComboPopup createPopup() {
+                    javax.swing.plaf.basic.BasicComboPopup popup =
+                            new javax.swing.plaf.basic.BasicComboPopup(comboBox) {
+                        @Override
+                        protected JScrollPane createScroller() {
+                            JScrollPane scroller = new JScrollPane(list,
+                                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) {
+                                @Override
+                                protected void paintComponent(Graphics g) {
+                                    g.setColor(new Color(25, 38, 35));
+                                    g.fillRect(0, 0, getWidth(), getHeight());
+                                    super.paintComponent(g);
+                                }
+                            };
+                            scroller.setOpaque(true);
+                            scroller.setBackground(new Color(25, 38, 35));
+                            scroller.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138)));
+                            scroller.getViewport().setOpaque(true);
+                            scroller.getViewport().setBackground(new Color(25, 38, 35));
+                            scroller.getVerticalScrollBar().setOpaque(true);
+                            scroller.getVerticalScrollBar().setBackground(new Color(25, 38, 35));
+                            return scroller;
+                        }
+                    };
+                    popup.setOpaque(true);
+                    popup.setBackground(new Color(25, 38, 35));
+                    popup.getList().setBackground(new Color(25, 38, 35));
+                    return popup;
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(new Color(25, 38, 35, 200));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+
+            g2.setColor(new Color(251, 232, 138));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // ============================
     // CONSTRUCTOR
     // ============================
     public DatosTarjeta(String correoUsuario, String dpiUsuario, String tipoCuenta) {
@@ -144,12 +247,8 @@ public class DatosTarjeta extends JFrame {
             panel.add(txtNumero);
 
             panel.add(crearLabel("Seleccione el banco", 40, 390));
-            JComboBox<String> cbBanco = new JComboBox<>(new String[]{"Bi", "bac", "banrural", "gyt"});
+            ComboNeo cbBanco = new ComboNeo(new String[]{"Bi", "bac", "banrural", "gyt"});
             cbBanco.setBounds(40, 425, 450, 50);
-            cbBanco.setBackground(new Color(25, 38, 35, 200));
-            cbBanco.setForeground(Color.WHITE);
-            cbBanco.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            cbBanco.setFocusable(false);
             panel.add(cbBanco);
 
             // BOTÓN GUARDAR
@@ -183,13 +282,13 @@ public class DatosTarjeta extends JFrame {
 
                         int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
 
-// Crear cuentas en los bancos
+                        // Crear cuentas en los bancos
                         crear.crearCuentaBancaria(idUsuario, 1, tipoCuenta);
                         crear.crearCuentaBancaria(idUsuario, 2, tipoCuenta);
                         crear.crearCuentaBancaria(idUsuario, 3, tipoCuenta);
                         crear.crearCuentaBancaria(idUsuario, 4, tipoCuenta);
 
-// Obtener idBanco según selección
+                        // Obtener idBanco según selección
                         int idBancoSeleccionado = 0;
                         switch (banco) {
                             case "Bi":
@@ -206,10 +305,10 @@ public class DatosTarjeta extends JFrame {
                                 break;
                         }
 
-// Recuperar idCuenta de ese banco
+                        // Recuperar idCuenta de ese banco
                         int idCuenta = crear.obtenerIdCuenta(idUsuario, idBancoSeleccionado);
 
-// Vincular tarjeta con la cuenta
+                        // Vincular tarjeta con la cuenta
                         servicio.vincularTarjetaConCuenta(numero, idCuenta);
 
                         JOptionPane.showMessageDialog(null,

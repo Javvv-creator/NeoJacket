@@ -10,6 +10,8 @@ public class Dashboard extends javax.swing.JFrame {
     private Image logo;
     private Integer idUsuarioActual;
 
+    private final Color amarilloPastel = new Color(251, 232, 138);
+
     // ==========================================
     // TEXTFIELD REDONDEADO
     // ==========================================
@@ -36,15 +38,79 @@ public class Dashboard extends javax.swing.JFrame {
     }
 
     // ==========================================
-    // BOTÓN NEO
+    // BOTÓN DE NAVEGACIÓN DEL SIDEBAR
+    // ==========================================
+    class BotonSidebarNeo extends JButton {
+
+        public BotonSidebarNeo(String texto) {
+            super(texto);
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setOpaque(false);
+            setForeground(Color.WHITE);
+            setBackground(new Color(0, 0, 0, 0));
+            setFont(new Font("Segoe UI", Font.BOLD, 16));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    setBackground(amarilloPastel);
+                    setForeground(Color.BLACK);
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    setBackground(new Color(0, 0, 0, 0));
+                    setForeground(Color.WHITE);
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+            if (getBackground().getAlpha() == 0) {
+                g2.setColor(amarilloPastel);
+                g2.setStroke(new BasicStroke(1f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+            }
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // ==========================================
+    // BOTÓN NEO 
     // ==========================================
     class BotonNeo extends JButton {
+
+        private Color normal;
+        private Color hover;
+        private Color colorTexto;
+
+        // Constructor original (usa la paleta verde/dorada por defecto)
         public BotonNeo(String texto) {
+            this(texto, new Color(94, 116, 73, 190), new Color(251, 232, 138, 220), Color.WHITE);
+        }
+
+        // Constructor flexible, para botones con su propia paleta (ej. Cerrar sesión, Supervisión)
+        public BotonNeo(String texto, Color normal, Color hover, Color colorTexto) {
             super(texto);
+            this.normal = normal;
+            this.hover = hover;
+            this.colorTexto = colorTexto;
+
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFocusPainted(false);
-            setForeground(Color.WHITE);
+            setForeground(colorTexto);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
@@ -52,9 +118,7 @@ public class Dashboard extends javax.swing.JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(getModel().isRollover()
-                    ? new Color(251, 232, 138, 220)
-                    : new Color(94, 116, 73, 190));
+            g2.setColor(getModel().isRollover() ? hover : normal);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
             g2.setColor(new Color(255, 255, 255, 80));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
@@ -101,9 +165,18 @@ public class Dashboard extends javax.swing.JFrame {
         // SIDEBAR Y ENLACES DE CONTROL
         // ==========================================
         private void crearSidebar() {
-            JPanel sidebar = new JPanel();
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+                    g2.dispose();
+                }
+            };
+            sidebar.setOpaque(false);
             sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
             sidebar.setBounds(20, 20, 300, 870);
 
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -120,12 +193,8 @@ public class Dashboard extends javax.swing.JFrame {
 
             int y = 140;
             for (String textoBtn : botonesMenu) {
-                JButton btn = new JButton(textoBtn);
+                BotonSidebarNeo btn = new BotonSidebarNeo(textoBtn);
                 btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                btn.setBackground(new Color(94, 116, 73));
-                btn.setForeground(Color.WHITE);
 
                 // Enrutador de acciones para la navegación lateral
                 if (textoBtn.equals("Saldos")) {
@@ -161,14 +230,12 @@ public class Dashboard extends javax.swing.JFrame {
             if (idUsuarioActual != null) {
                 SupervisionDAO dao = new SupervisionDAO();
                 if (dao.tieneMenoresACargo(idUsuarioActual)) {
-                    JButton btnSupervision = new JButton("Supervisión");
+                    BotonNeo btnSupervision = new BotonNeo(
+                            "Supervisión",
+                            new Color(251, 232, 138),
+                            new Color(255, 245, 180),
+                            new Color(25, 38, 35));
                     btnSupervision.setBounds(20, y, 250, 55);
-                    btnSupervision.setFocusPainted(false);
-                    btnSupervision.setBorderPainted(false);
-                    btnSupervision.setBackground(new Color(251, 232, 138));
-                    btnSupervision.setForeground(new Color(25, 38, 35));
-                    btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                    btnSupervision.setCursor(new Cursor(Cursor.HAND_CURSOR));
                     btnSupervision.addActionListener(e -> {
                         new PanelSupervision(idUsuarioActual).setVisible(true);
                         dispose();
@@ -177,14 +244,12 @@ public class Dashboard extends javax.swing.JFrame {
                 }
             }
 
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
+            BotonNeo btnCerrarSesion = new BotonNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80),
+                    Color.WHITE);
             btnCerrarSesion.setBounds(20, 800, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnCerrarSesion.addActionListener(e -> {
                 JOptionPane.showMessageDialog(null,
                     "✅ Sesión cerrada correctamente.\n¡Hasta pronto!",
