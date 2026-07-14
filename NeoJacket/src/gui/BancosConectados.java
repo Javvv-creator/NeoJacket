@@ -30,11 +30,10 @@ public class BancosConectados extends JFrame {
         setLocationRelativeTo(null);
 
         setContentPane(new FondoPanel());
-
     }
 
     // ==========================================================
-    // CLASE CLONADA DEL RADIO BUTTON PREMIUM DORADO
+    // CLASE CLONADA DEL RADIO BUTTON PREMIUM AMARILLO NEO
     // ==========================================================
     class NeoRadioButton extends JRadioButton {
 
@@ -54,7 +53,7 @@ public class BancosConectados extends JFrame {
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     g2.setColor(new Color(255, 255, 255, 30));
                     g2.fillOval(x, y, 18, 18);
-                    g2.setColor(new Color(251, 232, 138)); // Dorado amarillo
+                    g2.setColor(new Color(251, 232, 138)); // Amarillo de la paleta
                     g2.setStroke(new BasicStroke(1.5f));
                     g2.drawOval(x, y, 18, 18);
                     if (isSelected()) {
@@ -99,14 +98,13 @@ public class BancosConectados extends JFrame {
 
             boolean over = getModel().isRollover();
             g2.setColor(over ? new Color(255, 245, 180) : new Color(251, 232, 138));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25); // Bordes bien redondeados
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
 
             super.paintComponent(g);
             g2.dispose();
         }
     }
 
-    // Variables globales para los radio buttons y labels
     private NeoRadioButton rbIndustrial, rbBanrural, rbBac, rbGYT;
     private JLabel lblBancoValor, lblSaldoValor;
     private DefaultTableModel modelo;
@@ -224,7 +222,7 @@ public class BancosConectados extends JFrame {
                 new InicioNeo().setVisible(true);
                 dispose();
             });
-            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+
             funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
             int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
@@ -243,31 +241,25 @@ public class BancosConectados extends JFrame {
                 sidebar.add(btnSupervision);
             }
             sidebar.add(btnCerrarSesion);
-
             panel.add(sidebar);
         }
 
         private void crearContenido(JPanel panel) {
-
-            // ==========================================================
-            // NUEVO PANEL TRASPARENTE DE FONDO PARA EL CONTENIDO (Cuerpo principal)
-            // ==========================================================
             JPanel panelContenedorGris = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(15, 22, 20, 130)); // Cristal oscuro traslúcido
+                    g2.setColor(new Color(15, 22, 20, 130));
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
                     g2.dispose();
                 }
             };
             panelContenedorGris.setLayout(null);
             panelContenedorGris.setOpaque(false);
-            panelContenedorGris.setBounds(350, 20, 1250, 950); // Cubre toda la zona de trabajo derecha
+            panelContenedorGris.setBounds(350, 20, 1250, 950);
             panel.add(panelContenedorGris);
 
-            // Títulos montados ahora dentro del contenedor transparente
             JLabel lblTitulo = new JLabel("BANCOS CONECTADOS");
             lblTitulo.setForeground(Color.WHITE);
             lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
@@ -282,13 +274,10 @@ public class BancosConectados extends JFrame {
 
             ButtonGroup grupoBancos = new ButtonGroup();
 
-            // ==========================================================
-            // DISTRIBUCIÓN MATEMÁTICA CORRECTA PARA CENTRAR LAS 4 IMÁGENES
-            // ==========================================================
             int cardW = 220;
             int cardH = 175;
-            int inicioX = 40; // Margen izquierdo inicial interno
-            int separacion = 80; // Distancia exacta entre inicios de tarjeta
+            int inicioX = 40;
+            int separacion = 80;
             int posY = 120;
 
             // --- Panel Banco Industrial ---
@@ -297,13 +286,12 @@ public class BancosConectados extends JFrame {
             Image imgIndustrial = new ImageIcon(getClass().getResource("/gui/image/banco_industrial.png")).getImage();
             Image imgEscaladaIndustrial = imgIndustrial.getScaledInstance(230, 150, Image.SCALE_SMOOTH);
 
-            // Reemplazo a JLabel para el icono del banco (así el RadioButton personalizado no se solapa feo)
             JLabel lblImgIndustrial = new JLabel(new ImageIcon(imgEscaladaIndustrial));
             lblImgIndustrial.setBounds((cardW - 180) / 2, 25, 180, 100);
             panelIndustrial.add(lblImgIndustrial);
 
             rbIndustrial = new NeoRadioButton("Banco Industrial");
-            rbIndustrial.setBounds(30, 130, 160, 26);
+            rbIndustrial.setBounds(20, 130, 180, 26);
             grupoBancos.add(rbIndustrial);
             panelIndustrial.add(rbIndustrial);
             panelContenedorGris.add(panelIndustrial);
@@ -319,7 +307,7 @@ public class BancosConectados extends JFrame {
             panelBanrural.add(lblImgBanrural);
 
             rbBanrural = new NeoRadioButton("Banrural");
-            rbBanrural.setBounds(30, 130, 160, 26);
+            rbBanrural.setBounds(20, 130, 180, 26);
             grupoBancos.add(rbBanrural);
             panelBanrural.add(rbBanrural);
             panelContenedorGris.add(panelBanrural);
@@ -334,8 +322,8 @@ public class BancosConectados extends JFrame {
             lblImgBAC.setBounds((cardW - 180) / 2, 30, 180, 100);
             panelBAC.add(lblImgBAC);
 
-            rbBac = new NeoRadioButton("BAC Credomatic");
-            rbBac.setBounds(30, 130, 160, 26);
+            rbBac = new NeoRadioButton("BAC Credomatic"); // Nombre mapeado exacto con la BD
+            rbBac.setBounds(20, 130, 180, 26);
             grupoBancos.add(rbBac);
             panelBAC.add(rbBac);
             panelContenedorGris.add(panelBAC);
@@ -350,16 +338,13 @@ public class BancosConectados extends JFrame {
             lblImgGYT.setBounds((cardW - 180) / 2, 25, 180, 100);
             panelGYT.add(lblImgGYT);
 
-            rbGYT = new NeoRadioButton("G&T Continental");
-            rbGYT.setBounds(30, 130, 160, 26);
+            rbGYT = new NeoRadioButton("G&T Continental"); // Nombre mapeado exacto con la BD
+            rbGYT.setBounds(20, 130, 180, 26);
             grupoBancos.add(rbGYT);
             panelGYT.add(rbGYT);
             panelContenedorGris.add(panelGYT);
 
-            // ==========================================================
-            // CORRECCIÓN: PANELES AL FRENTE (Agregados a panelContenedorGris)
-            // ==========================================================
-            // Panel de "Saldo Disponible" - Reposicionado simétricamente adentro
+            // --- Panel de Saldo Disponible ---
             JPanel panelSaldo = crearCardSinBorde(40, 320, 410, 110);
             panelSaldo.setLayout(null);
             JLabel lblSaldoTitulo = new JLabel("Saldo Disponible:");
@@ -373,9 +358,9 @@ public class BancosConectados extends JFrame {
             lblSaldoValor.setFont(new Font("Segoe UI", Font.BOLD, 26));
             lblSaldoValor.setBounds(20, 45, 300, 35);
             panelSaldo.add(lblSaldoValor);
-            panelContenedorGris.add(panelSaldo); // <-- Antes decía panel.add
+            panelContenedorGris.add(panelSaldo);
 
-            // Panel de "Nombre del Banco" - Reposicionado simétricamente adentro
+            // --- Panel de Nombre del Banco ---
             JPanel panelBanco = crearCardSinBorde(480, 320, 410, 110);
             panelBanco.setLayout(null);
             JLabel lblBancoTitulo = new JLabel("Nombre del Banco:");
@@ -389,13 +374,11 @@ public class BancosConectados extends JFrame {
             lblBancoValor.setFont(new Font("Segoe UI", Font.BOLD, 22));
             lblBancoValor.setBounds(20, 45, 300, 35);
             panelBanco.add(lblBancoValor);
-            panelContenedorGris.add(panelBanco); // <-- Antes decía panel.add
+            panelContenedorGris.add(panelBanco);
 
-            // ==========================================================
-            // BOTÓN FLUJO DE BANCOS CON ESTILO REDONDEADO NEO
-            // ==========================================================
+            // --- Botón de Flujo ---
             BotonFlujoNeo btnFlujo = new BotonFlujoNeo("→ Flujo de Bancos");
-            btnFlujo.setBounds(930, 350, 280, 50); // Ajustado levemente en Y para equilibrar visualmente con los paneles
+            btnFlujo.setBounds(930, 350, 280, 50);
             panelContenedorGris.add(btnFlujo);
             btnFlujo.addActionListener(e -> {
                 if (grupoBancos.getSelection() == null) {
@@ -405,20 +388,19 @@ public class BancosConectados extends JFrame {
                     return;
                 }
 
+                // Vinculación correcta según IDs auto_increment generados en tu SQL
                 if (rbIndustrial.isSelected()) {
-                    mostrarCuentasPorBanco(1);
-                } else if (rbBanrural.isSelected()) {
-                    mostrarCuentasPorBanco(3);
+                    mostrarCuentasPorBanco(1); // Banco Industrial
                 } else if (rbBac.isSelected()) {
-                    mostrarCuentasPorBanco(2);
+                    mostrarCuentasPorBanco(2); // BAC Credomatic
+                } else if (rbBanrural.isSelected()) {
+                    mostrarCuentasPorBanco(3); // Banrural
                 } else if (rbGYT.isSelected()) {
-                    mostrarCuentasPorBanco(4);
+                    mostrarCuentasPorBanco(4); // G&T Continental
                 }
             });
 
-            // ==========================================================
-            // PANEL DE TABLA CON BORDE BLANCO ESTILIZADO DELGADO Y CURVO
-            // ==========================================================
+            // --- Panel de la Tabla ---
             JPanel panelTabla = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -449,7 +431,6 @@ public class BancosConectados extends JFrame {
             tabla.setRowHeight(35);
             tabla.setBackground(new Color(25, 38, 35));
             tabla.setForeground(Color.WHITE);
-
             tabla.setGridColor(new Color(94, 116, 73));
             tabla.setSelectionBackground(new Color(251, 232, 138));
             tabla.setSelectionForeground(Color.BLACK);
@@ -466,11 +447,9 @@ public class BancosConectados extends JFrame {
             scroll.setBounds(15, 15, 1140, 410);
             panelTabla.add(scroll);
 
-            // Listener para actualizar paneles al seleccionar una fila
             tabla.getSelectionModel().addListSelectionListener(event -> {
                 if (!event.getValueIsAdjusting() && tabla.getSelectedRow() != -1) {
                     int filaSeleccionada = tabla.getSelectedRow();
-
                     String banco = modelo.getValueAt(filaSeleccionada, 3).toString();
                     String saldo = modelo.getValueAt(filaSeleccionada, 2).toString();
 
@@ -479,23 +458,21 @@ public class BancosConectados extends JFrame {
                 }
             });
 
-            // Al abrir la interfaz, cargar todas las cuentas del usuario
-            try {
-                Connection con = conexion.getConexion();
-
-                PreparedStatement ps = con.prepareStatement(
-                        "SELECT c.saldo, c.estado, t.nombre AS tipoCuenta, b.nombre AS banco "
-                        + "FROM cuentas_bancarias c "
-                        + "JOIN tipos_cuentas t ON c.id_tipo_cuenta = t.id_tipo "
-                        + "JOIN bancos b ON c.id_banco = b.id_banco "
-                        + "WHERE c.id_usuario = ?"
-                );
+            // Cargar datos iniciales
+            try (Connection con = conexion.getConexion();
+                 PreparedStatement ps = con.prepareStatement(
+                         "SELECT c.saldo, c.estado, t.nombre AS tipoCuenta, b.nombre AS banco "
+                         + "FROM cuentas_bancarias c "
+                         + "JOIN tipos_cuentas t ON c.id_tipo_cuenta = t.id_tipo "
+                         + "JOIN bancos b ON c.id_banco = b.id_banco "
+                         + "WHERE c.id_usuario = ?"
+                 )) {
+                
                 ps.setInt(1, SesionUsuario.getIdUsuario());
                 ResultSet rs = ps.executeQuery();
-
                 modelo.setRowCount(0);
 
-                double saldoTotal = 0.0; // 🔹 acumulador de saldo total
+                double saldoTotal = 0.0;
                 while (rs.next()) {
                     Object[] fila = {
                         java.time.LocalDate.now(),
@@ -505,78 +482,52 @@ public class BancosConectados extends JFrame {
                         rs.getString("estado")
                     };
                     modelo.addRow(fila);
-
-                    saldoTotal += rs.getDouble("saldo"); // 🔹 sumar cada saldo
+                    saldoTotal += rs.getDouble("saldo");
                 }
 
-                // Mostrar el saldo total en el panel
                 lblSaldoValor.setText("Q. " + saldoTotal);
-
-                // 🔹 Mostrar "--" en Nombre del Banco por defecto
                 lblBancoValor.setText("--");
-
                 rs.close();
-                ps.close();
-                con.close();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Error al inicializar cuentas: " + ex.getMessage());
                 ex.printStackTrace();
             }
         }
 
         @Override
-        protected void paintComponent(Graphics g
-        ) {
+        protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
     }
 
+    // COMBINADO:
+    //  - La consulta (JOIN con tarjetas_bancarias, filtrando t.estado = 'activa')
+    //    es la del primer código: solo cuenta como "banco conectado" si el
+    //    usuario tiene una TARJETA ACTIVA para ese banco, no solo una cuenta.
+    //  - El mensaje y el comportamiento cuando no hay resultados son los del
+    //    segundo código: un diálogo de advertencia claro ("Banco no
+    //    conectado") y sin agregar una fila falsa "No registrado" a la tabla
+    //    (la tabla simplemente queda vacía).
     private void mostrarCuentasPorBanco(int idBanco) {
-        try {
-            Connection con = conexion.getConexion();
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT t.id_tarjeta, c.saldo, c.estado, tc.nombre AS tipoCuenta, b.nombre AS banco "
+                     + "FROM tarjetas_bancarias t "
+                     + "JOIN cuentas_bancarias c ON t.id_cuenta = c.id_cuenta "
+                     + "JOIN bancos b ON c.id_banco = b.id_banco "
+                     + "JOIN tipos_cuentas tc ON c.id_tipo_cuenta = tc.id_tipo "
+                     + "WHERE t.id_usuario = ? AND c.id_banco = ? AND t.estado = 'activa'"
+             )) {
 
-            // Consulta con JOIN a tipos_cuentas para obtener el tipo de cuenta
-            PreparedStatement ps = con.prepareStatement(
-                    "SELECT t.id_tarjeta, c.saldo, c.estado, tc.nombre AS tipoCuenta, b.nombre AS banco "
-                    + "FROM tarjetas_bancarias t "
-                    + "JOIN cuentas_bancarias c ON t.id_cuenta = c.id_cuenta "
-                    + "JOIN bancos b ON c.id_banco = b.id_banco "
-                    + "JOIN tipos_cuentas tc ON c.id_tipo_cuenta = tc.id_tipo "
-                    + "WHERE t.id_usuario = ? AND c.id_banco = ? AND t.estado = 'activa'"
-            );
             ps.setInt(1, SesionUsuario.getIdUsuario());
             ps.setInt(2, idBanco);
-
             ResultSet rs = ps.executeQuery();
+
             modelo.setRowCount(0);
 
-            if (!rs.next()) {
-                // 🔹 Banco no registrado
-                JOptionPane.showMessageDialog(this,
-                        "Banco no registrado, debes conectarlo primero.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-
-                lblBancoValor.setText("No registrado");
-                lblSaldoValor.setText("Q. 0.00");
-
-                Object[] filaNoReg = {
-                    java.time.LocalDate.now(),
-                    "--",
-                    0.00,
-                    "No registrado",
-                    "N/A"
-                };
-                modelo.addRow(filaNoReg);
-
-                rs.close();
-                ps.close();
-                con.close();
-                return;
-            }
-
-            // 🔹 Si hay cuentas registradas
-            do {
+            boolean primeraFila = true;
+            while (rs.next()) {
                 Object[] fila = {
                     java.time.LocalDate.now(),
                     rs.getString("tipoCuenta"),
@@ -586,17 +537,24 @@ public class BancosConectados extends JFrame {
                 };
                 modelo.addRow(fila);
 
-                // Mostrar saldo y banco en labels
-                lblBancoValor.setText(rs.getString("banco"));
-                lblSaldoValor.setText("Q. " + rs.getDouble("saldo"));
-            } while (rs.next());
+                if (primeraFila) {
+                    lblBancoValor.setText(rs.getString("banco"));
+                    lblSaldoValor.setText("Q. " + rs.getDouble("saldo"));
+                    primeraFila = false;
+                }
+            }
 
+            if (modelo.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Este banco no está conectado a tu cuenta.\n"
+                        + "Aún no tienes ninguna tarjeta activa vinculada a esta institución.",
+                        "Banco no conectado", JOptionPane.WARNING_MESSAGE);
+                lblBancoValor.setText("-");
+                lblSaldoValor.setText("Q. 0.00");
+            }
             rs.close();
-            ps.close();
-            con.close();
-
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al filtrar cuentas: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -639,5 +597,4 @@ public class BancosConectados extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new BancosConectados().setVisible(true));
     }
-
 }

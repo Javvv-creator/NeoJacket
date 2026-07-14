@@ -5,9 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
-
 import main.CRUD.CRUD;
 import main.Conexion.conexion;
 
@@ -20,9 +20,10 @@ public class CrearUsuario {
     }
 
     /**
-     * Versión que se adapta a tus campos actuales de RegistroNeo. - txtUsuario
-     * -> nombre (usaremos todo como nombre) - txtIdent -> dpiNumero Lo demás lo
-     * dejamos como "faltante" y bloqueamos el registro si falta información.
+     * Versión que se adapta a tus campos actuales de RegistroNeo.
+     * - txtUsuario -> nombre (usaremos todo como nombre)
+     * - txtIdent -> dpiNumero
+     * Lo demás lo dejamos como "faltante" y bloqueamos el registro si falta información.
      */
     public boolean crearDesdeRegistroNeo(
             String nombre,
@@ -74,7 +75,7 @@ public class CrearUsuario {
                     genero.trim(),
                     password,
                     dpiFinal,
-                    perfil // CORREGIDO: pasa el perfil para que se guarde en BD
+                    perfil  // CORREGIDO: pasa el perfil para que se guarde en BD
             );
 
             JOptionPane.showMessageDialog(null,
@@ -96,6 +97,7 @@ public class CrearUsuario {
     // ============================
     // VALIDACIONES
     // ============================
+
     private void validarCamposObligatorios(String... campos) {
         for (String campo : campos) {
             if (campo == null || campo.trim().isEmpty()) {
@@ -103,16 +105,21 @@ public class CrearUsuario {
             }
         }
     }
-
-    public boolean crearCuentaBancaria(int idUsuario, int idBanco, String tipoCuenta) {
+    
+    /**
+     * Crea una cuenta bancaria asignando el mismo número de cuenta/tarjeta que el usuario ingresó.
+     */
+    public boolean crearCuentaBancaria(int idUsuario, int idBanco, String tipoCuenta, String numeroCuenta) {
         try {
             Connection con = conexion.getConexion();
 
-            // Obtener id_tipo_cuenta desde la tabla tipos_cuentas
+            // Flexibilidad en la búsqueda: Consulta si coincide de forma exacta con o sin el prefijo "Cuenta "
             PreparedStatement psTipo = con.prepareStatement(
-                    "SELECT id_tipo FROM tipos_cuentas WHERE nombre = ?"
+                    "SELECT id_tipo FROM tipos_cuentas WHERE nombre = ? OR nombre = ? OR nombre = ?"
             );
             psTipo.setString(1, tipoCuenta);
+            psTipo.setString(2, "Cuenta " + tipoCuenta);
+            psTipo.setString(3, "Cuenta de " + tipoCuenta);
             ResultSet rsTipo = psTipo.executeQuery();
 
             int idTipoCuenta = -1;
@@ -123,10 +130,10 @@ public class CrearUsuario {
             psTipo.close();
 
             if (idTipoCuenta == -1) {
-                throw new Exception("Tipo de cuenta no válido: " + tipoCuenta);
+                throw new Exception("Tipo de cuenta no válido en la Base de Datos: " + tipoCuenta);
             }
 
-            // Insertar nueva cuenta bancaria
+            // Insertar nueva cuenta bancaria usando el número provisto por el usuario
             PreparedStatement psCuenta = con.prepareStatement(
                     "INSERT INTO cuentas_bancarias (id_usuario, id_banco, id_tipo_cuenta, numero_cuenta, saldo, estado) "
                     + "VALUES (?, ?, ?, ?, ?, ?)"
@@ -134,16 +141,17 @@ public class CrearUsuario {
             psCuenta.setInt(1, idUsuario);
             psCuenta.setInt(2, idBanco);
             psCuenta.setInt(3, idTipoCuenta);
-            psCuenta.setString(4, generarNumeroCuenta()); // método auxiliar para generar número único
-            psCuenta.setDouble(5, 0.00); // saldo inicial
+            psCuenta.setString(4, numeroCuenta.trim()); // 💡 Ahora usa el número real del formulario
+            psCuenta.setDouble(5, 0.00); // Saldo inicial
             psCuenta.setString(6, "activa");
 
             int filas = psCuenta.executeUpdate();
 
-// 🔹 Verificación en consola
+            // Verificación en consola
             System.out.println("Cuenta creada -> Usuario: " + idUsuario
                     + ", Banco: " + idBanco
                     + ", Tipo: " + tipoCuenta
+                    + ", Número: " + numeroCuenta
                     + ", Filas insertadas: " + filas);
 
             psCuenta.close();
@@ -152,10 +160,10 @@ public class CrearUsuario {
             return filas > 0;
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
-                    null,
-                    e.getMessage(),
-                    "Error al crear cuenta",
-                    JOptionPane.ERROR_MESSAGE
+                null,
+                e.getMessage(),
+                "Error al crear cuenta",
+                JOptionPane.ERROR_MESSAGE
             );
             e.printStackTrace();
             return false;
@@ -185,36 +193,48 @@ public class CrearUsuario {
         }
         return idUsuario;
     }
-// Método para recuperar el id_cuenta de la cuenta creada para un usuario y banco
 
-    public int obtenerIdCuenta(int idUsuario, int idBanco) {
-        int idCuenta = -1;
-        try {
-            Connection con = conexion.getConexion();
-            PreparedStatement ps = con.prepareStatement(
-                    "SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ? ORDER BY id_cuenta DESC LIMIT 1"
-            );
- 
-            ps.setInt(1, idUsuario);
-            ps.setInt(2, idBanco);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                idCuenta = rs.getInt("id_cuenta");
+    public Integer obtenerIdBancoPorNombre(String banco) {
+        if (banco == null || banco.trim().isEmpty()) {
+            return null;
+        }
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_banco FROM bancos WHERE nombre = ? OR nombre_corto = ? LIMIT 1"
+             )) {
+            ps.setString(1, banco.trim());
+            ps.setString(2, banco.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id_banco");
+                }
             }
-
-            rs.close();
-            ps.close();
-            con.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return idCuenta;
+        return null;
     }
 
-// Método auxiliar para generar número de cuenta ficticio
-    private String generarNumeroCuenta() {
-        return "NC-" + System.currentTimeMillis();
+    public List<String> obtenerBancosVinculados(int idUsuario) {
+        List<String> bancos = new ArrayList<>();
+        String sql = "SELECT DISTINCT b.nombre " +
+                     "FROM cuentas_bancarias c " +
+                     "JOIN bancos b ON c.id_banco = b.id_banco " +
+                     "WHERE c.id_usuario = ? AND c.estado = 'activa' " +
+                     "ORDER BY b.nombre";
+
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    bancos.add(rs.getString("nombre"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bancos;
     }
 
     private void validarFechaNacimiento(String fechaNacimiento) {

@@ -102,7 +102,7 @@ public class RegistroNeo extends JFrame {
     }
 
     // ============================
-    // COMBOBOX REDONDEADO 
+    // COMBOBOX REDONDEADO (mismo lenguaje visual que los campos de texto)
     // ============================
     class RoundedComboBox<T> extends JComboBox<T> {
 
@@ -112,8 +112,6 @@ public class RegistroNeo extends JFrame {
             setFocusable(false);
             setForeground(Color.WHITE);
             setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            setForeground(Color.WHITE);
-            setBackground(new Color(25, 38, 35));
             setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 10));
 
             setRenderer(new DefaultListCellRenderer() {
@@ -306,7 +304,8 @@ public class RegistroNeo extends JFrame {
             setLayout(null);
             crearRegistro();
 
-           
+            // Reposiciona la tarjeta cada vez que la ventana cambia de tamaño,
+            // manteniéndola siempre centrada.
             addComponentListener(new ComponentAdapter() {
                 @Override
                 public void componentResized(ComponentEvent e) {
@@ -371,7 +370,7 @@ public class RegistroNeo extends JFrame {
 
             panelReg.add(crearLabel("Tipo de cuenta", COL2_X, y));
             RoundedComboBox<String> cbTipo = new RoundedComboBox<>(new String[]{"Monetaria", "Ahorro", "Corriente"});
-            cbTipo.setForeground(Color.WHITE); // CORREGIDO: texto negro visible
+            cbTipo.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
             cbTipo.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbTipo);
 
@@ -394,7 +393,7 @@ public class RegistroNeo extends JFrame {
 
             panelReg.add(crearLabel("Género", COL2_X, y));
             RoundedComboBox<String> cbGenero = new RoundedComboBox<>(new String[]{"Masculino", "Femenino", "Otro"});
-            cbGenero.setForeground(Color.WHITE); // CORREGIDO: texto negro visible
+            cbGenero.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
             cbGenero.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbGenero);
 
@@ -540,6 +539,7 @@ public class RegistroNeo extends JFrame {
             rbMenor.addActionListener(e -> mostrarTutor.run());
             rbAdulto.addActionListener(e -> ocultarTutor.run());
 
+            // ---------- ACTION LISTENER DE REGISTRO (lógica de base de datos / transacciones tomada del segundo código) ----------
             btnIngresar.addActionListener(e -> {
                 String nombre = txtUsuario.getText();
                 String apellido = txtApellido.getText();
@@ -550,15 +550,19 @@ public class RegistroNeo extends JFrame {
                 String dpiNumero = txtIdent.getText();
                 String generoSeleccionado = cbGenero.getSelectedItem() != null ? cbGenero.getSelectedItem().toString() : "Otro";
                 String genero = "Otro";
+
                 if ("Masculino".equalsIgnoreCase(generoSeleccionado)) {
                     genero = "M";
                 } else if ("Femenino".equalsIgnoreCase(generoSeleccionado)) {
                     genero = "F";
                 }
-                String perfil = rbAdulto.isSelected() ? "Adulto" : rbMenor.isSelected() ? "Menor supervisado" : "Adulto";
+
+                String perfil = rbMenor.isSelected() ? "Menor supervisado" : "Adulto";
                 String tipoCuenta = cbTipo.getSelectedItem() != null ? cbTipo.getSelectedItem().toString() : "Monetaria";
 
-                // Validar correo del tutor si es menor supervisado
+                // ==========================================
+                // CASO 1: REGISTRO DE MENOR SUPERVISADO
+                // ==========================================
                 if (rbMenor.isSelected()) {
                     String correoTutor = txtCorreoTutor.getText().trim();
                     if (correoTutor.isEmpty()) {
@@ -581,34 +585,32 @@ public class RegistroNeo extends JFrame {
                     boolean creado = crearUsuario.crearDesdeRegistroNeo(
                             nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero
                     );
+
                     if (creado) {
-
-                        int idUsuario = crearUsuario.obtenerIdUsuario(correo, dpiNumero);
-
-                        // Crear cuentas en los 4 bancos automáticamente
-                        crearUsuario.crearCuentaBancaria(idUsuario, 1, tipoCuenta);
-                        crearUsuario.crearCuentaBancaria(idUsuario, 3, tipoCuenta);
-                        crearUsuario.crearCuentaBancaria(idUsuario, 2, tipoCuenta);
-                        crearUsuario.crearCuentaBancaria(idUsuario, 4, tipoCuenta);
-
-                        // Vincular menor con tutor
                         Integer idMenor = dao.buscarIdUsuarioPorCorreo(correo);
                         if (idMenor != null) {
                             dao.crearSupervision(idAdulto, idMenor);
                         }
 
-                        // El menor no tiene tarjeta — ir directo al inicio
                         JOptionPane.showMessageDialog(null,
                                 "✅ Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",
                                 "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
+
                         new InicioNeo().setVisible(true);
                         dispose();
                     }
+
+                // ==========================================
+                // CASO 2: REGISTRO DE ADULTO
+                // ==========================================
                 } else {
                     CrearUsuario crearUsuario = new CrearUsuario();
-                    boolean creado = crearUsuario.crearDesdeRegistroNeo(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero);
+                    boolean creado = crearUsuario.crearDesdeRegistroNeo(
+                            nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, perfil, tipoCuenta, genero
+                    );
+
                     if (creado) {
-                       new DatosTarjeta(correo, dpiNumero, tipoCuenta).setVisible(true);
+                        new DatosTarjeta(correo, dpiNumero, tipoCuenta).setVisible(true);
                         dispose();
                     }
                 }

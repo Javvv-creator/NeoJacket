@@ -1,8 +1,11 @@
 package gui;
 
-import javax.swing.*;
-import java.awt.*;
+import funcionalidades.CrearUsuario;
+import funcionalidades.SesionUsuario;
 import funcionalidades.SupervisionDAO;
+import java.awt.*;
+import java.util.List;
+import javax.swing.*;
 
 public class Transferencias extends javax.swing.JFrame {
 
@@ -54,124 +57,130 @@ public class Transferencias extends javax.swing.JFrame {
         new funcionalidades.Transferencias(this);
     }
 
-    // ==========================================================
-    // BOTÓN DE SIDEBAR ESTILO "NEO" 
-    // ==========================================================
-    class BotonSidebarNeo extends JButton {
-
-        public BotonSidebarNeo(String texto) {
-            super(texto);
-            setFocusPainted(false);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setOpaque(false);
-            setForeground(Color.WHITE);
-            setBackground(new Color(0, 0, 0, 0));
-            Font fuenteActual = getFont();
-            setFont(new Font("Segoe UI", Font.BOLD, 16));
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-            addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseEntered(java.awt.event.MouseEvent e) {
-                    setBackground(amarilloPastel);
-                    setForeground(Color.BLACK);
-                }
-
-                @Override
-                public void mouseExited(java.awt.event.MouseEvent e) {
-                    setBackground(new Color(0, 0, 0, 0));
-                    setForeground(Color.WHITE);
-                }
-            });
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(getBackground());
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-
-            if (getBackground().getAlpha() == 0) {
-                g2.setColor(amarilloPastel);
-                g2.setStroke(new BasicStroke(1f));
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
-            }
-            g2.dispose();
-            super.paintComponent(g);
-        }
-    }
-
  class FondoPanel extends JPanel {
 
         public FondoPanel() {
             setLayout(null);
-            crearSidebar();
+            crearSidebar(this);
             crearContenido();
         }
 
-        private void crearSidebar() {
+         // ==========================================
+        // DISEÑO DEL MENÚ LATERAL (SIDEBAR)
+        // ==========================================
+        private void crearSidebar(JPanel panel) {
+
             JPanel sidebar = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     g2.setColor(new Color(25, 38, 35, 220));
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
                     g2.dispose();
                 }
             };
-            sidebar.setOpaque(false);
-            sidebar.setLayout(null);
-            sidebar.setBounds(20, 20, 300, 950);
 
+            sidebar.setOpaque(false);
+            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setLayout(null);
+            
+            Color amarillo = new Color(251, 232, 138);
+            Color fondoTransparente = new Color(0, 0, 0, 0); 
+            Color amarilloBorde = new Color(251, 232, 138);
+
+            // Logo
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
             JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            String[] opciones = {"Saldos", "Bancos conectados", "Transferencias", "Historial"};
+            String[] opciones = {
+                "Saldos",
+                "Bancos Conectados",
+                "Transferencias",
+                "Historial"
+            };
+
             int y = 140;
 
             for (String texto : opciones) {
-                BotonSidebarNeo btn = new BotonSidebarNeo(texto);
-                btn.setBounds(20, y, 250, 55);
-                btn.addActionListener(e -> {
-                    switch (texto) {
-                        case "Saldos":
-                            new Saldos().setVisible(true);
-                            dispose();
-                            break;
-                        case "Bancos conectados":
-                            new BancosConectados().setVisible(true);
-                            dispose();
-                            break;
-                        case "Transferencias":
-                            // ya estamos en esta pantalla, no se hace nada
-                            break;
-                        case "Historial":
-                            new Historial().setVisible(true);
-                            dispose();
-                            break;
+                
+                JButton btn = new JButton(texto) {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        
+                        g2.setColor(getBackground());
+                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                        
+                        if (getBackground() != amarillo) {
+                            g2.setColor(amarilloBorde);
+                            g2.setStroke(new BasicStroke(1f));
+                            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                        }
+                        
+                        g2.dispose();
+                        super.paintComponent(g);
+                    }
+                };
+
+                btn.setBounds(20, y, 250, 46);
+                btn.setFocusPainted(false);
+                btn.setContentAreaFilled(false); 
+                btn.setBorderPainted(false);     
+                btn.setOpaque(false);
+                btn.setForeground(Color.WHITE);
+                btn.setBackground(fondoTransparente);
+
+                Font fuenteActual = btn.getFont();
+                btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+
+                btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent e) {
+                        btn.setBackground(amarillo);
+                        btn.setForeground(Color.BLACK);
+                    }
+
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        btn.setBackground(fondoTransparente);
+                        btn.setForeground(Color.WHITE);
                     }
                 });
-                sidebar.add(btn);
-                y += 70;
-            }
 
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
-            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+                if (texto.equals("Bancos Conectados")) {
+                    btn.addActionListener(e -> { 
+                        new BancosConectados().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Transferencias")) {
+                    btn.addActionListener(e -> { 
+                        new Transferencias().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                if (texto.equals("Historial")) {
+                    btn.addActionListener(e -> { 
+                        new Historial().setVisible(true);
+                        dispose(); 
+                    });
+                }
+                        
+                JButton btnCerrarSesion = new JButton("Cerrar sesión");
+                btnCerrarSesion.setBounds(20, 880, 250, 55);
+                btnCerrarSesion.setFocusPainted(false);
+                btnCerrarSesion.setBorderPainted(false);
+                btnCerrarSesion.setBackground(new Color(191, 76, 58));
+                btnCerrarSesion.setForeground(Color.WHITE);
+                btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                btnCerrarSesion.addActionListener(e -> {
+                    new InicioNeo().setVisible(true);
+                    dispose();
+                });
+                            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
             funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
             int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
@@ -189,10 +198,15 @@ public class Transferencias extends javax.swing.JFrame {
                 });
                 sidebar.add(btnSupervision);
             }
-            sidebar.add(btnCerrarSesion);
+sidebar.add(btnCerrarSesion);
 
-            add(sidebar);
+                sidebar.add(btn);
+                y += 68;
+            }
+
+            panel.add(sidebar);
         }
+                        
 
         private void crearContenido() {
             PanelContenedorVerde contenedor = new PanelContenedorVerde();
@@ -212,7 +226,7 @@ public class Transferencias extends javax.swing.JFrame {
             contenedor.add(lblDesc);
 
             String[] opcionesCuentas = {"Cuenta de Ahorro", "Cuenta Monetaria"};
-            String[] opcionesBancos = {"Banco Industrial", "Banco de América Central (BAC)", "Banrural", "Banco G&T Continental"};
+            String[] opcionesBancos = cargarBancosUsuario();
             int inputWidth = 540;
             int inputHeight = 42;
 
@@ -488,17 +502,17 @@ public class Transferencias extends javax.swing.JFrame {
 
             // --- BOTONES DE ACCIÓN ---
             
-            // Botón Imprimir (Comienza invisible y vacío por defecto)
+            // Botón Imprimir (Visible y alineado a la par de TRANSFERENCIAS)
             btnImprimir = new JButton("Imprimir comprobante");
-            btnImprimir.setBounds(940, 15, 250, 35);
+            btnImprimir.setBounds(620, 35, 250, 35); 
             btnImprimir.setForeground(Color.WHITE);
             btnImprimir.setFont(etiquetaCampos);
             btnImprimir.setContentAreaFilled(false);
             btnImprimir.setBorderPainted(false);
             btnImprimir.setFocusPainted(false);
             btnImprimir.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnImprimir.setVisible(false); // <--- Oculto de fábrica
-            pResumen.add(btnImprimir);
+            btnImprimir.setVisible(true); 
+            contenedor.add(btnImprimir);
 
             btnCancelar = new JButton("Cancelar");
             btnCancelar.setBounds(940, 52, 250, 35);
@@ -594,6 +608,15 @@ public class Transferencias extends javax.swing.JFrame {
             g2.dispose();
             super.paintComponent(g);
         }
+    }
+
+    private String[] cargarBancosUsuario() {
+        CrearUsuario crear = new CrearUsuario();
+        List<String> bancos = crear.obtenerBancosVinculados(SesionUsuario.getIdUsuario());
+        if (bancos.isEmpty()) {
+            return new String[]{"Sin bancos vinculados"};
+        }
+        return bancos.toArray(new String[0]);
     }
 
     public class JComboBoxOscuro extends JComboBox<String> {

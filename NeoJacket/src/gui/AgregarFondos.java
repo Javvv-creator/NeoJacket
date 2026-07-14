@@ -1,11 +1,11 @@
 package gui;
 
 import funcionalidades.SesionUsuario;
-import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import javax.swing.*;
 import main.CRUD.CRUD;
 import main.Conexion.conexion;
 
@@ -13,6 +13,13 @@ import main.Conexion.conexion;
  * Ventana principal para la gestión de depósito/ingreso de fondos en la
  * aplicación. Diseñada bajo un patrón de interfaz premium con renderizado
  * personalizado (Custom Painting).
+ *
+ * CORREGIDO:
+ *  - El botón "Guardar" ahora muestra un mensaje de error explícito cuando
+ *    crud.agregarFondos(...) devuelve false. Antes, si fallaba, no pasaba
+ *    absolutamente nada (ni error ni confirmación), lo que hacía parecer
+ *    que la aplicación "no dejaba ingresar" fondos sin explicación alguna.
+ *  - Se limpian los campos del formulario tras un depósito exitoso.
  */
 public class AgregarFondos extends JFrame {
 
@@ -268,7 +275,8 @@ public class AgregarFondos extends JFrame {
             lblBanco.setBounds(35, 25, 380, 25);
             cartaCampos.add(lblBanco);
 
-            String[] opcionesBancos = {"Banco Industrial", "Banrural", "BAC Credomatic", "G&T Continental"};
+            // Nombres de banco tal como están registrados en la tabla `bancos`
+            String[] opcionesBancos = {"Banco Industrial", "Banrural", "Banco de América Central (BAC)", "Banco G&T Continental"};
             JComboBox<String> cbBancos = new JComboBox<>(opcionesBancos);
             cbBancos.setBounds(35, 55, 380, 45);
             cbBancos.setFont(textoInputs);
@@ -305,6 +313,7 @@ public class AgregarFondos extends JFrame {
             txtMonto.setFont(textoInputs);
             cartaCampos.add(txtMonto);
 
+            // Campo de número de tarjeta (necesario para resolver la cuenta destino del depósito)
             JLabel lblTarjeta = new JLabel("Número de tarjeta");
             lblTarjeta.setForeground(Color.WHITE);
             lblTarjeta.setFont(tituloCampos);
@@ -362,115 +371,248 @@ public class AgregarFondos extends JFrame {
             cartaCampos.add(btnGuardar);
 
             // ⚙️ LÓGICA DE CONTROLADORES Y PERSISTENCIA DE BASE DE DATOS
+            // DIAGNÓSTICO: cada paso tiene su propio try/catch con una etiqueta
+            // ("[PASO n]") para que el mensaje de error y la consola te digan
+            // EXACTAMENTE en qué punto está fallando, en vez de un solo catch
+            // genérico que mezcla todo.
             btnGuardar.addActionListener(e -> {
+                Connection con = null;
+                PreparedStatement psBanco = null;
+                ResultSet rsBanco = null;
+                PreparedStatement psTarjeta = null;
+                ResultSet rsTarjeta = null;
+
+                // ---------- PASO 1: Validar monto ----------
+                double monto;
+                String montoTexto = txtMonto.getText().trim();
+                if (montoTexto.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Debes ingresar un monto válido.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 try {
-                    CRUD crud = new CRUD();
-                    String montoTexto = txtMonto.getText().trim();
+                    monto = Double.parseDouble(montoTexto);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "[PASO 1 - Parseo de monto] El monto debe ser un número válido.\nValor ingresado: \"" + montoTexto + "\"",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (monto <= 0) {
+                    JOptionPane.showMessageDialog(this, "El monto debe ser mayor a 0.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-                    // 1. Validación del monto
-                    if (montoTexto.isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Debes ingresar un monto válido.", "Error", JOptionPane.ERROR_MESSAGE);
+                // ---------- PASO 2: Variables de contexto ----------
+                int idUsuario;
+                try {
+                    idUsuario = SesionUsuario.getIdUsuario();
+                    if (idUsuario <= 0) {
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 2 - Sesión] No hay un idUsuario válido en la sesión (valor: " + idUsuario + ").\n"
+                                + "Es posible que la sesión no se haya iniciado correctamente.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
-
-                    double monto;
-                    try {
-                        monto = Double.parseDouble(montoTexto);
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(this, "El monto debe ser un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-
-                    // 2. Variables de contexto
-                    int idUsuario = SesionUsuario.getIdUsuario();
-                    String bancoSeleccionado = (String) cbBancos.getSelectedItem();
-                    String descripcion = txtDescripcion.getText();
-                    String numeroTarjeta = txtTarjeta.getText().trim();
-
-                    // 3. Validación del número de tarjeta
-                    if (numeroTarjeta.isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Debes ingresar un número de tarjeta.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                    if (!numeroTarjeta.matches("\\d{16}")) {
-                        JOptionPane.showMessageDialog(this, "El número de tarjeta debe contener 16 dígitos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-
-                    // 4. Mapeo banco → nombre en BD
-                    String nombreBD = "";
-                    switch (bancoSeleccionado) {
-                        case "Banco Industrial":
-                            nombreBD = "Bi";
-                            break;
-                        case "BAC Credomatic":
-                            nombreBD = "bac";
-                            break;
-                        case "Banrural":
-                            nombreBD = "banrural";
-                            break;
-                        case "G&T Continental":
-                            nombreBD = "gyt";
-                            break;
-                    }
-
-                    Connection con = conexion.getConexion();
-
-                    // 5. Obtener idBanco
-                    PreparedStatement psBanco = con.prepareStatement("SELECT id_banco FROM bancos WHERE nombre = ?");
-                    psBanco.setString(1, nombreBD);
-                    ResultSet rsBanco = psBanco.executeQuery();
-
-                    if (!rsBanco.next()) {
-                        JOptionPane.showMessageDialog(this, "Banco no válido.", "Error", JOptionPane.ERROR_MESSAGE);
-                        rsBanco.close();
-                        psBanco.close();
-                        con.close();
-                        return;
-                    }
-                    int idBanco = rsBanco.getInt("id_banco");
-
-                    // 6. Validar tarjeta en la BD y obtener idCuenta
-                    PreparedStatement psTarjeta = con.prepareStatement(
-                            "SELECT t.id_tarjeta, c.id_cuenta "
-                            + "FROM tarjetas_bancarias t "
-                            + "JOIN cuentas_bancarias c ON t.id_cuenta = c.id_cuenta "
-                            + "WHERE t.numero_tarjeta = ? AND t.id_usuario = ? AND t.id_banco = ? AND t.estado = 'activa'"
-                    );
-                    psTarjeta.setString(1, numeroTarjeta);
-                    psTarjeta.setInt(2, idUsuario);
-                    psTarjeta.setInt(3, idBanco);
-
-                    ResultSet rsTarjeta = psTarjeta.executeQuery();
-
-                    if (!rsTarjeta.next()) {
-                        JOptionPane.showMessageDialog(this, "Número de tarjeta inválido o banco no registrado.", "Error", JOptionPane.ERROR_MESSAGE);
-                        rsTarjeta.close();
-                        psTarjeta.close();
-                        rsBanco.close();
-                        psBanco.close();
-                        con.close();
-                        return;
-                    }
-
-                    int idCuenta = rsTarjeta.getInt("id_cuenta");
-
-                    // 7. Insertar fondos en la cuenta correcta
-                    boolean ok = crud.agregarFondos(idUsuario, idBanco, idCuenta, monto, descripcion);
-                    if (ok) {
-                        JOptionPane.showMessageDialog(this, "Fondo agregado con éxito");
-                    }
-
-                    // 8. Cierre de recursos
-                    rsTarjeta.close();
-                    psTarjeta.close();
-                    rsBanco.close();
-                    psBanco.close();
-                    con.close();
-
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(this,
+                            "[PASO 2 - Sesión] Error al obtener el usuario en sesión: " + ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
                     ex.printStackTrace();
+                    return;
+                }
+
+                String bancoSeleccionado = (String) cbBancos.getSelectedItem();
+                String descripcion = txtDescripcion.getText();
+                String numeroTarjeta = txtTarjeta.getText().trim();
+
+                // ---------- PASO 3: Validar número de tarjeta ----------
+                if (numeroTarjeta.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Debes ingresar un número de tarjeta.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (!numeroTarjeta.matches("\\d{16}")) {
+                    JOptionPane.showMessageDialog(this,
+                            "[PASO 3 - Validación de tarjeta] El número de tarjeta debe contener 16 dígitos numéricos.\n"
+                            + "Valor ingresado: \"" + numeroTarjeta + "\" (longitud: " + numeroTarjeta.length() + ")",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // ---------- PASO 4: Mapeo banco → nombre en BD ----------
+                String nombreBD = "";
+                switch (bancoSeleccionado) {
+                    case "Banco Industrial":
+                        nombreBD = "Banco Industrial";
+                        break;
+                    case "Banco de América Central (BAC)":
+                        nombreBD = "Banco de América Central (BAC)";
+                        break;
+                    case "Banrural":
+                        nombreBD = "Banrural";
+                        break;
+                    case "Banco G&T Continental":
+                        nombreBD = "Banco G&T Continental";
+                        break;
+                }
+                if (nombreBD.isEmpty()) {
+                    JOptionPane.showMessageDialog(this,
+                            "[PASO 4 - Mapeo de banco] No se pudo mapear el banco seleccionado (\"" + bancoSeleccionado + "\") a un nombre de BD.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try {
+                    // ---------- PASO 5: Conexión a la base de datos ----------
+                    try {
+                        con = conexion.getConexion();
+                        if (con == null) {
+                            JOptionPane.showMessageDialog(this,
+                                    "[PASO 5 - Conexión] conexion.getConexion() devolvió null. No hay conexión a la base de datos.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 5 - Conexión] No se pudo conectar a la base de datos: " + ex.getMessage(),
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                        return;
+                    }
+
+                    // ---------- PASO 6: Obtener idBanco ----------
+                    int idBanco;
+                    try {
+                        psBanco = con.prepareStatement("SELECT id_banco FROM bancos WHERE nombre = ?");
+                        psBanco.setString(1, nombreBD);
+                        rsBanco = psBanco.executeQuery();
+
+                        if (!rsBanco.next()) {
+                            JOptionPane.showMessageDialog(this,
+                                    "[PASO 6 - Banco no encontrado] No existe un banco en la tabla `bancos` con nombre = \"" + nombreBD + "\".\n"
+                                    + "Verifica que el nombre coincida EXACTAMENTE (mayúsculas, tildes, espacios) con la BD.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                        idBanco = rsBanco.getInt("id_banco");
+                    } catch (java.sql.SQLException ex) {
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 6 - SQL al buscar banco] " + ex.getMessage()
+                                + "\nSQLState: " + ex.getSQLState() + " | Código: " + ex.getErrorCode(),
+                                "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                        return;
+                    }
+
+                    // ---------- PASO 7: Validar que la tarjeta exista y pertenezca al usuario/banco ----------
+                    // CORREGIDO: ya NO se depende de tarjetas_bancarias.id_cuenta (que puede
+                    // estar NULL). Solo se confirma que la tarjeta exista, pertenezca al
+                    // usuario, esté vinculada a este banco y esté activa.
+                    try {
+                        psTarjeta = con.prepareStatement(
+                                "SELECT id_tarjeta FROM tarjetas_bancarias "
+                                + "WHERE numero_tarjeta = ? AND id_usuario = ? AND id_banco = ? AND estado = 'activa'"
+                        );
+                        psTarjeta.setString(1, numeroTarjeta);
+                        psTarjeta.setInt(2, idUsuario);
+                        psTarjeta.setInt(3, idBanco);
+
+                        rsTarjeta = psTarjeta.executeQuery();
+
+                        if (!rsTarjeta.next()) {
+                            JOptionPane.showMessageDialog(this,
+                                    "[PASO 7 - Tarjeta no encontrada] No hay ninguna fila en tarjetas_bancarias que cumpla:\n"
+                                    + "numero_tarjeta = \"" + numeroTarjeta + "\"\n"
+                                    + "id_usuario = " + idUsuario + "\n"
+                                    + "id_banco = " + idBanco + "\n"
+                                    + "estado = 'activa'\n\n"
+                                    + "Revisa si la tarjeta existe, si pertenece a este usuario, si está vinculada a ESTE banco, "
+                                    + "y si su estado es exactamente 'activa'.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    } catch (java.sql.SQLException ex) {
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 7 - SQL al validar tarjeta] " + ex.getMessage()
+                                + "\nSQLState: " + ex.getSQLState() + " | Código: " + ex.getErrorCode(),
+                                "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                        return;
+                    }
+
+                    // ---------- PASO 7b: Obtener idCuenta directamente de cuentas_bancarias ----------
+                    // CORREGIDO: la cuenta se busca por id_usuario + id_banco en cuentas_bancarias
+                    // (donde realmente vive el saldo), en vez de depender del enlace
+                    // tarjetas_bancarias.id_cuenta.
+                    int idCuenta;
+                    PreparedStatement psCuenta = null;
+                    ResultSet rsCuenta = null;
+                    try {
+                        psCuenta = con.prepareStatement(
+                                "SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ?"
+                        );
+                        psCuenta.setInt(1, idUsuario);
+                        psCuenta.setInt(2, idBanco);
+                        rsCuenta = psCuenta.executeQuery();
+
+                        if (!rsCuenta.next()) {
+                            JOptionPane.showMessageDialog(this,
+                                    "[PASO 7b - Cuenta no encontrada] La tarjeta existe, pero no hay ninguna fila en "
+                                    + "cuentas_bancarias con id_usuario = " + idUsuario + " e id_banco = " + idBanco + ".\n"
+                                    + "Es necesario que el usuario tenga una cuenta creada en ese banco.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                        idCuenta = rsCuenta.getInt("id_cuenta");
+                    } catch (java.sql.SQLException ex) {
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 7b - SQL al buscar cuenta] " + ex.getMessage()
+                                + "\nSQLState: " + ex.getSQLState() + " | Código: " + ex.getErrorCode(),
+                                "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                        return;
+                    } finally {
+                        try { if (rsCuenta != null) rsCuenta.close(); } catch (Exception ignored) {}
+                        try { if (psCuenta != null) psCuenta.close(); } catch (Exception ignored) {}
+                    }
+
+                    // Debug de auditoría interna por consola
+                    System.out.println("[DEBUG] Monto: " + monto);
+                    System.out.println("[DEBUG] Usuario: " + idUsuario);
+                    System.out.println("[DEBUG] Banco: " + idBanco);
+                    System.out.println("[DEBUG] idCuenta: " + idCuenta);
+                    System.out.println("[DEBUG] Descripción: " + descripcion);
+
+                    // ---------- PASO 8: Insertar fondos (CRUD.agregarFondos) ----------
+                    try {
+                        CRUD crud = new CRUD();
+                        boolean ok = crud.agregarFondos(idUsuario, idBanco, idCuenta, monto, descripcion);
+                        if (ok) {
+                            JOptionPane.showMessageDialog(this, "Fondo agregado con éxito");
+                            txtMonto.setText("");
+                            txtTarjeta.setText("");
+                            txtDescripcion.setText("");
+                        } else {
+                            JOptionPane.showMessageDialog(this,
+                                    "[PASO 8 - agregarFondos devolvió false] El UPDATE no afectó ninguna fila.\n"
+                                    + "idCuenta=" + idCuenta + ", idUsuario=" + idUsuario + ", idBanco=" + idBanco + "\n\n"
+                                    + "Esto pasa si cuentas_bancarias no tiene una fila cuyo id_cuenta+id_usuario+id_banco "
+                                    + "coincidan exactamente con estos valores. Revisa la consola para más detalle.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 8 - Excepción en agregarFondos] " + ex.getClass().getSimpleName() + ": " + ex.getMessage(),
+                                "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                    }
+
+                } finally {
+                    // Cierre seguro de recursos (siempre, incluso en retornos tempranos)
+                    try { if (rsTarjeta != null) rsTarjeta.close(); } catch (Exception ignored) {}
+                    try { if (psTarjeta != null) psTarjeta.close(); } catch (Exception ignored) {}
+                    try { if (rsBanco != null) rsBanco.close(); } catch (Exception ignored) {}
+                    try { if (psBanco != null) psBanco.close(); } catch (Exception ignored) {}
+                    try { if (con != null) con.close(); } catch (Exception ignored) {}
                 }
             });
 

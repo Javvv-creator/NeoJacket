@@ -2,7 +2,6 @@ package main.CRUD;
 
 import java.sql.*;
 import javax.swing.JOptionPane;
-// Importamos la clase conexion desde su paquete
 import main.Conexion.conexion;
 
 public class CRUD {
@@ -204,12 +203,37 @@ public class CRUD {
     }
 
     // =============================
-// MÉTODO: Agregar Fondos
-// =============================
+    // MÉTODO: Agregar Fondos
+    // =============================
+    // CORREGIDO:
+    //  - Ahora usa una transacción real (autoCommit=false + commit/rollback) para
+    //    que el UPDATE del saldo y el INSERT en transacciones sean atómicos.
+    //  - Ya no traga las excepciones en silencio: muestra el error real al
+    //    usuario en vez de solo imprimirlo en consola (esto era lo que hacía
+    //    parecer que "no dejaba ingresar" fondos sin ninguna explicación).
+    //  - Ahora sí guarda la "descripcion" recibida como parámetro (antes se
+    //    ignoraba por completo).
+    //  - Si el UPDATE afecta 0 filas (la combinación idCuenta/idUsuario/idBanco
+    //    no coincide con ninguna fila), se informa por consola para facilitar
+    //    el diagnóstico.
     public boolean agregarFondos(int idUsuario, int idBanco, int idCuenta, double monto, String descripcion) {
+        Connection con = null;
+        PreparedStatement ps = null;
+        PreparedStatement psTrans = null;
+
         try {
-            Connection con = conexion.getConexion();
-            PreparedStatement ps = con.prepareStatement(
+            con = conexion.getConexion();
+            if (con == null) {
+                JOptionPane.showMessageDialog(null,
+                        "No se pudo establecer conexión con la base de datos.",
+                        "Error de conexión",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            con.setAutoCommit(false);
+
+            ps = con.prepareStatement(
                     "UPDATE cuentas_bancarias SET saldo = saldo + ? WHERE id_cuenta = ? AND id_usuario = ? AND id_banco = ?"
             );
             ps.setDouble(1, monto);
@@ -220,31 +244,71 @@ public class CRUD {
             int filas = ps.executeUpdate();
 
             if (filas > 0) {
-                // Registrar transacción
-                PreparedStatement psTrans = con.prepareStatement(
-                        "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, moneda_origen, estado) "
-                        + "VALUES (?, ?, 'deposito', ?, 'GTQ', 'completada')"
+                // Registrar transacción (ahora incluye la descripción)
+                psTrans = con.prepareStatement(
+                        "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, descripcion, moneda_origen, estado) "
+                        + "VALUES (?, ?, 'deposito', ?, ?, 'GTQ', 'completada')"
                 );
                 psTrans.setInt(1, idCuenta);
                 psTrans.setInt(2, idUsuario);
                 psTrans.setDouble(3, monto);
+                psTrans.setString(4, descripcion != null ? descripcion : "");
                 psTrans.executeUpdate();
-                psTrans.close();
+
+                con.commit();
+                return true;
+            } else {
+                // No se encontró ninguna fila que coincida con idCuenta + idUsuario + idBanco.
+                // Esto suele significar que la tarjeta/cuenta encontrada en la validación
+                // previa no pertenece realmente a ese usuario o a ese banco en cuentas_bancarias.
+                con.rollback();
+                System.out.println("agregarFondos: no se actualizó ninguna fila. Verifica que idCuenta="
+                        + idCuenta + ", idUsuario=" + idUsuario + " e idBanco=" + idBanco
+                        + " correspondan a la misma fila en cuentas_bancarias.");
+                JOptionPane.showMessageDialog(null,
+                        "No se encontró una cuenta bancaria que coincida con ese usuario, banco y tarjeta.\n"
+                        + "Verifica que la cuenta esté correctamente vinculada.",
+                        "No se pudo agregar el fondo", JOptionPane.WARNING_MESSAGE);
+                return false;
             }
 
-            ps.close();
-            con.close();
-            return filas > 0;
-
         } catch (Exception ex) {
+            if (con != null) {
+                try {
+                    con.rollback();
+                } catch (Exception ignored) {
+                }
+            }
             ex.printStackTrace();
+            // CORREGIDO: antes este error se tragaba en silencio (solo printStackTrace)
+            // y el usuario no recibía ninguna retroalimentación.
+            JOptionPane.showMessageDialog(null,
+                    "Error al agregar fondos: " + ex.getMessage(),
+                    "Error de base de datos",
+                    JOptionPane.ERROR_MESSAGE);
             return false;
+        } finally {
+            try {
+                if (psTrans != null) psTrans.close();
+            } catch (Exception ignored) {
+            }
+            try {
+                if (ps != null) ps.close();
+            } catch (Exception ignored) {
+            }
+            try {
+                if (con != null) {
+                    con.setAutoCommit(true);
+                    con.close();
+                }
+            } catch (Exception ignored) {
+            }
         }
     }
 
     // =============================
-// MÉTODO: Actualizar Saldos
-// =============================
+    // MÉTODO: Actualizar Saldos
+    // =============================
     public boolean actualizarSaldo(int idUsuario, int idBanco, int idCuenta, double montoActual, double nuevoMonto, String motivo) {
         try {
             Connection con = conexion.getConexion();
@@ -313,8 +377,8 @@ public class CRUD {
     }
 
     // =============================
-// MÉTODO: Consultar Saldo
-// =============================
+    // MÉTODO: Consultar Saldo
+    // =============================
     public double consultarSaldo(int idUsuario, int idBanco, int idCuenta) {
         double saldo = -1; // valor por defecto si no encuentra nada
         try {
@@ -341,9 +405,9 @@ public class CRUD {
         return saldo;
     }
 
-// =============================
-// MÉTODO: Consultar Transacciones
-// =============================
+    // =============================
+    // MÉTODO: Consultar Transacciones
+    // =============================
     public ResultSet consultarTransacciones(int idUsuario, int idBanco, int idCuenta) {
         try {
             Connection con = conexion.getConexion();
