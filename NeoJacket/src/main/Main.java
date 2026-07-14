@@ -1,7 +1,5 @@
 package main;
 
-import funcionalidades.SesionUsuario;
-import gui.LoginNeo;
 import gui.PantallaBienvenida;
 
 public class Main {

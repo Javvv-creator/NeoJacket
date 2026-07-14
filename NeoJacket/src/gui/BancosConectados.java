@@ -108,6 +108,8 @@ public class BancosConectados extends JFrame {
     private NeoRadioButton rbIndustrial, rbBanrural, rbBac, rbGYT;
     private JLabel lblBancoValor, lblSaldoValor;
     private DefaultTableModel modelo;
+    private JTable tabla; // referencia a la tabla, usada por toda la clase
+    private Integer idBancoSeleccionadoTabla = null; // banco elegido desde la tabla
 
     class FondoPanel extends JPanel {
 
@@ -381,24 +383,39 @@ public class BancosConectados extends JFrame {
             btnFlujo.setBounds(930, 350, 280, 50);
             panelContenedorGris.add(btnFlujo);
             btnFlujo.addActionListener(e -> {
-                if (grupoBancos.getSelection() == null) {
+                if (grupoBancos.getSelection() != null) {
+                    // Selección hecha con las tarjetas de arriba
+                    if (rbIndustrial.isSelected()) {
+                        mostrarCuentasPorBanco(1); // Banco Industrial
+                    } else if (rbBac.isSelected()) {
+                        mostrarCuentasPorBanco(2); // BAC Credomatic
+                    } else if (rbBanrural.isSelected()) {
+                        mostrarCuentasPorBanco(3); // Banrural
+                    } else if (rbGYT.isSelected()) {
+                        mostrarCuentasPorBanco(4); // G&T Continental
+                    }
+                } else if (idBancoSeleccionadoTabla != null) {
+                    // Selección hecha desde la tabla
+                    mostrarCuentasPorBanco(idBancoSeleccionadoTabla);
+                } else {
                     JOptionPane.showMessageDialog(this,
-                            "Debes seleccionar un banco antes de continuar.",
+                            "Debes seleccionar un banco (arriba o en la tabla) antes de continuar.",
                             "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                // Vinculación correcta según IDs auto_increment generados en tu SQL
-                if (rbIndustrial.isSelected()) {
-                    mostrarCuentasPorBanco(1); // Banco Industrial
-                } else if (rbBac.isSelected()) {
-                    mostrarCuentasPorBanco(2); // BAC Credomatic
-                } else if (rbBanrural.isSelected()) {
-                    mostrarCuentasPorBanco(3); // Banrural
-                } else if (rbGYT.isSelected()) {
-                    mostrarCuentasPorBanco(4); // G&T Continental
                 }
             });
+
+            // --- Sincroniza tarjetas -> tabla: si eliges una tarjeta arriba,
+            //     se descarta cualquier selección hecha en la tabla ---
+            java.awt.event.ActionListener limpiarSeleccionTabla = e -> {
+                if (tabla != null) {
+                    tabla.clearSelection();
+                }
+                idBancoSeleccionadoTabla = null;
+            };
+            rbIndustrial.addActionListener(limpiarSeleccionTabla);
+            rbBanrural.addActionListener(limpiarSeleccionTabla);
+            rbBac.addActionListener(limpiarSeleccionTabla);
+            rbGYT.addActionListener(limpiarSeleccionTabla);
 
             // --- Panel de la Tabla ---
             JPanel panelTabla = new JPanel() {
@@ -427,7 +444,8 @@ public class BancosConectados extends JFrame {
                 }
             };
 
-            JTable tabla = new JTable(modelo);
+            tabla = new JTable(modelo);
+            tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
             tabla.setRowHeight(35);
             tabla.setBackground(new Color(25, 38, 35));
             tabla.setForeground(Color.WHITE);
@@ -455,6 +473,12 @@ public class BancosConectados extends JFrame {
 
                     lblBancoValor.setText(banco);
                     lblSaldoValor.setText("Q. " + saldo);
+
+                    // Deselecciona las tarjetas de arriba para evitar ambigüedad
+                    grupoBancos.clearSelection();
+
+                    // Guarda el id real del banco para usarlo en "Flujo de Bancos"
+                    idBancoSeleccionadoTabla = new funcionalidades.CrearUsuario().obtenerIdBancoPorNombre(banco);
                 }
             });
 

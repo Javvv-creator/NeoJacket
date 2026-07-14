@@ -161,54 +161,60 @@ public class DatosTarjeta extends JFrame {
             panel.add(btnGuardar);
 
             btnGuardar.addActionListener(e -> {
-                String tipo = txtTipo.getText().trim();
-                String pais = txtPais.getText().trim();
-                String numero = txtNumero.getText().trim();
-                String banco = cbBanco.getSelectedItem().toString();
+            String tipo = txtTipo.getText().trim();
+            String pais = txtPais.getText().trim();
+            String numero = txtNumero.getText().trim();
+            String banco = cbBanco.getSelectedItem().toString();
 
-                try {
-                    AgregarTarjeta servicio = new AgregarTarjeta();
+            try {
+                CrearUsuario crear = new CrearUsuario();
+                int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
 
-                    boolean guardado = servicio.registrarTarjeta(
-                            correoUsuario,
-                            dpiUsuario,
-                            tipo,
-                            pais,
-                            numero,
-                            banco);
-
-                    if (guardado) {
-
-                        CrearUsuario crear = new CrearUsuario();
-
-                        int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
-
-                        // Dentro del btnGuardar.addActionListener de DatosTarjeta.java:
-                        crear.crearCuentaBancaria(idUsuario, 1, tipoCuenta, numero);
-                        crear.crearCuentaBancaria(idUsuario, 2, tipoCuenta, numero);
-                        crear.crearCuentaBancaria(idUsuario, 3, tipoCuenta, numero);
-                        crear.crearCuentaBancaria(idUsuario, 4, tipoCuenta, numero);
-                        JOptionPane.showMessageDialog(null,
-                                "✅ Tarjeta y cuentas bancarias creadas correctamente.",
-                                "Éxito",
-                                JOptionPane.INFORMATION_MESSAGE);
-
-                        new InicioNeo().setVisible(true);
-                        dispose();
-                    }
-                } catch (IllegalArgumentException ex) {
+                if (idUsuario == -1) {
                     JOptionPane.showMessageDialog(null,
-                            "❌ " + ex.getMessage(),
-                            "Validación",
-                            JOptionPane.WARNING_MESSAGE);
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null,
-                            "Error al guardar los datos de la tarjeta: " + ex.getMessage(),
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    ex.printStackTrace();
+                            "No se encontró el usuario. Verifica el registro.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
-            });
+
+                // 1️⃣ PRIMERO: crear las 4 cuentas bancarias
+                crear.crearCuentaBancaria(idUsuario, 1, tipoCuenta, numero);
+                crear.crearCuentaBancaria(idUsuario, 2, tipoCuenta, numero);
+                crear.crearCuentaBancaria(idUsuario, 3, tipoCuenta, numero);
+                crear.crearCuentaBancaria(idUsuario, 4, tipoCuenta, numero);
+
+                // 2️⃣ DESPUÉS: registrar la tarjeta, ahora sí encuentra la cuenta correspondiente
+                AgregarTarjeta servicio = new AgregarTarjeta();
+                boolean guardado = servicio.registrarTarjeta(
+                        correoUsuario,
+                        dpiUsuario,
+                        tipo,
+                        pais,
+                        numero,
+                        banco);
+
+                if (guardado) {
+                    JOptionPane.showMessageDialog(null,
+                            "✅ Tarjeta y cuentas bancarias creadas correctamente.",
+                            "Éxito",
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                    new InicioNeo().setVisible(true);
+                    dispose();
+                }
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(null,
+                        "❌ " + ex.getMessage(),
+                        "Validación",
+                        JOptionPane.WARNING_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(null,
+                        "Error al guardar los datos de la tarjeta: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        });
 
             // BOTÓN VOLVER AL INICIO
             Color verde = new Color(94, 116, 73, 200);

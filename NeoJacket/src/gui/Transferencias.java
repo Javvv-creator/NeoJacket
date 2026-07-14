@@ -574,7 +574,7 @@ public class Transferencias extends javax.swing.JFrame {
                 }
             };
 
-            btnTransferir.setBounds(940, 95, 250, 45);
+            btnTransferir.setBounds(600, 70, 250, 45); //620, 35, 250, 35
             btnTransferir.setBackground(amarilloPastel);
             btnTransferir.setForeground(Color.BLACK);
             btnTransferir.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -606,7 +606,7 @@ public class Transferencias extends javax.swing.JFrame {
                 }
             });
 
-            pResumen.add(btnTransferir);
+            contenedor.add(btnTransferir);
         }
 
         @Override
