@@ -19,9 +19,9 @@ public class Transferencias extends javax.swing.JFrame {
     private final Font tituloSeccion = new Font("Segoe UI", Font.BOLD, 16);
     private final Font etiquetaCampos = new Font("Segoe UI", Font.BOLD, 13);
     private final Font textoInputs = new Font("Segoe UI", Font.PLAIN, 14);
-    
+
     // PALETA DE COLORES CORPORATIVA REVISADA (VERDE OSCURO Y AMARILLO)
-    private final Color verdeCorporativoFondo = new Color(20, 32, 29, 215); 
+    private final Color verdeCorporativoFondo = new Color(20, 32, 29, 215);
     private final Color amarilloPastel = new Color(251, 232, 138);
 
     // --- COMPONENTES DECLARADOS GLOBALMENTE PARA SU ACCESO ---
@@ -29,11 +29,11 @@ public class Transferencias extends javax.swing.JFrame {
     public JTextFieldOscuro txtNumCuentaO, txtNumCuentaD, txtMonto;
     public JPasswordFieldOscuro txtPassword;
     public JLabel lblSaldoO, lblTitularD, lblTipoCambio, lblDestinatarioRecibe;
-    
+
     // Labels del bloque Resumen
     public JLabel lblO_Cuenta, lblO_Nombre, lblO_Tipo, lblO_Banco, lblO_Monto;
     public JLabel lblD_Cuenta, lblD_Nombre, lblD_Tipo, lblD_Banco, lblD_Monto;
-    public JButton btnTransferir, btnCancelar, btnImprimir; 
+    public JButton btnTransferir, btnCancelar, btnImprimir;
 
     public Transferencias() {
         this(null);
@@ -42,7 +42,7 @@ public class Transferencias extends javax.swing.JFrame {
     public Transferencias(Integer idMenor) {
         this.idMenor = idMenor;
         initComponents();
-        
+
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondoUsuario.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
@@ -50,14 +50,14 @@ public class Transferencias extends javax.swing.JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
+
         setContentPane(new FondoPanel());
-        
+
         // --- INICIALIZACIÓN DE LA FUNCIONALIDAD ---
         new funcionalidades.Transferencias(this);
     }
 
- class FondoPanel extends JPanel {
+    class FondoPanel extends JPanel {
 
         public FondoPanel() {
             setLayout(null);
@@ -65,7 +65,7 @@ public class Transferencias extends javax.swing.JFrame {
             crearContenido();
         }
 
-         // ==========================================
+        // ==========================================
         // DISEÑO DEL MENÚ LATERAL (SIDEBAR)
         // ==========================================
         private void crearSidebar(JPanel panel) {
@@ -83,9 +83,9 @@ public class Transferencias extends javax.swing.JFrame {
             sidebar.setOpaque(false);
             sidebar.setBounds(20, 20, 300, 950);
             sidebar.setLayout(null);
-            
+
             Color amarillo = new Color(251, 232, 138);
-            Color fondoTransparente = new Color(0, 0, 0, 0); 
+            Color fondoTransparente = new Color(0, 0, 0, 0);
             Color amarilloBorde = new Color(251, 232, 138);
 
             // Logo
@@ -104,22 +104,22 @@ public class Transferencias extends javax.swing.JFrame {
             int y = 140;
 
             for (String texto : opciones) {
-                
+
                 JButton btn = new JButton(texto) {
                     @Override
                     protected void paintComponent(Graphics g) {
                         Graphics2D g2 = (Graphics2D) g.create();
                         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                        
+
                         g2.setColor(getBackground());
                         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                        
+
                         if (getBackground() != amarillo) {
                             g2.setColor(amarilloBorde);
                             g2.setStroke(new BasicStroke(1f));
                             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
                         }
-                        
+
                         g2.dispose();
                         super.paintComponent(g);
                     }
@@ -127,8 +127,8 @@ public class Transferencias extends javax.swing.JFrame {
 
                 btn.setBounds(20, y, 250, 46);
                 btn.setFocusPainted(false);
-                btn.setContentAreaFilled(false); 
-                btn.setBorderPainted(false);     
+                btn.setContentAreaFilled(false);
+                btn.setBorderPainted(false);
                 btn.setOpaque(false);
                 btn.setForeground(Color.WHITE);
                 btn.setBackground(fondoTransparente);
@@ -151,24 +151,24 @@ public class Transferencias extends javax.swing.JFrame {
                 });
 
                 if (texto.equals("Bancos Conectados")) {
-                    btn.addActionListener(e -> { 
+                    btn.addActionListener(e -> {
                         new BancosConectados().setVisible(true);
-                        dispose(); 
+                        dispose();
                     });
                 }
                 if (texto.equals("Transferencias")) {
-                    btn.addActionListener(e -> { 
+                    btn.addActionListener(e -> {
                         new Transferencias().setVisible(true);
-                        dispose(); 
+                        dispose();
                     });
                 }
                 if (texto.equals("Historial")) {
-                    btn.addActionListener(e -> { 
+                    btn.addActionListener(e -> {
                         new Historial().setVisible(true);
-                        dispose(); 
+                        dispose();
                     });
                 }
-                        
+
                 JButton btnCerrarSesion = new JButton("Cerrar sesión");
                 btnCerrarSesion.setBounds(20, 880, 250, 55);
                 btnCerrarSesion.setFocusPainted(false);
@@ -180,25 +180,25 @@ public class Transferencias extends javax.swing.JFrame {
                     new InicioNeo().setVisible(true);
                     dispose();
                 });
-                            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
-            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
-            int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
-            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
-                JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, 740, 250, 55);
-                btnSupervision.setFocusPainted(false);
-                btnSupervision.setBorderPainted(false);
-                btnSupervision.setBackground(new Color(251, 232, 138));
-                btnSupervision.setForeground(new Color(25, 38, 35));
-                btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-                btnSupervision.addActionListener(e -> {
-                    new PanelSupervision(idSesion).setVisible(true);
-                    dispose();
-                });
-                sidebar.add(btnSupervision);
-            }
-sidebar.add(btnCerrarSesion);
+                // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+                funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
+                int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
+                if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
+                    JButton btnSupervision = new JButton("Supervisión");
+                    btnSupervision.setBounds(20, 740, 250, 55);
+                    btnSupervision.setFocusPainted(false);
+                    btnSupervision.setBorderPainted(false);
+                    btnSupervision.setBackground(new Color(251, 232, 138));
+                    btnSupervision.setForeground(new Color(25, 38, 35));
+                    btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                    btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                    btnSupervision.addActionListener(e -> {
+                        new PanelSupervision(idSesion).setVisible(true);
+                        dispose();
+                    });
+                    sidebar.add(btnSupervision);
+                }
+                sidebar.add(btnCerrarSesion);
 
                 sidebar.add(btn);
                 y += 68;
@@ -206,7 +206,6 @@ sidebar.add(btnCerrarSesion);
 
             panel.add(sidebar);
         }
-                        
 
         private void crearContenido() {
             PanelContenedorVerde contenedor = new PanelContenedorVerde();
@@ -279,7 +278,6 @@ sidebar.add(btnCerrarSesion);
             lblSaldoO.setBounds(30, 278, 400, 20);
             pOrigen.add(lblSaldoO);
 
-
             // ---------------------------------------------------
             // COLUMNA DERECHA - BLOQUE 2: DESTINO
             // ---------------------------------------------------
@@ -329,7 +327,6 @@ sidebar.add(btnCerrarSesion);
             lblTitularD.setBounds(30, 278, 400, 20);
             pDestino.add(lblTitularD);
 
-
             // ---------------------------------------------------
             // COLUMNA IZQUIERDA - BLOQUE 3: DETALLES (MONTO / PASS)
             // ---------------------------------------------------
@@ -363,7 +360,6 @@ sidebar.add(btnCerrarSesion);
             txtPassword.setBounds(30, 158, inputWidth, inputHeight);
             pDetalles.add(txtPassword);
 
-
             // ---------------------------------------------------
             // COLUMNA DERECHA - BLOQUE 4: CONVERSIÓN DE DIVISAS
             // ---------------------------------------------------
@@ -392,7 +388,7 @@ sidebar.add(btnCerrarSesion);
 
             JLabel lblMonedaD = new JLabel("Moneda destino");
             lblMonedaD.setForeground(Color.WHITE);
-            lblMonedaD.setFont(etiquetaCampos); 
+            lblMonedaD.setFont(etiquetaCampos);
             lblMonedaD.setBounds(330, 48, 240, 20);
             pDivisas.add(lblMonedaD);
 
@@ -412,12 +408,11 @@ sidebar.add(btnCerrarSesion);
             lblDestinatarioRecibe.setBounds(30, 180, 400, 25);
             pDivisas.add(lblDestinatarioRecibe);
 
-
             // ----------------------------------------------
             // PARTE INFERIOR - BLOQUE 5: RESUMEN Y ACCIONES 
             // ----------------------------------------------
             PanelBloqueEstilizado pResumen = new PanelBloqueEstilizado();
-            pResumen.setBounds(40, 720, 1220, 175); 
+            pResumen.setBounds(40, 720, 1220, 175);
             contenedor.add(pResumen);
 
             JLabel lblResumenSecc = new JLabel("RESUMEN DE TRANSACCIÓN");
@@ -462,7 +457,6 @@ sidebar.add(btnCerrarSesion);
             lblO_Monto.setBounds(30, 144, 250, 20);
             pResumen.add(lblO_Monto);
 
-
             JLabel lblSubDestino = new JLabel("Banco Destino");
             lblSubDestino.setForeground(amarilloPastel);
             lblSubDestino.setFont(etiquetaCampos);
@@ -499,20 +493,60 @@ sidebar.add(btnCerrarSesion);
             lblD_Monto.setBounds(450, 144, 250, 20);
             pResumen.add(lblD_Monto);
 
-
             // --- BOTONES DE ACCIÓN ---
-            
             // Botón Imprimir (Visible y alineado a la par de TRANSFERENCIAS)
             btnImprimir = new JButton("Imprimir comprobante");
-            btnImprimir.setBounds(620, 35, 250, 35); 
+            btnImprimir.setBounds(620, 35, 250, 35);
             btnImprimir.setForeground(Color.WHITE);
             btnImprimir.setFont(etiquetaCampos);
             btnImprimir.setContentAreaFilled(false);
             btnImprimir.setBorderPainted(false);
             btnImprimir.setFocusPainted(false);
             btnImprimir.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnImprimir.setVisible(true); 
+            btnImprimir.setVisible(true);
             contenedor.add(btnImprimir);
+
+            btnImprimir.addActionListener(e -> {
+                try {
+                    // Construir el texto del comprobante con los labels del resumen
+                    String texto = "********************************\n"
+                            + "       BANCO NEOJACKET\n"
+                            + "********************************\n\n"
+                            + "COMPROBANTE DE TRANSFERENCIA\n\n"
+                            + "No. Operación : " + java.util.UUID.randomUUID() + "\n"
+                            + "Fecha         : " + java.time.LocalDate.now() + "\n"
+                            + "Hora          : " + java.time.LocalTime.now() + "\n\n"
+                            + "CUENTA ORIGEN\n"
+                            + "********************************\n"
+                            + lblO_Nombre.getText() + "\n"
+                            + lblO_Cuenta.getText() + "\n"
+                            + lblO_Banco.getText() + "\n"
+                            + lblO_Tipo.getText() + "\n"
+                            + lblO_Monto.getText() + "\n\n"
+                            + "CUENTA DESTINO\n"
+                            + "********************************\n"
+                            + lblD_Nombre.getText() + "\n"
+                            + lblD_Cuenta.getText() + "\n"
+                            + lblD_Banco.getText() + "\n"
+                            + lblD_Tipo.getText() + "\n"
+                            + lblD_Monto.getText() + "\n\n"
+                            + "Estado        : TRANSACCIÓN EXITOSA\n\n"
+                            + "Código Auth.  : " + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "\n"
+                            + "Referencia    : REF-" + java.time.LocalDate.now() + "-" + System.currentTimeMillis() + "\n\n"
+                            + "********************************\n"
+                            + "Este documento es un comprobante\n"
+                            + "generado desde Java (ESC/POS)\n"
+                            + "********************************\n\n\n";
+
+                    // Mandar a imprimir
+                    funcionalidades.ImpresoraComprobante.imprimirConLogo(texto, "POS-80C");
+
+                    JOptionPane.showMessageDialog(this, "Comprobante enviado a la impresora.");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error al imprimir: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            });
 
             btnCancelar = new JButton("Cancelar");
             btnCancelar.setBounds(940, 52, 250, 35);
@@ -539,8 +573,9 @@ sidebar.add(btnCerrarSesion);
                     super.paintComponent(g);
                 }
             };
+
             btnTransferir.setBounds(940, 95, 250, 45);
-            btnTransferir.setBackground(amarilloPastel); 
+            btnTransferir.setBackground(amarilloPastel);
             btnTransferir.setForeground(Color.BLACK);
             btnTransferir.setFont(new Font("Segoe UI", Font.BOLD, 14));
             btnTransferir.setFocusPainted(false);
@@ -559,9 +594,9 @@ sidebar.add(btnCerrarSesion);
                         String errorLimite = dao.validarLimite(idMenor, monto);
                         if (errorLimite != null) {
                             JOptionPane.showMessageDialog(null,
-                                errorLimite,
-                                "Límite de gasto excedido",
-                                JOptionPane.WARNING_MESSAGE);
+                                    errorLimite,
+                                    "Límite de gasto excedido",
+                                    JOptionPane.WARNING_MESSAGE);
                             // Consume el evento — funcionalidades.Transferencias no procesa
                             return;
                         }
@@ -582,7 +617,12 @@ sidebar.add(btnCerrarSesion);
     }
 
     class PanelContenedorVerde extends JPanel {
-        public PanelContenedorVerde() { setLayout(null); setOpaque(false); }
+
+        public PanelContenedorVerde() {
+            setLayout(null);
+            setOpaque(false);
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
@@ -595,14 +635,19 @@ sidebar.add(btnCerrarSesion);
     }
 
     class PanelBloqueEstilizado extends JPanel {
-        public PanelBloqueEstilizado() { setLayout(null); setOpaque(false); }
+
+        public PanelBloqueEstilizado() {
+            setLayout(null);
+            setOpaque(false);
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(25, 38, 35, 100)); 
+            g2.setColor(new Color(25, 38, 35, 100));
             g2.fillRect(0, 0, getWidth() - 1, getHeight() - 1);
-            g2.setColor(new Color(251, 232, 138, 140)); 
+            g2.setColor(new Color(251, 232, 138, 140));
             g2.setStroke(new BasicStroke(1.2f));
             g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
             g2.dispose();
@@ -620,6 +665,7 @@ sidebar.add(btnCerrarSesion);
     }
 
     public class JComboBoxOscuro extends JComboBox<String> {
+
         public JComboBoxOscuro(String[] items) {
             super(items);
             setFont(textoInputs);
@@ -646,18 +692,20 @@ sidebar.add(btnCerrarSesion);
     }
 
     public class JTextFieldOscuro extends JTextField {
+
         public JTextFieldOscuro() {
             setOpaque(false);
             setForeground(Color.WHITE);
             setCaretColor(Color.WHITE);
             setFont(textoInputs);
-            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15)); 
+            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
         }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(12, 20, 18, 230)); 
+            g2.setColor(new Color(12, 20, 18, 230));
             g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
             g2.setColor(new Color(251, 232, 138, 120));
             g2.setStroke(new BasicStroke(1.0f));
@@ -668,13 +716,15 @@ sidebar.add(btnCerrarSesion);
     }
 
     public class JPasswordFieldOscuro extends JPasswordField {
+
         public JPasswordFieldOscuro() {
             setOpaque(false);
             setForeground(Color.WHITE);
             setCaretColor(Color.WHITE);
             setFont(textoInputs);
-            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15)); 
+            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
         }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
@@ -695,12 +745,12 @@ sidebar.add(btnCerrarSesion);
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 300, Short.MAX_VALUE)
         );
         pack();
     }
@@ -710,7 +760,7 @@ sidebar.add(btnCerrarSesion);
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;  
+                    break;
                 }
             }
         } catch (Exception ex) {
