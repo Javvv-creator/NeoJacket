@@ -10,6 +10,9 @@ import main.Conexion.conexion;
 
 public class AgregarTarjeta {
 
+    // ============================
+    // Usado en el REGISTRO INICIAL (aún no hay sesión, se busca por correo/DPI)
+    // ============================
     public boolean registrarTarjeta(String correoUsuario,
             String dpiUsuario,
             String tipoTarjeta,
@@ -17,7 +20,13 @@ public class AgregarTarjeta {
             String numeroCuenta,
             String bancoNombre) {
 
-        validarCampos(correoUsuario, dpiUsuario, tipoTarjeta, pais, numeroCuenta, bancoNombre);
+        if (correoUsuario == null || correoUsuario.trim().isEmpty()) {
+            throw new IllegalArgumentException("El correo del usuario es obligatorio.");
+        }
+        if (dpiUsuario == null || dpiUsuario.trim().isEmpty()) {
+            throw new IllegalArgumentException("El DPI del usuario es obligatorio.");
+        }
+        validarCamposTarjeta(tipoTarjeta, pais, numeroCuenta, bancoNombre);
 
         Connection con = conexion.getConexion();
         if (con == null) {
@@ -36,32 +45,7 @@ public class AgregarTarjeta {
                 throw new IllegalArgumentException("No se encontró el usuario registrado con el correo o DPI proporcionado.");
             }
 
-            Integer idBanco = obtenerBancoId(con, bancoNombre);
-            if (idBanco == null) {
-                throw new IllegalArgumentException("No se encontró el banco especificado. Verifique el nombre del banco.");
-            }
-
-            Integer idCuenta = obtenerCuentaIdPorNumeroYBanco(con, numeroCuenta, idBanco);
-
-            String sql = "INSERT INTO tarjetas_bancarias "
-                    + "(id_usuario, id_cuenta, id_banco, tipo_tarjeta, pais, numero_tarjeta, estado) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, 'activa')";
-
-            try (PreparedStatement ps = con.prepareStatement(sql)) {
-                ps.setInt(1, idUsuario);
-                if (idCuenta != null) {
-                    ps.setInt(2, idCuenta);
-                } else {
-                    ps.setNull(2, java.sql.Types.INTEGER);
-                }
-                ps.setInt(3, idBanco);
-                ps.setString(4, tipoTarjeta);
-                ps.setString(5, pais);
-                ps.setString(6, numeroCuenta);
-                ps.executeUpdate();
-            }
-
-            return true;
+            return insertarTarjeta(con, idUsuario, tipoTarjeta, pais, numeroCuenta, bancoNombre);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null,
                     "Error al guardar la tarjeta: " + e.getMessage(),
@@ -70,28 +54,81 @@ public class AgregarTarjeta {
             e.printStackTrace();
             return false;
         } finally {
-            try {
-                if (con != null && !con.isClosed()) {
-                    con.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cerrarConexion(con);
         }
     }
 
-    private void validarCampos(String correoUsuario,
-            String dpiUsuario,
+    // ============================
+    // Usado desde el DASHBOARD (usuario ya logueado, se usa el idUsuario de sesión)
+    // No necesita correo ni DPI porque ya sabemos quién es.
+    // ============================
+    public boolean registrarTarjeta(int idUsuario,
             String tipoTarjeta,
             String pais,
             String numeroCuenta,
             String bancoNombre) {
-        if (correoUsuario == null || correoUsuario.trim().isEmpty()) {
-            throw new IllegalArgumentException("El correo del usuario es obligatorio.");
+
+        validarCamposTarjeta(tipoTarjeta, pais, numeroCuenta, bancoNombre);
+
+        Connection con = conexion.getConexion();
+        if (con == null) {
+            JOptionPane.showMessageDialog(null,
+                    "No se pudo establecer conexión con la base de datos.",
+                    "Error de conexión",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
         }
-        if (dpiUsuario == null || dpiUsuario.trim().isEmpty()) {
-            throw new IllegalArgumentException("El DPI del usuario es obligatorio.");
+
+        try {
+            createTarjetasTableIfNotExists(con);
+            return insertarTarjeta(con, idUsuario, tipoTarjeta, pais, numeroCuenta, bancoNombre);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error al guardar la tarjeta: " + e.getMessage(),
+                    "Error de base de datos",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            return false;
+        } finally {
+            cerrarConexion(con);
         }
+    }
+
+    // ============================
+    // HELPER COMÚN: hace el insert una vez que ya se tiene el idUsuario
+    // ============================
+    private boolean insertarTarjeta(Connection con, int idUsuario, String tipoTarjeta,
+            String pais, String numeroCuenta, String bancoNombre) throws SQLException {
+
+        Integer idBanco = obtenerBancoId(con, bancoNombre);
+        if (idBanco == null) {
+            throw new IllegalArgumentException("No se encontró el banco especificado. Verifique el nombre del banco.");
+        }
+
+        Integer idCuenta = obtenerCuentaIdPorNumeroYBanco(con, numeroCuenta, idBanco);
+
+        String sql = "INSERT INTO tarjetas_bancarias "
+                + "(id_usuario, id_cuenta, id_banco, tipo_tarjeta, pais, numero_tarjeta, estado) "
+                + "VALUES (?, ?, ?, ?, ?, ?, 'activa')";
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            if (idCuenta != null) {
+                ps.setInt(2, idCuenta);
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
+            ps.setInt(3, idBanco);
+            ps.setString(4, tipoTarjeta);
+            ps.setString(5, pais);
+            ps.setString(6, numeroCuenta);
+            ps.executeUpdate();
+        }
+
+        return true;
+    }
+
+    private void validarCamposTarjeta(String tipoTarjeta, String pais, String numeroCuenta, String bancoNombre) {
         if (tipoTarjeta == null || tipoTarjeta.trim().isEmpty()) {
             throw new IllegalArgumentException("El tipo de tarjeta es obligatorio.");
         }
@@ -103,6 +140,16 @@ public class AgregarTarjeta {
         }
         if (bancoNombre == null || bancoNombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del banco es obligatorio.");
+        }
+    }
+
+    private void cerrarConexion(Connection con) {
+        try {
+            if (con != null && !con.isClosed()) {
+                con.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 

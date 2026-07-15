@@ -131,6 +131,8 @@ public class DashboardDAO {
 
     // ==========================================
     // NÚMERO DE TARJETA PRINCIPAL (la más antigua activa)
+    // Se deja por compatibilidad, pero el Dashboard ahora usa
+    // obtenerNumerosTarjetasActivas() para mostrar TODAS las tarjetas.
     // ==========================================
     public String obtenerNumeroTarjetaPrincipal(int idUsuario) {
         String sql = "SELECT numero_tarjeta FROM tarjetas_bancarias "
@@ -147,6 +149,29 @@ public class DashboardDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    // ==========================================
+    // TODAS LAS TARJETAS ACTIVAS DEL USUARIO (en orden de creación)
+    // Se usa para pintar una fila con botón "Copiar" por cada tarjeta
+    // que el usuario haya agregado, hasta un máximo de 4.
+    // ==========================================
+    public List<String> obtenerNumerosTarjetasActivas(int idUsuario) {
+        List<String> lista = new ArrayList<>();
+        String sql = "SELECT numero_tarjeta FROM tarjetas_bancarias "
+                + "WHERE id_usuario = ? AND estado = 'activa' ORDER BY id_tarjeta ASC LIMIT 4";
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(rs.getString("numero_tarjeta"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
     }
 
     // ==========================================

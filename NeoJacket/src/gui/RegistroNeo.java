@@ -7,15 +7,17 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxUI;
+import javax.swing.plaf.basic.BasicComboPopup;
+import javax.swing.plaf.basic.ComboPopup;
 
 public class RegistroNeo extends JFrame {
 
     // ============================
     // PALETA DE COLORES
     // ============================
-    private static final Color VERDE_OSCURO = new Color(25, 38, 35);
-    private static final Color VERDE_CARD = new Color(22, 34, 31, 215);
-    private static final Color VERDE_CAMPO = new Color(20, 32, 29, 200);
+    private static final Color VERDE_OSCURO = new Color(12, 19, 17);
+    private static final Color VERDE_CARD = new Color(15, 23, 20, 240);
+    private static final Color NEGRO_CAMPO = new Color(10, 14, 13);
     private static final Color VERDE_BOTON = new Color(94, 116, 73);
     private static final Color VERDE_BOTON_HOVER = new Color(120, 150, 90);
     private static final Color DORADO = new Color(251, 232, 138);
@@ -42,7 +44,6 @@ public class RegistroNeo extends JFrame {
     // TEXTFIELD REDONDEADO
     // ============================
     class RoundedTextField extends JTextField {
-
         public RoundedTextField(int size) {
             super(size);
             setOpaque(false);
@@ -57,7 +58,7 @@ public class RegistroNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2.setColor(VERDE_CAMPO);
+            g2.setColor(NEGRO_CAMPO);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
 
             g2.setColor(hasFocus() ? DORADO_HOVER : DORADO);
@@ -73,7 +74,6 @@ public class RegistroNeo extends JFrame {
     // PASSFIELD REDONDEADO
     // ============================
     class RoundedPassField extends JPasswordField {
-
         public RoundedPassField(int size) {
             super(size);
             setOpaque(false);
@@ -89,7 +89,7 @@ public class RegistroNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2.setColor(VERDE_CAMPO);
+            g2.setColor(NEGRO_CAMPO);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
 
             g2.setColor(hasFocus() ? DORADO_HOVER : DORADO);
@@ -101,21 +101,22 @@ public class RegistroNeo extends JFrame {
         }
     }
 
-    // ============================
-    // COMBOBOX REDONDEADO CORREGIDO
-    // ============================
-    class RoundedComboBox<T> extends JComboBox<T> {
+    // ============================================================
+    // COMBOBOX REDONDEADO (BORDE DELGADO DORADO Y SELECCIÓN AMARILLA)
+    // ============================================================
+    class NeoComboBox<T> extends JComboBox<T> {
 
-        public RoundedComboBox(T[] items) {
+        public NeoComboBox(T[] items) {
             super(items);
             setOpaque(false);
             setFocusable(false);
             setForeground(Color.WHITE);
-            setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 10));
+            setFont(new Font("Segoe UI", Font.PLAIN, 15));
+            
+            // Margen para que el texto interior no toque los bordes redondeados
+            setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
-            ((JLabel) getRenderer()).setOpaque(false);
-
+            // Renderer personalizado con selección amarilla brillante y texto alineado
             setRenderer(new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index,
@@ -125,32 +126,69 @@ public class RegistroNeo extends JFrame {
                     if (index == -1) {
                         lbl.setOpaque(false);
                         lbl.setForeground(Color.WHITE);
+                        lbl.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 0));
                     } else {
                         lbl.setOpaque(true);
-                        lbl.setBackground(isSelected ? new Color(55, 75, 65) : VERDE_OSCURO);
-                        lbl.setForeground(Color.WHITE);
+                        if (isSelected) {
+                            lbl.setBackground(DORADO);
+                            lbl.setForeground(Color.BLACK); // Contraste óptimo
+                        } else {
+                            lbl.setBackground(NEGRO_CAMPO);
+                            lbl.setForeground(Color.WHITE);
+                        }
+                        lbl.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
                     }
                     lbl.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-                    lbl.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
                     return lbl;
                 }
             });
 
+            // UI personalizada para renderizar la flecha
             setUI(new BasicComboBoxUI() {
                 @Override
                 protected JButton createArrowButton() {
-                    JButton arrow = new JButton("▾");
+                    JButton arrow = new JButton() {
+                        @Override
+                        protected void paintComponent(Graphics g) {
+                            Graphics2D g2 = (Graphics2D) g.create();
+                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                            // Botón transparente para integrarse al fondo redondeado sin romperlo
+                            g2.setColor(new Color(0, 0, 0, 0));
+                            g2.fillRect(0, 0, getWidth(), getHeight());
+
+                            // Línea divisoria muy sutil antes de la flecha
+                            g2.setColor(new Color(251, 232, 138, 50));
+                            g2.drawLine(0, 8, 0, getHeight() - 9);
+
+                            // Pequeño triángulo indicador (Dorado elegante)
+                            g2.setColor(DORADO);
+                            int[] xPoints = {getWidth() / 2 - 5, getWidth() / 2, getWidth() / 2 + 5};
+                            int[] yPoints = {getHeight() / 2 - 2, getHeight() / 2 + 3, getHeight() / 2 - 2};
+                            g2.fillPolygon(xPoints, yPoints, 3);
+
+                            g2.dispose();
+                        }
+                    };
                     arrow.setContentAreaFilled(false);
                     arrow.setBorderPainted(false);
                     arrow.setFocusPainted(false);
-                    arrow.setForeground(DORADO);
-                    arrow.setFont(new Font("Segoe UI", Font.BOLD, 13));
+                    arrow.setPreferredSize(new Dimension(34, FIELD_H));
                     arrow.setCursor(new Cursor(Cursor.HAND_CURSOR));
                     return arrow;
                 }
 
                 @Override
                 public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
+                    // Evitamos pintura nativa rectangular de fondo
+                }
+
+                @Override
+                protected ComboPopup createPopup() {
+                    BasicComboPopup popup = (BasicComboPopup) super.createPopup();
+                    // Borde de la lista desplegable coincidente
+                    popup.setBorder(BorderFactory.createLineBorder(DORADO, 1));
+                    return popup;
                 }
             });
         }
@@ -160,9 +198,11 @@ public class RegistroNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2.setColor(VERDE_CAMPO);
+            // 1. Pintar fondo negro redondeado
+            g2.setColor(NEGRO_CAMPO);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
 
+            // 2. Pintar borde dorado ultra delgado (1.2 píxeles de grosor, como los textfields)
             g2.setColor(DORADO);
             g2.setStroke(new BasicStroke(1.2f));
             g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 18, 18);
@@ -176,7 +216,6 @@ public class RegistroNeo extends JFrame {
     // RADIO BUTTON CON ICONO PROPIO
     // ============================
     class NeoRadioButton extends JRadioButton {
-
         public NeoRadioButton(String texto) {
             super(texto);
             setOpaque(false);
@@ -204,14 +243,9 @@ public class RegistroNeo extends JFrame {
                 }
 
                 @Override
-                public int getIconWidth() {
-                    return 18;
-                }
-
+                public int getIconWidth() { return 18; }
                 @Override
-                public int getIconHeight() {
-                    return 18;
-                }
+                public int getIconHeight() { return 18; }
             });
         }
     }
@@ -220,7 +254,6 @@ public class RegistroNeo extends JFrame {
     // BOTÓN NEO
     // ============================
     class BotonNeo extends JButton {
-
         private final Color normal;
         private final Color hover;
 
@@ -259,7 +292,6 @@ public class RegistroNeo extends JFrame {
     // TARJETA CON SOMBRA Y BORDES REDONDEADOS
     // ============================
     class RoundedCardPanel extends JPanel {
-
         public RoundedCardPanel() {
             setLayout(null);
             setOpaque(false);
@@ -270,12 +302,15 @@ public class RegistroNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+            // sombra suave
             g2.setColor(new Color(0, 0, 0, 70));
             g2.fillRoundRect(6, 8, getWidth() - 6, getHeight() - 8, 28, 28);
 
+            // relleno principal
             g2.setColor(VERDE_CARD);
             g2.fillRoundRect(0, 0, getWidth() - 6, getHeight() - 8, 28, 28);
 
+            // borde dorado
             g2.setColor(DORADO);
             g2.setStroke(new BasicStroke(2f));
             g2.drawRoundRect(1, 1, getWidth() - 8, getHeight() - 10, 28, 28);
@@ -289,7 +324,6 @@ public class RegistroNeo extends JFrame {
     // CONSTRUCTOR
     // ============================
     public RegistroNeo() {
-
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
@@ -306,7 +340,6 @@ public class RegistroNeo extends JFrame {
     // PANEL PRINCIPAL
     // ============================
     class FondoPanel extends JPanel {
-
         private RoundedCardPanel panelReg;
 
         public FondoPanel() {
@@ -322,16 +355,13 @@ public class RegistroNeo extends JFrame {
         }
 
         private void centrarTarjeta() {
-            if (panelReg == null) {
-                return;
-            }
+            if (panelReg == null) return;
             int px = Math.max(MARGIN_X, (getWidth() - PANEL_W) / 2);
             int py = Math.max(30, (getHeight() - PANEL_H) / 2);
             panelReg.setBounds(px, py, PANEL_W, PANEL_H);
         }
 
         private void crearRegistro() {
-
             // LOGO ARRIBA
             Image logoEscalado = logo.getScaledInstance(240, 110, Image.SCALE_SMOOTH);
             JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
@@ -376,7 +406,7 @@ public class RegistroNeo extends JFrame {
             panelReg.add(txtPass);
 
             panelReg.add(crearLabel("Tipo de cuenta", COL2_X, y));
-            RoundedComboBox<String> cbTipo = new RoundedComboBox<>(new String[]{"Monetaria", "Ahorro", "Corriente"});
+            NeoComboBox<String> cbTipo = new NeoComboBox<>(new String[]{"Monetaria", "Ahorro", "Corriente"});
             cbTipo.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbTipo);
 
@@ -398,7 +428,7 @@ public class RegistroNeo extends JFrame {
             panelReg.add(rbMenor);
 
             panelReg.add(crearLabel("Género", COL2_X, y));
-            RoundedComboBox<String> cbGenero = new RoundedComboBox<>(new String[]{"Masculino", "Femenino", "Otro"});
+            NeoComboBox<String> cbGenero = new NeoComboBox<>(new String[]{"Masculino", "Femenino", "Otro"});
             cbGenero.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbGenero);
 
@@ -416,7 +446,7 @@ public class RegistroNeo extends JFrame {
             panelReg.add(txtCorreoTutor);
 
             // ---------- FILA 4: Correo / Teléfono ----------
-            int[] yF4 = {y + 100}; 
+            int[] yF4 = {y + 100};
 
             JLabel lblCorreoLabel = crearLabel("Correo electrónico", COL1_X, yF4[0]);
             panelReg.add(lblCorreoLabel);
@@ -454,18 +484,13 @@ public class RegistroNeo extends JFrame {
             lblIdentLabel.setVisible(!rbMenor.isSelected());
             txtIdent.setVisible(!rbMenor.isSelected());
 
-            // ---------- BOTONES CENTRADOS ----------
+            // ---------- BOTONES ALINEADOS ----------
             int[] btnYArr = {yF5[0] + 100};
-            int btnW = 160;
             int btnH = 50;
-            int gap = 20;
 
-            // Fórmula para alinear los dos botones exactamente al centro horizontal
-            int totalBtnW = (btnW * 2) + gap;
-            int startX = (PANEL_W - totalBtnW) / 2;
-
-            BotonNeo btnRegresar = new BotonNeo("Regresar", DORADO, DORADO_HOVER);
-            btnRegresar.setBounds(startX, btnYArr[0], btnW, btnH);
+            BotonNeo btnRegresar = new BotonNeo("Regresar", VERDE_BOTON, VERDE_BOTON_HOVER);
+            btnRegresar.setForeground(Color.WHITE);
+            btnRegresar.setBounds(COL1_X, btnYArr[0], FIELD_W, btnH);
             panelReg.add(btnRegresar);
             btnRegresar.addActionListener(e -> {
                 new InicioNeo().setVisible(true);
@@ -473,7 +498,7 @@ public class RegistroNeo extends JFrame {
             });
 
             BotonNeo btnIngresar = new BotonNeo("Registrarse", DORADO, DORADO_HOVER);
-            btnIngresar.setBounds(startX + btnW + gap, btnYArr[0], btnW, btnH);
+            btnIngresar.setBounds(COL2_X, btnYArr[0], FIELD_W, btnH);
             panelReg.add(btnIngresar);
 
             // ---------- Mostrar/ocultar campo tutor y ajustar filas ----------
@@ -482,11 +507,13 @@ public class RegistroNeo extends JFrame {
                 txtCorreoTutor.setVisible(true);
                 lblIdentLabel.setVisible(false);
                 txtIdent.setVisible(false);
+                
                 // Mover fila 4
                 lblCorreoLabel.setBounds(COL1_X, yF4[0] + tutorRowH, FIELD_W, 22);
                 txtCorreo.setBounds(COL1_X, yF4[0] + tutorRowH + 24, FIELD_W, FIELD_H);
                 lblTelefonoLabel.setBounds(COL2_X, yF4[0] + tutorRowH, FIELD_W, 22);
                 txtTelefono.setBounds(COL2_X, yF4[0] + tutorRowH + 24, FIELD_W, FIELD_H);
+                
                 // Mover fila 5
                 int nY5 = yF4[0] + tutorRowH + 100;
                 lblFechaLabel.setBounds(COL1_X, nY5, FIELD_W, 22);
@@ -495,10 +522,10 @@ public class RegistroNeo extends JFrame {
                 lblIdentLabel.setBounds(COL2_X, nY5, FIELD_W, 22);
                 txtIdent.setBounds(COL2_X, nY5 + 24, FIELD_W, FIELD_H);
                 
-                // Mover y mantener botones centrados
+                // Mover botones
                 int nBtnY = nY5 + 100;
-                btnRegresar.setBounds(startX, nBtnY, btnW, btnH);
-                btnIngresar.setBounds(startX + btnW + gap, nBtnY, btnW, btnH);
+                btnRegresar.setBounds(COL1_X, nBtnY, FIELD_W, btnH);
+                btnIngresar.setBounds(COL2_X, nBtnY, FIELD_W, btnH);
                 
                 // Expandir tarjeta
                 panelReg.setBounds(panelReg.getX(), panelReg.getY(), PANEL_W, PANEL_H + tutorRowH);
@@ -511,11 +538,13 @@ public class RegistroNeo extends JFrame {
                 txtCorreoTutor.setVisible(false);
                 lblIdentLabel.setVisible(true);
                 txtIdent.setVisible(true);
+                
                 // Restaurar fila 4
                 lblCorreoLabel.setBounds(COL1_X, yF4[0], FIELD_W, 22);
                 txtCorreo.setBounds(COL1_X, yF4[0] + 24, FIELD_W, FIELD_H);
                 lblTelefonoLabel.setBounds(COL2_X, yF4[0], FIELD_W, 22);
                 txtTelefono.setBounds(COL2_X, yF4[0] + 24, FIELD_W, FIELD_H);
+                
                 // Restaurar fila 5
                 lblFechaLabel.setBounds(COL1_X, yF5[0], FIELD_W, 22);
                 txtFecha.setBounds(COL1_X, yF5[0] + 24, FIELD_W, FIELD_H);
@@ -523,9 +552,9 @@ public class RegistroNeo extends JFrame {
                 lblIdentLabel.setBounds(COL2_X, yF5[0], FIELD_W, 22);
                 txtIdent.setBounds(COL2_X, yF5[0] + 24, FIELD_W, FIELD_H);
                 
-                // Restaurar botones centrados
-                btnRegresar.setBounds(startX, btnYArr[0], btnW, btnH);
-                btnIngresar.setBounds(startX + btnW + gap, btnYArr[0], btnW, btnH);
+                // Restaurar botones
+                btnRegresar.setBounds(COL1_X, btnYArr[0], FIELD_W, btnH);
+                btnIngresar.setBounds(COL2_X, btnYArr[0], FIELD_W, btnH);
                 
                 // Restaurar tamaño tarjeta
                 panelReg.setBounds(panelReg.getX(), panelReg.getY(), PANEL_W, PANEL_H);
@@ -587,7 +616,7 @@ public class RegistroNeo extends JFrame {
                         }
 
                         JOptionPane.showMessageDialog(null,
-                                " Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",
+                                "✅ Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",
                                 "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
 
                         new InicioNeo().setVisible(true);

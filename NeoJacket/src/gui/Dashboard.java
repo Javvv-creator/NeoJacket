@@ -39,12 +39,13 @@ public class Dashboard extends javax.swing.JFrame {
     private List<DashboardDAO.Movimiento> movimientosRecientes;
     private List<DashboardDAO.Movimiento> actividadReciente;
     private String numeroCuentaMostrar;
-    private String numeroTarjetaMostrar;
+    private List<String> tarjetasActivas;
 
     // ==========================================
     // TEXTFIELD REDONDEADO
     // ==========================================
     class RoundedTextField extends JTextField {
+
         public RoundedTextField(int size) {
             super(size);
             setOpaque(false);
@@ -204,7 +205,8 @@ public class Dashboard extends javax.swing.JFrame {
             movimientosRecientes = new java.util.ArrayList<>();
             actividadReciente = new java.util.ArrayList<>();
             numeroCuentaMostrar = numeroCuentaSimulado;
-            numeroTarjetaMostrar = numeroTarjetaSimulado;
+            tarjetasActivas = new java.util.ArrayList<>();
+            tarjetasActivas.add(numeroTarjetaSimulado);
             return;
         }
 
@@ -217,11 +219,17 @@ public class Dashboard extends javax.swing.JFrame {
         movimientosRecientes = dashboardDAO.obtenerMovimientosRecientes(idUsuarioReal, 5);
         actividadReciente = dashboardDAO.obtenerActividadReciente(idUsuarioReal, 6);
 
-        // Si el usuario aún no tiene cuenta/tarjeta real registrada, se usa el respaldo simulado
+        // Si el usuario aún no tiene cuenta real registrada, se usa el respaldo simulado
         String cuentaReal = dashboardDAO.obtenerNumeroCuentaPrincipal(idUsuarioReal);
-        String tarjetaReal = dashboardDAO.obtenerNumeroTarjetaPrincipal(idUsuarioReal);
         numeroCuentaMostrar = (cuentaReal != null && !cuentaReal.isEmpty()) ? cuentaReal : numeroCuentaSimulado;
-        numeroTarjetaMostrar = (tarjetaReal != null && !tarjetaReal.isEmpty()) ? tarjetaReal : numeroTarjetaSimulado;
+
+        // TODAS las tarjetas activas del usuario (hasta 4). Si aún no tiene
+        // ninguna, se muestra la simulada como respaldo (igual que antes).
+        tarjetasActivas = dashboardDAO.obtenerNumerosTarjetasActivas(idUsuarioReal);
+        if (tarjetasActivas == null || tarjetasActivas.isEmpty()) {
+            tarjetasActivas = new java.util.ArrayList<>();
+            tarjetasActivas.add(numeroTarjetaSimulado);
+        }
     }
 
     // ==========================================
@@ -262,7 +270,8 @@ public class Dashboard extends javax.swing.JFrame {
                 "Saldos",
                 "Bancos conectados",
                 "Transferencias",
-                "Historial"
+                "Historial",
+                "Agregar Tarjeta"
             };
 
             int y = 140;
@@ -292,6 +301,12 @@ public class Dashboard extends javax.swing.JFrame {
                 if (textoBtn.equals("Historial")) {
                     btn.addActionListener(e -> {
                         new Historial().setVisible(true);
+                        dispose();
+                    });
+                }
+                if (textoBtn.equals("Agregar Tarjeta")) {
+                    btn.addActionListener(e -> {
+                        new DetalleTarjetaDasboard(idUsuarioActual);
                         dispose();
                     });
                 }
@@ -326,7 +341,7 @@ public class Dashboard extends javax.swing.JFrame {
             btnCerrarSesion.setBounds(20, 800, 250, 55);
             btnCerrarSesion.addActionListener(e -> {
                 JOptionPane.showMessageDialog(null,
-                        "✅ Sesión cerrada correctamente.\n¡Hasta pronto!",
+                        "Sesión cerrada correctamente.\n¡Hasta pronto!",
                         "Sesión cerrada", JOptionPane.INFORMATION_MESSAGE);
                 new InicioNeo().setVisible(true);
                 dispose();
@@ -431,7 +446,7 @@ public class Dashboard extends javax.swing.JFrame {
             // ---------------------------------------------------
             // FILA 3: Detalle de Cuenta / Tarjeta  +  Actividad Reciente
             // ---------------------------------------------------
-            int rowY = 335, rowH = 560;
+            int rowY = 335, rowH = 620;
 
             // ---- Panel izquierdo: Detalle de Cuenta y Tarjeta ----
             RoundedPanel detalle = crearPanel(30, rowY, 740, rowH, verdeTarjeta, null);
@@ -455,64 +470,84 @@ public class Dashboard extends javax.swing.JFrame {
             lblSaldoValor.setBounds(30, 98, 500, 55);
             detalle.add(lblSaldoValor);
 
-            // Sub-tarjeta con número de cuenta / tarjeta + botón copiar
-            RoundedPanel numeroCard = crearPanel(30, 175, 680, 90, verdeCard, null);
+            // ---------------------------------------------------
+            // Sub-tarjeta con Número de Cuenta + UNA fila por cada
+            // Número de Tarjeta que el usuario tenga (hasta 4), cada
+            // una con su propio botón "Copiar". Va creciendo conforme
+            // el usuario agregue tarjetas nuevas.
+            // ---------------------------------------------------
+            int filaAlto = 30;
+            int numeroCardAltura = 20 + filaAlto + (tarjetasActivas.size() * filaAlto) + 10;
+            RoundedPanel numeroCard = crearPanel(30, 175, 680, numeroCardAltura, verdeCard, null);
             detalle.add(numeroCard);
 
             JLabel lblCuentaText = new JLabel("Número de Cuenta: " + numeroCuentaMostrar);
             lblCuentaText.setForeground(Color.LIGHT_GRAY);
             lblCuentaText.setFont(fontTexto);
-            lblCuentaText.setBounds(20, 15, 320, 25);
+            lblCuentaText.setBounds(20, 15, 500, 25);
             numeroCard.add(lblCuentaText);
 
-            JLabel lblTarjetaText = new JLabel("Número de Tarjeta: " + numeroTarjetaMostrar);
-            lblTarjetaText.setForeground(Color.WHITE);
-            lblTarjetaText.setFont(fontTexto);
-            lblTarjetaText.setBounds(20, 45, 380, 25);
-            numeroCard.add(lblTarjetaText);
+            int filaY = 15 + filaAlto;
+            int numeroTarjetaIdx = 1;
+            for (String numeroTarjeta : tarjetasActivas) {
+                JLabel lblTarjetaText = new JLabel("Número de Tarjeta " + numeroTarjetaIdx + ": " + numeroTarjeta);
+                lblTarjetaText.setForeground(Color.WHITE);
+                lblTarjetaText.setFont(fontTexto);
+                lblTarjetaText.setBounds(20, filaY, 420, 25);
+                numeroCard.add(lblTarjetaText);
 
-            JButton btnCopiar = new JButton("Copiar") {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(getModel().isRollover() ? new Color(255, 245, 180) : amarilloPastel);
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-                    g2.dispose();
-                    super.paintComponent(g);
-                }
-            };
-            btnCopiar.setBounds(550, 30, 110, 30);
-            btnCopiar.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            btnCopiar.setForeground(Color.BLACK);
-            btnCopiar.setFocusPainted(false);
-            btnCopiar.setContentAreaFilled(false);
-            btnCopiar.setBorderPainted(false);
-            btnCopiar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnCopiar.addActionListener(e -> {
-                String tarjetaLimpia = numeroTarjetaMostrar.replace(" ", "");
-                StringSelection stringSelection = new StringSelection(tarjetaLimpia);
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(stringSelection, null);
-                JOptionPane.showMessageDialog(this, "¡Número de tarjeta copiado al portapapeles!", "Copiado", JOptionPane.INFORMATION_MESSAGE);
-            });
-            numeroCard.add(btnCopiar);
+                final String numeroParaCopiar = numeroTarjeta;
+                JButton btnCopiar = new JButton("Copiar") {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2.setColor(getModel().isRollover() ? new Color(255, 245, 180) : amarilloPastel);
+                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                        g2.dispose();
+                        super.paintComponent(g);
+                    }
+                };
+                btnCopiar.setBounds(550, filaY - 3, 110, 30);
+                btnCopiar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                btnCopiar.setForeground(Color.BLACK);
+                btnCopiar.setFocusPainted(false);
+                btnCopiar.setContentAreaFilled(false);
+                btnCopiar.setBorderPainted(false);
+                btnCopiar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                btnCopiar.addActionListener(e -> {
+                    String tarjetaLimpia = numeroParaCopiar.replace(" ", "");
+                    StringSelection stringSelection = new StringSelection(tarjetaLimpia);
+                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    clipboard.setContents(stringSelection, null);
+                    JOptionPane.showMessageDialog(this, "¡Número de tarjeta copiado al portapapeles!", "Copiado", JOptionPane.INFORMATION_MESSAGE);
+                });
+                numeroCard.add(btnCopiar);
+
+                filaY += filaAlto;
+                numeroTarjetaIdx++;
+            }
+
+            // Todo lo que sigue (Bancos Vinculados / Movimientos Recientes)
+            // se posiciona en base a dónde terminó la tarjeta numeroCard,
+            // para que no se encimen sin importar cuántas tarjetas haya.
+            int siguienteSeccionY = 175 + numeroCardAltura + 20;
 
             // Lista de bancos vinculados dentro del mismo panel de detalle
             JLabel lblBancosTitulo = new JLabel("Bancos Vinculados");
             lblBancosTitulo.setForeground(amarilloPastel);
             lblBancosTitulo.setFont(fontTituloTarjeta);
-            lblBancosTitulo.setBounds(30, 290, 300, 25);
+            lblBancosTitulo.setBounds(30, siguienteSeccionY, 300, 25);
             detalle.add(lblBancosTitulo);
 
             if (bancosVinculados.isEmpty()) {
                 JLabel sinBancos = new JLabel("Aún no tienes bancos vinculados");
                 sinBancos.setForeground(Color.LIGHT_GRAY);
                 sinBancos.setFont(fontTexto);
-                sinBancos.setBounds(30, 325, 300, 22);
+                sinBancos.setBounds(30, siguienteSeccionY + 35, 300, 22);
                 detalle.add(sinBancos);
             } else {
-                int by = 325;
+                int by = siguienteSeccionY + 35;
                 for (String banco : bancosVinculados) {
                     JLabel lblBanco = new JLabel("•  " + banco);
                     lblBanco.setForeground(Color.WHITE);
@@ -527,14 +562,14 @@ public class Dashboard extends javax.swing.JFrame {
             JLabel lblMiniGrafica = new JLabel("Movimientos Recientes");
             lblMiniGrafica.setForeground(amarilloPastel);
             lblMiniGrafica.setFont(fontTituloTarjeta);
-            lblMiniGrafica.setBounds(370, 290, 300, 25);
+            lblMiniGrafica.setBounds(370, siguienteSeccionY, 300, 25);
             detalle.add(lblMiniGrafica);
 
             if (movimientosRecientes.isEmpty()) {
                 JLabel sinMovs = new JLabel("Aún no hay transferencias registradas");
                 sinMovs.setForeground(Color.LIGHT_GRAY);
                 sinMovs.setFont(fontTexto);
-                sinMovs.setBounds(370, 325, 320, 40);
+                sinMovs.setBounds(370, siguienteSeccionY + 35, 320, 40);
                 detalle.add(sinMovs);
             } else {
                 SimpleDateFormat sdfCorto = new SimpleDateFormat("dd/MM");
@@ -550,7 +585,7 @@ public class Dashboard extends javax.swing.JFrame {
                     valores[i] = (int) Math.max(8, (m.monto / maxMonto) * 100);
                     etiquetas[i] = m.fecha != null ? sdfCorto.format(m.fecha) : "-";
                 }
-                detalle.add(crearMiniGrafica(370, 320, 340, 190, valores, etiquetas));
+                detalle.add(crearMiniGrafica(370, siguienteSeccionY + 30, 340, 160, valores, etiquetas));
             }
 
             // ---- Panel derecho: Actividad Reciente ----
@@ -691,6 +726,7 @@ public class Dashboard extends javax.swing.JFrame {
     // CONTROL DE BORDES REDONDEADOS
     // ==========================================
     class RoundedPanel extends JPanel {
+
         public RoundedPanel() {
             setOpaque(false);
         }
