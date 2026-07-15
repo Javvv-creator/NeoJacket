@@ -508,12 +508,44 @@ public class Transferencias extends javax.swing.JFrame {
 
             btnImprimir.addActionListener(e -> {
                 try {
-                    // Construir el texto del comprobante con los labels del resumen
+                    // Validar que ya se haya hecho la transacción
+                    if (lblO_Monto.getText().contains("--") || lblD_Monto.getText().contains("--")) {
+                        JOptionPane.showMessageDialog(this,
+                                "Primero debes realizar la transferencia antes de imprimir el comprobante.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Validar que el campo no esté vacío
+                    String montoTexto = txtMonto.getText().trim();
+                    if (montoTexto.isEmpty()) {
+                        JOptionPane.showMessageDialog(this,
+                                "Debes ingresar un monto válido.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Convertir y formatear con separador de miles y dos decimales
+                    double montoValor = Double.parseDouble(montoTexto.replace(",", "."));
+                    java.text.DecimalFormat df = new java.text.DecimalFormat("Q#,##0.00");
+                    String montoFormateado = df.format(montoValor);
+
+                    double saldoInicial = 5000.00; // ejemplo
+                    double saldoRestante = saldoInicial - montoValor;
+                    String saldoFormateado = df.format(saldoRestante);
+
+                    // Actualizar labels
+                    lblO_Monto.setText("Monto enviado: " + montoFormateado);
+                    lblD_Monto.setText("Monto recibido: " + montoFormateado);
+
+                    // Construir el texto del comprobante
                     String texto = "********************************\n"
-                            + "       BANCO NEOJACKET\n"
+                            + "       NEOJACKET\n"
                             + "********************************\n\n"
                             + "COMPROBANTE DE TRANSFERENCIA\n\n"
-                            + "No. Operación : " + java.util.UUID.randomUUID() + "\n"
+                            + "No. Operacion : " + java.util.UUID.randomUUID() + "\n"
                             + "Fecha         : " + java.time.LocalDate.now() + "\n"
                             + "Hora          : " + java.time.LocalTime.now() + "\n\n"
                             + "CUENTA ORIGEN\n"
@@ -522,7 +554,7 @@ public class Transferencias extends javax.swing.JFrame {
                             + lblO_Cuenta.getText() + "\n"
                             + lblO_Banco.getText() + "\n"
                             + lblO_Tipo.getText() + "\n"
-                            + lblO_Monto.getText() + "\n\n"
+                            + lblO_Monto.getText() + "\n"
                             + "CUENTA DESTINO\n"
                             + "********************************\n"
                             + lblD_Nombre.getText() + "\n"
@@ -530,18 +562,30 @@ public class Transferencias extends javax.swing.JFrame {
                             + lblD_Banco.getText() + "\n"
                             + lblD_Tipo.getText() + "\n"
                             + lblD_Monto.getText() + "\n\n"
-                            + "Estado        : TRANSACCIÓN EXITOSA\n\n"
-                            + "Código Auth.  : " + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "\n"
+                            + "Estado        : TRANSACCION EXITOSA\n\n"
+                            + "Codigo Auth.  : " + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "\n"
                             + "Referencia    : REF-" + java.time.LocalDate.now() + "-" + System.currentTimeMillis() + "\n\n"
                             + "********************************\n"
                             + "Este documento es un comprobante\n"
                             + "generado desde Java (ESC/POS)\n"
-                            + "********************************\n\n\n";
+                            + "********************************\n\n"
+                            + "¡Síguenos en nuestra red social!\n\n";
 
                     // Mandar a imprimir
-                    funcionalidades.ImpresoraComprobante.imprimirConLogo(texto, "POS-80C");
+                    funcionalidades.ImpresoraComprobante.imprimir(texto, "POS-80C");
+
+                    // 🔹 Limpiar campos SOLO después de imprimir
+                    txtNumCuentaO.setText("");
+                    txtNumCuentaD.setText("");
+                    txtMonto.setText("");
+                    txtPassword.setText("");
 
                     JOptionPane.showMessageDialog(this, "Comprobante enviado a la impresora.");
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "El monto debe ser un número válido.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(this, "Error al imprimir: " + ex.getMessage());
                     ex.printStackTrace();
