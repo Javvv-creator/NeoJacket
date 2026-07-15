@@ -1,13 +1,22 @@
 package gui;
 
 import java.awt.*;
+import java.util.regex.PatternSyntaxException;
 import javax.swing.*;
+import javax.swing.RowFilter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
+
+import funcionalidades.ServicioTransaccion;
 
 public class GestionTransacciones extends JFrame {
 
     private Image fondo;
     private Image logo;
+    private final ServicioTransaccion servicioTransaccion = new ServicioTransaccion();
 
     class RoundedTextField extends JTextField {
         public RoundedTextField(int size) {
@@ -174,28 +183,37 @@ public class GestionTransacciones extends JFrame {
 
             // TABLA
             String[] columnas = {"ID", "Fecha", "Cuenta", "Tipo", "Monto"};
-            Object[][] datos = {
-                {"TX-2024-001", "30/05/2026", "Cuenta Ahorros", "Transferencia", "Q1,250.00"},
-                {"TX-2024-002", "30/05/2026", "Cuenta Corriente", "Depósito", "Q2,500.00"}
+
+            DefaultTableModel modeloTabla = new DefaultTableModel(columnas, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
             };
 
-            JTable tabla = new JTable(datos, columnas);
+            JTable tabla = new JTable(modeloTabla);
             tabla.setRowHeight(40);
             tabla.setBackground(new Color(25, 38, 35));
             tabla.setForeground(Color.WHITE);
             tabla.setGridColor(Color.GRAY);
             tabla.setSelectionBackground(Color.GRAY);
             tabla.setSelectionForeground(Color.BLACK);
+            tabla.setShowGrid(true);
 
             JTableHeader header = tabla.getTableHeader();
             header.setBackground(Color.GRAY);
             header.setForeground(Color.WHITE);
             header.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
+            TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modeloTabla);
+            tabla.setRowSorter(sorter);
+
             JScrollPane scroll = new JScrollPane(tabla);
             scroll.getViewport().setBackground(new Color(25, 38, 35));
             scroll.setBounds(40, 90, 1120, 500);
             panel.add(scroll);
+
+            cargarTransacciones(modeloTabla);
 
             // BOTONES
             Color gris = new Color(120, 120, 120);
@@ -206,7 +224,17 @@ public class GestionTransacciones extends JFrame {
             panel.add(btnDetalles);
 
             btnDetalles.addActionListener(e -> {
-                new DetallesTransaccion();
+                int filaSeleccionada = tabla.getSelectedRow();
+                if (filaSeleccionada == -1) {
+                    JOptionPane.showMessageDialog(this,
+                            "Selecciona una transacción de la lista.",
+                            "Sin selección",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                int filaModelo = tabla.convertRowIndexToModel(filaSeleccionada);
+                long idTransaccion = (long) modeloTabla.getValueAt(filaModelo, 0);
+                new DetallesTransaccion(idTransaccion);
                 dispose();
             });
 
@@ -218,12 +246,41 @@ public class GestionTransacciones extends JFrame {
             });
             panel.add(btnVolver);
 
+            txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) { filtrar(); }
+                @Override
+                public void removeUpdate(DocumentEvent e) { filtrar(); }
+                @Override
+                public void changedUpdate(DocumentEvent e) { filtrar(); }
+
+                private void filtrar() {
+                    String texto = txtBuscar.getText();
+                    if (texto.trim().isEmpty() || texto.equals("Buscar transacciones...")) {
+                        sorter.setRowFilter(null);
+                    } else {
+                        try {
+                            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto));
+                        } catch (PatternSyntaxException ex) {
+                            sorter.setRowFilter(null);
+                        }
+                    }
+                }
+            });
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
+        }
+
+        private void cargarTransacciones(DefaultTableModel modeloTabla) {
+            modeloTabla.setRowCount(0);
+            Object[][] transacciones = servicioTransaccion.listarTransacciones();
+            for (Object[] fila : transacciones) {
+                modeloTabla.addRow(fila);
+            }
         }
     }
 }

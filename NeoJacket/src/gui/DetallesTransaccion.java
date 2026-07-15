@@ -1,12 +1,17 @@
 package gui;
 
 import java.awt.*;
+import java.util.Map;
 import javax.swing.*;
+
+import funcionalidades.ServicioTransaccion;
 
 public class DetallesTransaccion extends JFrame {
 
     private Image fondo;
     private Image logo;
+    private final long idTransaccion;
+    private final ServicioTransaccion servicio = new ServicioTransaccion();
 
     class RoundedTextField extends JTextField {
         public RoundedTextField(int size) {
@@ -54,7 +59,8 @@ public class DetallesTransaccion extends JFrame {
         }
     }
 
-    public DetallesTransaccion() {
+    public DetallesTransaccion(long idTransaccion) {
+        this.idTransaccion = idTransaccion;
 
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
@@ -65,7 +71,18 @@ public class DetallesTransaccion extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setContentPane(new FondoPanel());
         setVisible(true);
+
+        cargarDetalle();
     }
+
+    private RoundedTextField txtIdTransaccion;
+    private RoundedTextField txtFecha;
+    private RoundedTextField txtTipo;
+    private RoundedTextField txtCuentaOrigen;
+    private RoundedTextField txtCuentaDestino;
+    private RoundedTextField txtEstado;
+    private RoundedTextField txtUsuario;
+    private RoundedTextField txtDescripcion;
 
     class FondoPanel extends JPanel {
 
@@ -74,7 +91,7 @@ public class DetallesTransaccion extends JFrame {
             crearDetalles();
         }
 
-        private void crearDetalles() {
+    private void crearDetalles() {
 
             // LOGO
             Image logoEscalado = logo.getScaledInstance(260, 120, Image.SCALE_SMOOTH);
@@ -86,7 +103,7 @@ public class DetallesTransaccion extends JFrame {
             JPanel panel = new JPanel();
             panel.setLayout(null);
             panel.setBackground(new Color(25, 38, 35, 180));
-            panel.setBounds(650, 120, 550, 600);
+            panel.setBounds(650, 120, 550, 840);
             panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2, true));
             add(panel);
 
@@ -98,29 +115,43 @@ public class DetallesTransaccion extends JFrame {
 
             // CAMPOS
             panel.add(crearLabel("ID Transacción:", 40, 90));
-            panel.add(crearField("TX-2024-001", 40, 125));
+            txtIdTransaccion = crearField("", 40, 125);
+            panel.add(txtIdTransaccion);
 
             panel.add(crearLabel("Fecha:", 40, 190));
-            panel.add(crearField("30/05/2026", 40, 225));
+            txtFecha = crearField("", 40, 225);
+            panel.add(txtFecha);
 
             panel.add(crearLabel("Tipo:", 40, 290));
-            panel.add(crearField("Transferencia", 40, 325));
+            txtTipo = crearField("", 40, 325);
+            panel.add(txtTipo);
 
             panel.add(crearLabel("Cuenta de origen:", 40, 390));
-            panel.add(crearField("Cuenta Ahorros (****1234)", 40, 425));
+            txtCuentaOrigen = crearField("", 40, 425);
+            panel.add(txtCuentaOrigen);
 
             panel.add(crearLabel("Cuenta de destino:", 40, 490));
-            panel.add(crearField("Cuenta Corriente (****5678)", 40, 525));
+            txtCuentaDestino = crearField("", 40, 525);
+            panel.add(txtCuentaDestino);
 
-            panel.add(crearLabel("Descripción:", 40, 590));
-            panel.add(crearField("Transferencia a proveedor Ferrex", 40, 625));
+            panel.add(crearLabel("Estado:", 40, 560));
+            txtEstado = crearField("", 40, 595);
+            panel.add(txtEstado);
+
+            panel.add(crearLabel("Realizada por:", 40, 630));
+            txtUsuario = crearField("", 40, 665);
+            panel.add(txtUsuario);
+
+            panel.add(crearLabel("Descripción:", 40, 700));
+            txtDescripcion = crearField("", 40, 735);
+            panel.add(txtDescripcion);
 
             // BOTÓN REGRESAR
             Color gris = new Color(120, 120, 120);
             Color grisHover = new Color(160, 160, 160);
 
             BotonNeo btnRegresar = new BotonNeo("Regresar", gris, grisHover);
-            btnRegresar.setBounds(40, 690, 400, 55);
+            btnRegresar.setBounds(40, 780, 400, 55);
             panel.add(btnRegresar);
 
             btnRegresar.addActionListener(e -> {
@@ -142,6 +173,8 @@ public class DetallesTransaccion extends JFrame {
             txt.setBounds(x, y, 450, 50);
             txt.setText(texto);
             txt.setEditable(false);
+            txt.setForeground(Color.WHITE);
+            txt.setCaretColor(Color.WHITE);
             return txt;
         }
 
@@ -150,6 +183,18 @@ public class DetallesTransaccion extends JFrame {
             super.paintComponent(g);
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
+    }
+
+    private void cargarDetalle() {
+        Map<String, Object> detalle = servicio.obtenerDetalleTransaccion(idTransaccion);
+        txtIdTransaccion.setText(String.valueOf(detalle.getOrDefault("id_transaccion", "")));
+        txtFecha.setText(String.valueOf(detalle.getOrDefault("fecha", "")));
+        txtTipo.setText(String.valueOf(detalle.getOrDefault("tipo_transaccion", "")));
+        txtCuentaOrigen.setText(String.valueOf(detalle.getOrDefault("cuenta_origen", "")));
+        txtCuentaDestino.setText(String.valueOf(detalle.getOrDefault("cuenta_destino", "")));
+        txtEstado.setText(String.valueOf(detalle.getOrDefault("estado", "")));
+        txtUsuario.setText(String.valueOf(detalle.getOrDefault("usuario", "")));
+        txtDescripcion.setText(String.valueOf(detalle.getOrDefault("descripcion", "")));
     }
 }
 
