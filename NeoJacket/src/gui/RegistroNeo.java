@@ -102,7 +102,7 @@ public class RegistroNeo extends JFrame {
     }
 
     // ============================
-    // COMBOBOX REDONDEADO (mismo lenguaje visual que los campos de texto)
+    // COMBOBOX REDONDEADO CORREGIDO
     // ============================
     class RoundedComboBox<T> extends JComboBox<T> {
 
@@ -114,14 +114,22 @@ public class RegistroNeo extends JFrame {
             setFont(new Font("Segoe UI", Font.PLAIN, 16));
             setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 10));
 
+            ((JLabel) getRenderer()).setOpaque(false);
+
             setRenderer(new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                         boolean isSelected, boolean cellHasFocus) {
                     JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    lbl.setOpaque(true);
-                    lbl.setBackground(isSelected ? new Color(55, 75, 65) : VERDE_OSCURO);
-                    lbl.setForeground(Color.WHITE);
+                    
+                    if (index == -1) {
+                        lbl.setOpaque(false);
+                        lbl.setForeground(Color.WHITE);
+                    } else {
+                        lbl.setOpaque(true);
+                        lbl.setBackground(isSelected ? new Color(55, 75, 65) : VERDE_OSCURO);
+                        lbl.setForeground(Color.WHITE);
+                    }
                     lbl.setFont(new Font("Segoe UI", Font.PLAIN, 15));
                     lbl.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
                     return lbl;
@@ -139,6 +147,10 @@ public class RegistroNeo extends JFrame {
                     arrow.setFont(new Font("Segoe UI", Font.BOLD, 13));
                     arrow.setCursor(new Cursor(Cursor.HAND_CURSOR));
                     return arrow;
+                }
+
+                @Override
+                public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
                 }
             });
         }
@@ -258,15 +270,12 @@ public class RegistroNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // sombra suave
             g2.setColor(new Color(0, 0, 0, 70));
             g2.fillRoundRect(6, 8, getWidth() - 6, getHeight() - 8, 28, 28);
 
-            // relleno principal
             g2.setColor(VERDE_CARD);
             g2.fillRoundRect(0, 0, getWidth() - 6, getHeight() - 8, 28, 28);
 
-            // borde dorado
             g2.setColor(DORADO);
             g2.setStroke(new BasicStroke(2f));
             g2.drawRoundRect(1, 1, getWidth() - 8, getHeight() - 10, 28, 28);
@@ -304,8 +313,6 @@ public class RegistroNeo extends JFrame {
             setLayout(null);
             crearRegistro();
 
-            // Reposiciona la tarjeta cada vez que la ventana cambia de tamaño,
-            // manteniéndola siempre centrada.
             addComponentListener(new ComponentAdapter() {
                 @Override
                 public void componentResized(ComponentEvent e) {
@@ -331,9 +338,9 @@ public class RegistroNeo extends JFrame {
             lblLogo.setBounds(48, 36, 240, 110);
             add(lblLogo);
 
-            // TARJETA DE REGISTRO (centrada dinámicamente)
+            // TARJETA DE REGISTRO
             panelReg = new RoundedCardPanel();
-            panelReg.setBounds((1100 - PANEL_W) / 2, 120, PANEL_W, PANEL_H); // valor inicial de respaldo
+            panelReg.setBounds((1100 - PANEL_W) / 2, 120, PANEL_W, PANEL_H);
             add(panelReg);
 
             // TÍTULO
@@ -370,7 +377,6 @@ public class RegistroNeo extends JFrame {
 
             panelReg.add(crearLabel("Tipo de cuenta", COL2_X, y));
             RoundedComboBox<String> cbTipo = new RoundedComboBox<>(new String[]{"Monetaria", "Ahorro", "Corriente"});
-            cbTipo.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
             cbTipo.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbTipo);
 
@@ -393,13 +399,11 @@ public class RegistroNeo extends JFrame {
 
             panelReg.add(crearLabel("Género", COL2_X, y));
             RoundedComboBox<String> cbGenero = new RoundedComboBox<>(new String[]{"Masculino", "Femenino", "Otro"});
-            cbGenero.setForeground(Color.BLACK); // CORREGIDO: texto negro visible
             cbGenero.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbGenero);
 
-            // ---------- CAMPO CORREO TUTOR (se inserta entre fila 3 y fila 4) ----------
-            // Ocupa su propia fila de 80px — se muestra/oculta dinámicamente
-            int tutorRowH = 80; // alto reservado para la fila del tutor
+            // ---------- CAMPO CORREO TUTOR ----------
+            int tutorRowH = 80;
 
             JLabel lblCorreoTutor = crearLabel("Correo del tutor", COL1_X, y + 70);
             lblCorreoTutor.setForeground(DORADO);
@@ -412,8 +416,7 @@ public class RegistroNeo extends JFrame {
             panelReg.add(txtCorreoTutor);
 
             // ---------- FILA 4: Correo / Teléfono ----------
-            // Posición base: y + 100. Cuando el tutor está visible se desplaza +tutorRowH
-            int[] yF4 = {y + 100}; // array para modificar dentro de lambdas
+            int[] yF4 = {y + 100}; 
 
             JLabel lblCorreoLabel = crearLabel("Correo electrónico", COL1_X, yF4[0]);
             panelReg.add(lblCorreoLabel);
@@ -448,27 +451,21 @@ public class RegistroNeo extends JFrame {
             txtIdent.setBounds(COL2_X, yF5[0] + 24, FIELD_W, FIELD_H);
             panelReg.add(txtIdent);
 
-            // Ocultar identificación si ya es menor al cargar
             lblIdentLabel.setVisible(!rbMenor.isSelected());
             txtIdent.setVisible(!rbMenor.isSelected());
 
-            // ---------- BOTONES ----------
+            // ---------- BOTONES CENTRADOS ----------
             int[] btnYArr = {yF5[0] + 100};
             int btnW = 160;
             int btnH = 50;
             int gap = 20;
 
-            BotonNeo btnTutor = new BotonNeo("Cuenta tutor", VERDE_BOTON, VERDE_BOTON_HOVER);
-            btnTutor.setForeground(Color.WHITE);
-            btnTutor.setBounds(MARGIN_X, btnYArr[0], btnW, btnH);
-            panelReg.add(btnTutor);
-            btnTutor.addActionListener(e -> {
-                new RegistroTutor().setVisible(true);
-                dispose();
-            });
+            // Fórmula para alinear los dos botones exactamente al centro horizontal
+            int totalBtnW = (btnW * 2) + gap;
+            int startX = (PANEL_W - totalBtnW) / 2;
 
             BotonNeo btnRegresar = new BotonNeo("Regresar", DORADO, DORADO_HOVER);
-            btnRegresar.setBounds(MARGIN_X + btnW + gap, btnYArr[0], btnW, btnH);
+            btnRegresar.setBounds(startX, btnYArr[0], btnW, btnH);
             panelReg.add(btnRegresar);
             btnRegresar.addActionListener(e -> {
                 new InicioNeo().setVisible(true);
@@ -476,14 +473,13 @@ public class RegistroNeo extends JFrame {
             });
 
             BotonNeo btnIngresar = new BotonNeo("Registrarse", DORADO, DORADO_HOVER);
-            btnIngresar.setBounds(MARGIN_X + 2 * (btnW + gap), btnYArr[0], btnW, btnH);
+            btnIngresar.setBounds(startX + btnW + gap, btnYArr[0], btnW, btnH);
             panelReg.add(btnIngresar);
 
             // ---------- Mostrar/ocultar campo tutor y ajustar filas ----------
             Runnable mostrarTutor = () -> {
                 lblCorreoTutor.setVisible(true);
                 txtCorreoTutor.setVisible(true);
-                // Ocultar identificación para el menor
                 lblIdentLabel.setVisible(false);
                 txtIdent.setVisible(false);
                 // Mover fila 4
@@ -498,11 +494,12 @@ public class RegistroNeo extends JFrame {
                 lblFechaHint.setBounds(COL1_X, nY5 + 24 + FIELD_H + 4, FIELD_W, 16);
                 lblIdentLabel.setBounds(COL2_X, nY5, FIELD_W, 22);
                 txtIdent.setBounds(COL2_X, nY5 + 24, FIELD_W, FIELD_H);
-                // Mover botones
+                
+                // Mover y mantener botones centrados
                 int nBtnY = nY5 + 100;
-                btnTutor.setBounds(MARGIN_X, nBtnY, btnW, btnH);
-                btnRegresar.setBounds(MARGIN_X + btnW + gap, nBtnY, btnW, btnH);
-                btnIngresar.setBounds(MARGIN_X + 2 * (btnW + gap), nBtnY, btnW, btnH);
+                btnRegresar.setBounds(startX, nBtnY, btnW, btnH);
+                btnIngresar.setBounds(startX + btnW + gap, nBtnY, btnW, btnH);
+                
                 // Expandir tarjeta
                 panelReg.setBounds(panelReg.getX(), panelReg.getY(), PANEL_W, PANEL_H + tutorRowH);
                 panelReg.revalidate();
@@ -512,7 +509,6 @@ public class RegistroNeo extends JFrame {
             Runnable ocultarTutor = () -> {
                 lblCorreoTutor.setVisible(false);
                 txtCorreoTutor.setVisible(false);
-                // Mostrar identificación para el adulto
                 lblIdentLabel.setVisible(true);
                 txtIdent.setVisible(true);
                 // Restaurar fila 4
@@ -526,10 +522,11 @@ public class RegistroNeo extends JFrame {
                 lblFechaHint.setBounds(COL1_X, yF5[0] + 24 + FIELD_H + 4, FIELD_W, 16);
                 lblIdentLabel.setBounds(COL2_X, yF5[0], FIELD_W, 22);
                 txtIdent.setBounds(COL2_X, yF5[0] + 24, FIELD_W, FIELD_H);
-                // Restaurar botones
-                btnTutor.setBounds(MARGIN_X, btnYArr[0], btnW, btnH);
-                btnRegresar.setBounds(MARGIN_X + btnW + gap, btnYArr[0], btnW, btnH);
-                btnIngresar.setBounds(MARGIN_X + 2 * (btnW + gap), btnYArr[0], btnW, btnH);
+                
+                // Restaurar botones centrados
+                btnRegresar.setBounds(startX, btnYArr[0], btnW, btnH);
+                btnIngresar.setBounds(startX + btnW + gap, btnYArr[0], btnW, btnH);
+                
                 // Restaurar tamaño tarjeta
                 panelReg.setBounds(panelReg.getX(), panelReg.getY(), PANEL_W, PANEL_H);
                 panelReg.revalidate();
@@ -539,7 +536,7 @@ public class RegistroNeo extends JFrame {
             rbMenor.addActionListener(e -> mostrarTutor.run());
             rbAdulto.addActionListener(e -> ocultarTutor.run());
 
-            // ---------- ACTION LISTENER DE REGISTRO (lógica de base de datos / transacciones tomada del segundo código) ----------
+            // ---------- ACTION LISTENER DE REGISTRO ----------
             btnIngresar.addActionListener(e -> {
                 String nombre = txtUsuario.getText();
                 String apellido = txtApellido.getText();
@@ -560,9 +557,6 @@ public class RegistroNeo extends JFrame {
                 String perfil = rbMenor.isSelected() ? "Menor supervisado" : "Adulto";
                 String tipoCuenta = cbTipo.getSelectedItem() != null ? cbTipo.getSelectedItem().toString() : "Monetaria";
 
-                // ==========================================
-                // CASO 1: REGISTRO DE MENOR SUPERVISADO
-                // ==========================================
                 if (rbMenor.isSelected()) {
                     String correoTutor = txtCorreoTutor.getText().trim();
                     if (correoTutor.isEmpty()) {
@@ -593,16 +587,13 @@ public class RegistroNeo extends JFrame {
                         }
 
                         JOptionPane.showMessageDialog(null,
-                                "✅ Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",
+                                " Cuenta creada correctamente.\nYa puedes iniciar sesión con tu correo y contraseña.",
                                 "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
 
                         new InicioNeo().setVisible(true);
                         dispose();
                     }
 
-                // ==========================================
-                // CASO 2: REGISTRO DE ADULTO
-                // ==========================================
                 } else {
                     CrearUsuario crearUsuario = new CrearUsuario();
                     boolean creado = crearUsuario.crearDesdeRegistroNeo(
@@ -631,7 +622,6 @@ public class RegistroNeo extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
 
-            // Overlay oscuro para mejorar el contraste del texto sobre el fondo
             g2.setColor(new Color(10, 15, 14, 90));
             g2.fillRect(0, 0, getWidth(), getHeight());
             g2.dispose();
