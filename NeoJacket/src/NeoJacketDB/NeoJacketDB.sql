@@ -165,7 +165,6 @@ CREATE TABLE cuentas_bancarias (
     CONSTRAINT fk_cuentas_monedas FOREIGN KEY (moneda) REFERENCES monedas(codigo),
     UNIQUE (id_banco, numero_cuenta)
 );
-
 CREATE TABLE tarjetas_bancarias (
     id_tarjeta INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT UNSIGNED NOT NULL,
@@ -270,3 +269,7 @@ CREATE INDEX idx_cuentas_usuario_banco ON cuentas_bancarias(id_usuario, id_banco
 
 -- Índice adicional recomendado: acelera la búsqueda de tarjetas por usuario + banco + estado
 CREATE INDEX idx_tarjetas_usuario_banco ON tarjetas_bancarias(id_usuario, id_banco, estado);
+
+ALTER TABLE transacciones 
+MODIFY COLUMN tipo_transaccion 
+ENUM('deposito','retiro','actualizacion','transferencia') NOT NULL DEFAULT 'deposito';

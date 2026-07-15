@@ -8,7 +8,7 @@ public class conexion {
     private static Connection con;
     private static final String URL = "jdbc:mysql://localhost:3306/neojacket_db";          
     private static final String USER = "root";
-    private static final String PASSWORD = "admin";
+    private static final String PASSWORD = "123456789";
 
     // Modificamos el método a static para poder llamarlo directamente
     public static Connection getConexion() {

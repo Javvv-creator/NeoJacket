@@ -1,10 +1,12 @@
 package gui;
 
-import javax.swing.*;
+import funcionalidades.HistorialController;
+import funcionalidades.SesionUsuario;
+import funcionalidades.SupervisionDAO;
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import funcionalidades.SupervisionDAO;
+import javax.swing.*;
 
 public class Historial extends javax.swing.JFrame {
 
@@ -12,22 +14,25 @@ public class Historial extends javax.swing.JFrame {
     private Image logo;
 
     // TIPOGRAFÍAS DE LA IDENTIDAD VISUAL
-    private final Font tituloPantalla = new Font("Segoe UI", Font.BOLD, 34);
-    private final Font descripcionPantalla = new Font("Segoe UI", Font.PLAIN, 14);
+    private final Font fontLabelChico = new Font("Segoe UI", Font.BOLD, 13);
+    private final Font fontTituloGrande = new Font("Segoe UI", Font.BOLD, 30);
+    private final Font fontSubtitulo = new Font("Segoe UI", Font.PLAIN, 13);
     private final Font tituloSeccion = new Font("Segoe UI", Font.BOLD, 16);
     private final Font etiquetaCampos = new Font("Segoe UI", Font.BOLD, 13);
     private final Font textoInputs = new Font("Segoe UI", Font.PLAIN, 14);
-    
-    // PALETA DE COLORES CORPORATIVA (VERDE OSCURO Y AMARILLO)
-    private final Color verdeCorporativoFondo = new Color(20, 32, 29, 215); 
-    private final Color amarilloPastel = new Color(251, 232, 138);
+    private final Font descripcionPantalla = new Font("Segoe UI", Font.PLAIN, 14);
 
-    // --- COMPONENTES GLOBALES CON CAMPOS EN "--" PARA CONTROLADOR DE HISTORIAL ---
-    // Bloque 1: Mis Cuentas (Resumen rápido en Historial)
+    // PALETA DE COLORES (mismo lenguaje visual que el Dashboard)
+    private final Color amarilloPastel = new Color(251, 232, 138);
+    private final Color verdeTarjeta = new Color(25, 38, 35, 180);
+    private final Color verdeCard = new Color(20, 32, 30, 190);
+
+    // --- COMPONENTES GLOBALES QUE RELLENA HistorialController / cargarDatosMenor ---
+    // Bloque 1: Mis Cuentas
     public JLabel lblCtaPrincipal, lblCtaAhorros;
-    
-    // Bloque 2: Resumen Financiero
-    public JLabel lblSaldoDisponible, lblSaldoRetenido, lblIngresosMes, lblGastosMes, lblUltimaActResumen;
+
+    // Bloque 2: Resumen Financiero (SIN Saldo Retenido, eliminado a petición)
+    public JLabel lblSaldoDisponible, lblIngresosMes, lblGastosMes, lblUltimaActResumen;
 
     // Bloque 3: Bancos Conectados
     public JLabel lblBanco1, lblBanco2, lblBanco3;
@@ -38,9 +43,9 @@ public class Historial extends javax.swing.JFrame {
     // Bloque 5: Cambio de Divisas
     public JLabel lblDivUSD, lblDivEUR, lblDivMXN, lblUltimaActDivisas;
 
-    // Bloque 6: Historial de Actividad (El foco de esta pantalla)
-    public JLabel lblHist1_Titulo, lblHist1_Meta, lblHist2_Titulo, lblHist2_Meta, 
-                  lblHist3_Titulo, lblHist3_Meta, lblHist4_Titulo, lblHist4_Meta;
+    // Bloque 6: Historial de Actividad
+    public JLabel lblHist1_Titulo, lblHist1_Meta, lblHist2_Titulo, lblHist2_Meta,
+            lblHist3_Titulo, lblHist3_Meta, lblHist4_Titulo, lblHist4_Meta;
 
     private Integer idMenor;
 
@@ -51,7 +56,7 @@ public class Historial extends javax.swing.JFrame {
     public Historial(Integer idMenor) {
         this.idMenor = idMenor;
         initComponents();
-        
+
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondoUsuario.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
@@ -59,11 +64,18 @@ public class Historial extends javax.swing.JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
+
         setContentPane(new FondoPanel());
 
-        // Cargar datos de BD si es menor supervisado
-        if (idMenor != null) cargarDatosMenor();
+        // ==========================================
+        // CARGA DE DATOS: menor supervisado vs. usuario adulto normal
+        // ==========================================
+        if (idMenor != null) {
+            cargarDatosMenor();
+        } else {
+            // Antes esto nunca se llamaba, por eso todo se quedaba en "--"
+            new HistorialController(this).cargarDatosPantalla();
+        }
     }
 
     private void cargarDatosMenor() {
@@ -78,8 +90,8 @@ public class Historial extends javax.swing.JFrame {
             if (i < trans.size()) {
                 SupervisionDAO.MovimientoCuenta m = trans.get(i);
                 lblsTrans[i].setText(String.format("%s  —  Q %.2f  [%s]  %s",
-                    m.tipoTransaccion, m.monto, m.estado,
-                    m.fecha != null ? sdf.format(m.fecha) : ""));
+                        m.tipoTransaccion, m.monto, m.estado,
+                        m.fecha != null ? sdf.format(m.fecha) : ""));
             } else {
                 lblsTrans[i].setText("Sin movimientos registrados");
             }
@@ -95,8 +107,8 @@ public class Historial extends javax.swing.JFrame {
                 SupervisionDAO.EventoSesion ev = sesiones.get(i);
                 lblsTit[i].setText(ev.tipoEvento.replace("_", " ").toUpperCase());
                 lblsMeta[i].setText(
-                    (ev.dispositivo != null ? ev.dispositivo : "—") + "  •  " +
-                    (ev.ocurridoEn != null ? sdf.format(ev.ocurridoEn) : ""));
+                        (ev.dispositivo != null ? ev.dispositivo : "—") + "  •  "
+                                + (ev.ocurridoEn != null ? sdf.format(ev.ocurridoEn) : ""));
             } else {
                 lblsTit[i].setText("Sin accesos registrados");
                 if (lblsMeta[i] != null) lblsMeta[i].setText("");
@@ -117,117 +129,116 @@ public class Historial extends javax.swing.JFrame {
             crearContenido();
         }
 
-       private void crearSidebar(JPanel panel) {
+        // ==========================================
+        // SIDEBAR (corregido: cerrar sesión / supervisión ya no se duplican)
+        // ==========================================
+        private void crearSidebar(JPanel panel) {
 
-    JPanel sidebar = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setColor(new Color(25, 38, 35, 220));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
-            g2.dispose();
-        }
-    };
-
-    sidebar.setOpaque(false);
-    sidebar.setBounds(20, 20, 300, 950);
-    sidebar.setLayout(null);
-    
-    // ============================
-    // BOTONES PRINCIPALES DE ACCESO
-    // ============================
-    Color verdeTrans = new Color(25, 38, 35, 180);
-    Color verdeHover = new Color(94, 116, 73, 220);
-
-    Color amarillo = new Color(251, 232, 138);
-    Color amarilloHover = new Color(255, 245, 180);
-
-    Color fondoTransparente = new Color(0, 0, 0, 0); 
-    Color amarilloBorde = new Color(251, 232, 138);
-
-    // Logo
-    Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-    JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-    lblLogo.setBounds(20, 10, 250, 110);
-    sidebar.add(lblLogo);
-
-    String[] opciones = {
-        "Saldos",
-        "Bancos Conectados",
-        "Transferencias",
-        "Historial"
-    };
-
-    int y = 140;
-
-    for (String texto : opciones) {
-        
-        JButton btn = new JButton(texto) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                
-                if (getBackground() != amarillo) {
-                    g2.setColor(amarilloBorde);
-                    g2.setStroke(new BasicStroke(1f));
-                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+                    g2.dispose();
                 }
-                
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
+            };
 
-        // Ajustamos la altura a 46 para un look más estilizado
-        btn.setBounds(20, y, 250, 46);
-        btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false); 
-        btn.setBorderPainted(false);     
-        btn.setOpaque(false);
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(fondoTransparente);
+            sidebar.setOpaque(false);
+            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setLayout(null);
 
-        Font fuenteActual = btn.getFont();
-        btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+            Color amarillo = amarilloPastel;
+            Color fondoTransparente = new Color(0, 0, 0, 0);
+            Color amarilloBorde = amarilloPastel;
 
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(amarillo);
-                btn.setForeground(Color.BLACK);
-            }
+            Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+            lblLogo.setBounds(20, 10, 250, 110);
+            sidebar.add(lblLogo);
 
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(fondoTransparente);
+            String[] opciones = {
+                "Saldos",
+                "Bancos Conectados",
+                "Transferencias",
+                "Historial"
+            };
+
+            int y = 140;
+
+            for (String texto : opciones) {
+
+                JButton btn = new JButton(texto) {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        g2.setColor(getBackground());
+                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+                        if (getBackground() != amarillo) {
+                            g2.setColor(amarilloBorde);
+                            g2.setStroke(new BasicStroke(1f));
+                            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                        }
+
+                        g2.dispose();
+                        super.paintComponent(g);
+                    }
+                };
+
+                btn.setBounds(20, y, 250, 46);
+                btn.setFocusPainted(false);
+                btn.setContentAreaFilled(false);
+                btn.setBorderPainted(false);
+                btn.setOpaque(false);
                 btn.setForeground(Color.WHITE);
-            }
-        });
+                btn.setBackground(fondoTransparente);
 
-        if (texto.equals("Saldos")) {
-            btn.addActionListener(e -> { 
-                new Saldos().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Bancos Conectados")) {
-            btn.addActionListener(e -> { 
-                new BancosConectados().setVisible(true);
-                dispose(); 
-            });
-        }
-        if (texto.equals("Transferencias")) {
-            btn.addActionListener(e -> { 
-                new Transferencias(idMenor).setVisible(true);
-                dispose(); 
-            });
-        }
-                
-        JButton btnCerrarSesion = new JButton("Cerrar sesión");
+                Font fuenteActual = btn.getFont();
+                btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+
+                btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent e) {
+                        btn.setBackground(amarillo);
+                        btn.setForeground(Color.BLACK);
+                    }
+
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        btn.setBackground(fondoTransparente);
+                        btn.setForeground(Color.WHITE);
+                    }
+                });
+
+                if (texto.equals("Saldos")) {
+                    btn.addActionListener(e -> {
+                        new AgregarFondos().setVisible(true);
+                        dispose();
+                    });
+                }
+                if (texto.equals("Bancos Conectados")) {
+                    btn.addActionListener(e -> {
+                        new BancosConectados().setVisible(true);
+                        dispose();
+                    });
+                }
+                if (texto.equals("Transferencias")) {
+                    btn.addActionListener(e -> {
+                        new Transferencias(idMenor).setVisible(true);
+                        dispose();
+                    });
+                }
+                // "Historial" no lleva listener: ya estamos en esta pantalla
+
+                sidebar.add(btn);
+                y += 68;
+            }
+
+            // ---------- Estos componentes van UNA sola vez, fuera del for ----------
+            JButton btnCerrarSesion = new JButton("Cerrar sesión");
             btnCerrarSesion.setBounds(20, 880, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
             btnCerrarSesion.setBorderPainted(false);
@@ -238,294 +249,247 @@ public class Historial extends javax.swing.JFrame {
                 new InicioNeo().setVisible(true);
                 dispose();
             });
-                        // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
-            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
-            int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
+            sidebar.add(btnCerrarSesion);
+
+            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+            SupervisionDAO daoSup = new SupervisionDAO();
+            int idSesion = SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
                 JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, 740, 250, 55);
+                btnSupervision.setBounds(20, 800, 250, 55);
                 btnSupervision.setFocusPainted(false);
                 btnSupervision.setBorderPainted(false);
-                btnSupervision.setBackground(new Color(251, 232, 138));
+                btnSupervision.setBackground(amarilloPastel);
                 btnSupervision.setForeground(new Color(25, 38, 35));
                 btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                btnSupervision.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 btnSupervision.addActionListener(e -> {
                     new PanelSupervision(idSesion).setVisible(true);
                     dispose();
                 });
                 sidebar.add(btnSupervision);
             }
-sidebar.add(btnCerrarSesion);
 
-        sidebar.add(btn);
-        
-        // Aumentamos el salto a 68 píxeles para darles más separación física
-        y += 68;
-    }
-     panel.add(sidebar);
-}
-    
+            panel.add(sidebar);
+        }
+
+        // ==========================================
+        // CONTENIDO PRINCIPAL (estética tipo Dashboard: paneles redondeados
+        // con marco amarillo delgado solo en los paneles más importantes)
+        // ==========================================
         private void crearContenido() {
-            PanelContenedorVerde contenedor = new PanelContenedorVerde();
-            contenedor.setBounds(350, 40, 1300, 910);
+            JPanel contenedor = new JPanel();
+            contenedor.setLayout(null);
+            contenedor.setOpaque(false);
+            contenedor.setBounds(350, 20, 1300, 950);
             add(contenedor);
 
-            JLabel lblTitulo = new JLabel("HISTORIAL DE ACTIVIDAD");
-            lblTitulo.setFont(tituloPantalla);
+            // ---------------------------------------------------
+            // HEADER: "BIENVENIDO / Historial de Actividad"
+            // ---------------------------------------------------
+            RoundedPanel bienvenida = crearPanel(30, 20, 1240, 100, verdeTarjeta, null);
+            contenedor.add(bienvenida);
+
+            JLabel lblBienvenido = new JLabel("BIENVENIDO");
+            lblBienvenido.setForeground(amarilloPastel);
+            lblBienvenido.setFont(fontLabelChico);
+            lblBienvenido.setBounds(30, 15, 400, 20);
+            bienvenida.add(lblBienvenido);
+
+            JLabel lblTitulo = new JLabel("Historial de Actividad");
             lblTitulo.setForeground(Color.WHITE);
-            lblTitulo.setBounds(40, 25, 600, 45);
-            contenedor.add(lblTitulo);
+            lblTitulo.setFont(fontTituloGrande);
+            lblTitulo.setBounds(30, 36, 600, 40);
+            bienvenida.add(lblTitulo);
 
             JLabel lblDesc = new JLabel("Consulta el registro completo de movimientos, transferencias y estados de cuenta.");
-            lblDesc.setFont(descripcionPantalla);
-            lblDesc.setForeground(new Color(230, 235, 230));
-            lblDesc.setBounds(40, 68, 1000, 25);
-            contenedor.add(lblDesc);
+            lblDesc.setForeground(Color.LIGHT_GRAY);
+            lblDesc.setFont(fontSubtitulo);
+            lblDesc.setBounds(30, 76, 900, 20);
+            bienvenida.add(lblDesc);
 
-            int col1X = 40;
-            int col2X = 660;
+            int col1X = 30;
+            int col2X = 650;
             int anchoBloque = 600;
 
             // =================================================================
-            // FILA 1: MIS CUENTAS (IZQ) vs RESUMEN FINANCIERO (DER)
+            // FILA 1: MIS CUENTAS (IZQ)  vs  RESUMEN FINANCIERO (DER, marco dorado)
             // =================================================================
-            PanelBloqueEstilizado pMisCuentas = new PanelBloqueEstilizado();
-            pMisCuentas.setBounds(col1X, 110, anchoBloque, 230);
+            int row1Y = 140, row1H = 210;
+
+            RoundedPanel pMisCuentas = crearPanel(col1X, row1Y, anchoBloque, row1H, verdeTarjeta, null);
             contenedor.add(pMisCuentas);
 
-            JLabel lblTitleCuentas = new JLabel("CUENTAS");
-            lblTitleCuentas.setForeground(amarilloPastel);
-            lblTitleCuentas.setFont(tituloSeccion);
-            lblTitleCuentas.setBounds(25, 15, 300, 22);
-            pMisCuentas.add(lblTitleCuentas);
+            addTitulo(pMisCuentas, "CUENTAS");
 
-            JLabel lblTagPrincipal = new JLabel("Principal");
-            lblTagPrincipal.setForeground(new Color(180, 190, 180));
-            lblTagPrincipal.setFont(etiquetaCampos);
-            lblTagPrincipal.setBounds(25, 55, 200, 20);
+            JLabel lblTagPrincipal = crearEtiqueta("Principal", 25, 50);
             pMisCuentas.add(lblTagPrincipal);
 
-            lblCtaPrincipal = new JLabel("--");
-            lblCtaPrincipal.setForeground(Color.WHITE);
-            lblCtaPrincipal.setFont(textoInputs);
-            lblCtaPrincipal.setBounds(25, 78, 550, 22);
+            lblCtaPrincipal = crearValor("--", 25, 73, 550);
             pMisCuentas.add(lblCtaPrincipal);
 
-            JLabel lblTagAhorros = new JLabel("Ahorros");
-            lblTagAhorros.setForeground(new Color(180, 190, 180));
-            lblTagAhorros.setFont(etiquetaCampos);
-            lblTagAhorros.setBounds(25, 125, 200, 20);
+            JLabel lblTagAhorros = crearEtiqueta("Ahorros", 25, 115);
             pMisCuentas.add(lblTagAhorros);
 
-            lblCtaAhorros = new JLabel("--");
-            lblCtaAhorros.setForeground(Color.WHITE);
-            lblCtaAhorros.setFont(textoInputs);
-            lblCtaAhorros.setBounds(25, 148, 550, 22);
+            lblCtaAhorros = crearValor("--", 25, 138, 550);
             pMisCuentas.add(lblCtaAhorros);
 
             // -----------------------------------------------------------------
-            PanelBloqueEstilizado pResumenFin = new PanelBloqueEstilizado();
-            pResumenFin.setBounds(col2X, 110, anchoBloque, 230);
+            RoundedPanel pResumenFin = crearPanel(col2X, row1Y, anchoBloque, row1H, verdeCard, amarilloPastel);
             contenedor.add(pResumenFin);
 
-            JLabel lblTitleResumen = new JLabel("RESUMEN FINANCIERO");
-            lblTitleResumen.setForeground(amarilloPastel);
-            lblTitleResumen.setFont(tituloSeccion);
-            lblTitleResumen.setBounds(25, 15, 300, 22);
-            pResumenFin.add(lblTitleResumen);
+            addTitulo(pResumenFin, "RESUMEN FINANCIERO");
 
-            lblSaldoDisponible = new JLabel("Saldo disponible: --");
-            lblSaldoDisponible.setForeground(Color.WHITE);
-            lblSaldoDisponible.setFont(textoInputs);
-            lblSaldoDisponible.setBounds(25, 55, 550, 22);
+            lblSaldoDisponible = crearValor("Saldo disponible: --", 25, 52, 550);
             pResumenFin.add(lblSaldoDisponible);
 
             lblIngresosMes = new JLabel("Ingresos del mes: --");
             lblIngresosMes.setForeground(new Color(130, 220, 130));
             lblIngresosMes.setFont(textoInputs);
-            lblIngresosMes.setBounds(25, 90, 550, 22);
+            lblIngresosMes.setBounds(25, 84, 550, 22);
             pResumenFin.add(lblIngresosMes);
 
             lblGastosMes = new JLabel("Gastos del mes: --");
             lblGastosMes.setForeground(new Color(240, 120, 120));
             lblGastosMes.setFont(textoInputs);
-            lblGastosMes.setBounds(25, 125, 550, 22);
+            lblGastosMes.setBounds(25, 116, 550, 22);
             pResumenFin.add(lblGastosMes);
 
             lblUltimaActResumen = new JLabel("Última actualización: --");
             lblUltimaActResumen.setForeground(new Color(150, 160, 150));
             lblUltimaActResumen.setFont(descripcionPantalla);
-            lblUltimaActResumen.setBounds(25, 160, 550, 22);
+            lblUltimaActResumen.setBounds(25, 150, 550, 22);
             pResumenFin.add(lblUltimaActResumen);
 
+            // =================================================================
+            // FILA 2: BANCOS CONECTADOS (IZQ)  vs  TRANSFERENCIAS RECIENTES (DER)
+            // =================================================================
+            int row2Y = row1Y + row1H + 20, row2H = 190;
 
-            // =================================================================
-            // FILA 2: BANCOS CONECTADOS (IZQ) vs TRANSFERENCIAS RECIENTES (DER)
-            // =================================================================
-            PanelBloqueEstilizado pBancosCon = new PanelBloqueEstilizado();
-            pBancosCon.setBounds(col1X, 360, anchoBloque, 190);
+            RoundedPanel pBancosCon = crearPanel(col1X, row2Y, anchoBloque, row2H, verdeTarjeta, null);
             contenedor.add(pBancosCon);
 
-            JLabel lblTitleBancos = new JLabel("BANCOS CONECTADOS");
-            lblTitleBancos.setForeground(amarilloPastel);
-            lblTitleBancos.setFont(tituloSeccion);
-            lblTitleBancos.setBounds(25, 15, 300, 22);
-            pBancosCon.add(lblTitleBancos);
+            addTitulo(pBancosCon, "BANCOS CONECTADOS");
 
-            lblBanco1 = new JLabel("✔ --");
-            lblBanco1.setForeground(Color.WHITE);
-            lblBanco1.setFont(textoInputs);
-            lblBanco1.setBounds(25, 55, 550, 22);
+            lblBanco1 = crearValor("✔ --", 25, 52, 550);
             pBancosCon.add(lblBanco1);
-
-            lblBanco2 = new JLabel("✔ --");
-            lblBanco2.setForeground(Color.WHITE);
-            lblBanco2.setFont(textoInputs);
-            lblBanco2.setBounds(25, 90, 550, 22);
+            lblBanco2 = crearValor("✔ --", 25, 84, 550);
             pBancosCon.add(lblBanco2);
-
-            lblBanco3 = new JLabel("✔ --");
-            lblBanco3.setForeground(Color.WHITE);
-            lblBanco3.setFont(textoInputs);
-            lblBanco3.setBounds(25, 125, 550, 22);
+            lblBanco3 = crearValor("✔ --", 25, 116, 550);
             pBancosCon.add(lblBanco3);
 
             // -----------------------------------------------------------------
-            PanelBloqueEstilizado pTransRec = new PanelBloqueEstilizado();
-            pTransRec.setBounds(col2X, 360, anchoBloque, 190);
+            RoundedPanel pTransRec = crearPanel(col2X, row2Y, anchoBloque, row2H, verdeTarjeta, null);
             contenedor.add(pTransRec);
 
-            JLabel lblTitleTrans = new JLabel("TRANSFERENCIAS RECIENTES");
-            lblTitleTrans.setForeground(amarilloPastel);
-            lblTitleTrans.setFont(tituloSeccion);
-            lblTitleTrans.setBounds(25, 15, 300, 22);
-            pTransRec.add(lblTitleTrans);
+            addTitulo(pTransRec, "TRANSFERENCIAS RECIENTES");
 
-            lblTransReciente1 = new JLabel("--");
-            lblTransReciente1.setForeground(Color.WHITE);
-            lblTransReciente1.setFont(textoInputs);
-            lblTransReciente1.setBounds(25, 55, 550, 22);
+            lblTransReciente1 = crearValor("--", 25, 52, 550);
             pTransRec.add(lblTransReciente1);
-
-            lblTransReciente2 = new JLabel("--");
-            lblTransReciente2.setForeground(Color.WHITE);
-            lblTransReciente2.setFont(textoInputs);
-            lblTransReciente2.setBounds(25, 85, 550, 22);
+            lblTransReciente2 = crearValor("--", 25, 80, 550);
             pTransRec.add(lblTransReciente2);
-
-            lblTransReciente3 = new JLabel("--");
-            lblTransReciente3.setForeground(Color.WHITE);
-            lblTransReciente3.setFont(textoInputs);
-            lblTransReciente3.setBounds(25, 115, 550, 22);
+            lblTransReciente3 = crearValor("--", 25, 108, 550);
             pTransRec.add(lblTransReciente3);
-
-            lblTransReciente4 = new JLabel("--");
-            lblTransReciente4.setForeground(Color.WHITE);
-            lblTransReciente4.setFont(textoInputs);
-            lblTransReciente4.setBounds(25, 145, 550, 22);
+            lblTransReciente4 = crearValor("--", 25, 136, 550);
             pTransRec.add(lblTransReciente4);
 
+            // =================================================================
+            // FILA 3: CAMBIO DE DIVISAS (IZQ)  vs  HISTORIAL DE ACTIVIDAD (DER, marco dorado)
+            // =================================================================
+            int row3Y = row2Y + row2H + 20, row3H = 300;
 
-            // =================================================================
-            // FILA 3: CAMBIO DE DIVISAS (IZQ) vs HISTORIAL DE ACTIVIDAD (DER)
-            // =================================================================
-            PanelBloqueEstilizado pCambioDiv = new PanelBloqueEstilizado();
-            pCambioDiv.setBounds(col1X, 570, anchoBloque, 310);
+            RoundedPanel pCambioDiv = crearPanel(col1X, row3Y, anchoBloque, row3H, verdeTarjeta, null);
             contenedor.add(pCambioDiv);
 
-            JLabel lblTitleDiv = new JLabel("CAMBIO DE DIVISAS");
-            lblTitleDiv.setForeground(amarilloPastel);
-            lblTitleDiv.setFont(tituloSeccion);
-            lblTitleDiv.setBounds(25, 15, 300, 22);
-            pCambioDiv.add(lblTitleDiv);
+            addTitulo(pCambioDiv, "ÚLTIMO CAMBIO DE DIVISAS");
 
-            lblDivUSD = new JLabel("USD          --");
-            lblDivUSD.setForeground(Color.WHITE);
-            lblDivUSD.setFont(textoInputs);
-            lblDivUSD.setBounds(25, 60, 550, 22);
+            lblDivUSD = crearValor("Moneda origen:   --", 25, 55, 550);
             pCambioDiv.add(lblDivUSD);
-
-            lblDivEUR = new JLabel("EUR          --");
-            lblDivEUR.setForeground(Color.WHITE);
-            lblDivEUR.setFont(textoInputs);
-            lblDivEUR.setBounds(25, 100, 550, 22);
+            lblDivEUR = crearValor("Moneda destino:  --", 25, 95, 550);
             pCambioDiv.add(lblDivEUR);
-
-            lblDivMXN = new JLabel("MXN          --");
-            lblDivMXN.setForeground(Color.WHITE);
-            lblDivMXN.setFont(textoInputs);
-            lblDivMXN.setBounds(25, 140, 550, 22);
+            lblDivMXN = crearValor("Tasa aplicada:   --", 25, 135, 550);
             pCambioDiv.add(lblDivMXN);
 
             lblUltimaActDivisas = new JLabel("Actualizado: --");
             lblUltimaActDivisas.setForeground(new Color(150, 160, 150));
             lblUltimaActDivisas.setFont(descripcionPantalla);
-            lblUltimaActDivisas.setBounds(25, 260, 550, 22);
+            lblUltimaActDivisas.setBounds(25, 255, 550, 22);
             pCambioDiv.add(lblUltimaActDivisas);
 
             // -----------------------------------------------------------------
-            PanelBloqueEstilizado pHistorialAct = new PanelBloqueEstilizado();
-            pHistorialAct.setBounds(col2X, 570, anchoBloque, 310);
+            RoundedPanel pHistorialAct = crearPanel(col2X, row3Y, anchoBloque, row3H, verdeCard, amarilloPastel);
             contenedor.add(pHistorialAct);
 
-            JLabel lblTitleHist = new JLabel("HISTORIAL DE DIVISAS");
-            lblTitleHist.setForeground(amarilloPastel);
-            lblTitleHist.setFont(tituloSeccion);
-            lblTitleHist.setBounds(25, 15, 300, 22);
-            pHistorialAct.add(lblTitleHist);
+            addTitulo(pHistorialAct, "HISTORIAL DE ACTIVIDAD");
 
-            // Registro 1
-            lblHist1_Titulo = new JLabel("--");
-            lblHist1_Titulo.setForeground(Color.WHITE);
-            lblHist1_Titulo.setFont(textoInputs);
-            lblHist1_Titulo.setBounds(25, 50, 550, 22);
+            lblHist1_Titulo = crearValor("--", 25, 50, 550);
             pHistorialAct.add(lblHist1_Titulo);
-
-            lblHist1_Meta = new JLabel("--");
-            lblHist1_Meta.setForeground(new Color(150, 160, 150));
-            lblHist1_Meta.setFont(descripcionPantalla);
-            lblHist1_Meta.setBounds(25, 70, 550, 20);
+            lblHist1_Meta = crearMeta("--", 25, 72);
             pHistorialAct.add(lblHist1_Meta);
 
-            // Registro 2
-            lblHist2_Titulo = new JLabel("--");
-            lblHist2_Titulo.setForeground(Color.WHITE);
-            lblHist2_Titulo.setFont(textoInputs);
-            lblHist2_Titulo.setBounds(25, 110, 550, 22);
+            lblHist2_Titulo = crearValor("--", 25, 105, 550);
             pHistorialAct.add(lblHist2_Titulo);
-
-            lblHist2_Meta = new JLabel("--");
-            lblHist2_Meta.setForeground(new Color(150, 160, 150));
-            lblHist2_Meta.setFont(descripcionPantalla);
-            lblHist2_Meta.setBounds(25, 130, 550, 20);
+            lblHist2_Meta = crearMeta("--", 25, 127);
             pHistorialAct.add(lblHist2_Meta);
 
-            // Registro 3
-            lblHist3_Titulo = new JLabel("--");
-            lblHist3_Titulo.setForeground(Color.WHITE);
-            lblHist3_Titulo.setFont(textoInputs);
-            lblHist3_Titulo.setBounds(25, 170, 550, 22);
+            lblHist3_Titulo = crearValor("--", 25, 160, 550);
             pHistorialAct.add(lblHist3_Titulo);
-
-            lblHist3_Meta = new JLabel("--");
-            lblHist3_Meta.setForeground(new Color(150, 160, 150));
-            lblHist3_Meta.setFont(descripcionPantalla);
-            lblHist3_Meta.setBounds(25, 190, 550, 20);
+            lblHist3_Meta = crearMeta("--", 25, 182);
             pHistorialAct.add(lblHist3_Meta);
 
-            // Registro 4
-            lblHist4_Titulo = new JLabel("--");
-            lblHist4_Titulo.setForeground(Color.WHITE);
-            lblHist4_Titulo.setFont(textoInputs);
-            lblHist4_Titulo.setBounds(25, 230, 550, 22);
+            lblHist4_Titulo = crearValor("--", 25, 215, 550);
             pHistorialAct.add(lblHist4_Titulo);
-
-            lblHist4_Meta = new JLabel("--");
-            lblHist4_Meta.setForeground(new Color(150, 160, 150));
-            lblHist4_Meta.setFont(descripcionPantalla);
-            lblHist4_Meta.setBounds(25, 250, 550, 20);
+            lblHist4_Meta = crearMeta("--", 25, 237);
             pHistorialAct.add(lblHist4_Meta);
+        }
+
+        // ==========================================
+        // HELPERS DE CONSTRUCCIÓN DE UI
+        // ==========================================
+        private void addTitulo(JPanel panel, String texto) {
+            JLabel lbl = new JLabel(texto);
+            lbl.setForeground(amarilloPastel);
+            lbl.setFont(tituloSeccion);
+            lbl.setBounds(25, 15, 400, 22);
+            panel.add(lbl);
+        }
+
+        private JLabel crearEtiqueta(String texto, int x, int y) {
+            JLabel lbl = new JLabel(texto);
+            lbl.setForeground(new Color(180, 190, 180));
+            lbl.setFont(etiquetaCampos);
+            lbl.setBounds(x, y, 200, 20);
+            return lbl;
+        }
+
+        private JLabel crearValor(String texto, int x, int y, int ancho) {
+            JLabel lbl = new JLabel(texto);
+            lbl.setForeground(Color.WHITE);
+            lbl.setFont(textoInputs);
+            lbl.setBounds(x, y, ancho, 22);
+            return lbl;
+        }
+
+        private JLabel crearMeta(String texto, int x, int y) {
+            JLabel lbl = new JLabel(texto);
+            lbl.setForeground(new Color(150, 160, 150));
+            lbl.setFont(descripcionPantalla);
+            lbl.setBounds(x, y, 550, 20);
+            return lbl;
+        }
+
+        // Panel redondeado con o sin marco amarillo delgado (mismo helper que en Dashboard)
+        private RoundedPanel crearPanel(int x, int y, int w, int h, Color fondoColor, Color colorBorde) {
+            RoundedPanel panel = new RoundedPanel();
+            panel.setBounds(x, y, w, h);
+            panel.setBackground(fondoColor);
+            panel.setLayout(null);
+            if (colorBorde != null) {
+                panel.setBorder(BorderFactory.createLineBorder(colorBorde, 1, true));
+            } else {
+                panel.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 60), 1, true));
+            }
+            return panel;
         }
 
         @Override
@@ -535,32 +499,22 @@ sidebar.add(btnCerrarSesion);
         }
     }
 
-    class PanelContenedorVerde extends JPanel {
-        public PanelContenedorVerde() { setLayout(null); setOpaque(false); }
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(verdeCorporativoFondo);
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
-            super.paintComponent(g);
+    // ==========================================
+    // PANEL REDONDEADO (idéntico al usado en Dashboard.java)
+    // ==========================================
+    class RoundedPanel extends JPanel {
+        public RoundedPanel() {
+            setOpaque(false);
         }
-    }
 
-    class PanelBloqueEstilizado extends JPanel {
-        public PanelBloqueEstilizado() { setLayout(null); setOpaque(false); }
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(25, 38, 35, 100)); 
-            g2.fillRect(0, 0, getWidth() - 1, getHeight() - 1);
-            g2.setColor(new Color(251, 232, 138, 140)); 
-            g2.setStroke(new BasicStroke(1.2f));
-            g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 24, 24);
+            super.paintComponent(g2);
             g2.dispose();
-            super.paintComponent(g);
         }
     }
 
@@ -570,12 +524,12 @@ sidebar.add(btnCerrarSesion);
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 300, Short.MAX_VALUE)
         );
         pack();
     }

@@ -496,7 +496,7 @@ public class Transferencias extends javax.swing.JFrame {
             // --- BOTONES DE ACCIÓN ---
             // Botón Imprimir (Visible y alineado a la par de TRANSFERENCIAS)
             btnImprimir = new JButton("Imprimir comprobante");
-            btnImprimir.setBounds(620, 35, 250, 35);
+            btnImprimir.setBounds(950, 75, 250, 35);
             btnImprimir.setForeground(Color.WHITE);
             btnImprimir.setFont(etiquetaCampos);
             btnImprimir.setContentAreaFilled(false);
@@ -504,7 +504,7 @@ public class Transferencias extends javax.swing.JFrame {
             btnImprimir.setFocusPainted(false);
             btnImprimir.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnImprimir.setVisible(true);
-            contenedor.add(btnImprimir);
+            pResumen.add(btnImprimir);
 
             btnImprimir.addActionListener(e -> {
                 try {
@@ -593,7 +593,7 @@ public class Transferencias extends javax.swing.JFrame {
             });
 
             btnCancelar = new JButton("Cancelar");
-            btnCancelar.setBounds(940, 52, 250, 35);
+            btnCancelar.setBounds(940, 120, 250, 35);
             btnCancelar.setForeground(new Color(240, 100, 100));
             btnCancelar.setFont(etiquetaCampos);
             btnCancelar.setContentAreaFilled(false);
@@ -618,7 +618,7 @@ public class Transferencias extends javax.swing.JFrame {
                 }
             };
 
-            btnTransferir.setBounds(600, 70, 250, 45); //620, 35, 250, 35
+            btnTransferir.setBounds(940, 20, 250, 45); //620, 35, 250, 35
             btnTransferir.setBackground(amarilloPastel);
             btnTransferir.setForeground(Color.BLACK);
             btnTransferir.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -650,7 +650,7 @@ public class Transferencias extends javax.swing.JFrame {
                 }
             });
 
-            contenedor.add(btnTransferir);
+            pResumen.add(btnTransferir);
         }
 
         @Override

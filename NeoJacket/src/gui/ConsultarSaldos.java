@@ -1,20 +1,31 @@
 package gui;
 
+import funcionalidades.CrearUsuario;
 import funcionalidades.SesionUsuario;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.plaf.basic.BasicComboPopup;
-import javax.swing.plaf.basic.ComboPopup;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import main.CRUD.CRUD;
 import main.Conexion.conexion;
 
+/**
+ * CORREGIDO (mismo criterio que AgregarFondos / ActualizarSaldos):
+ *  - El mapeo de banco usaba códigos que no existen en la tabla `bancos`
+ *    ("Bi", "bac", "banrural", "gyt"). Ahora usa
+ *    CrearUsuario.obtenerIdBancoPorNombre(...).
+ *  - La cuenta se resuelve directo por id_usuario + id_banco en
+ *    cuentas_bancarias (antes dependía de tarjetas_bancarias.id_cuenta, que
+ *    puede quedar en NULL si la tarjeta no se vinculó explícitamente).
+ *  - El saldo ahora se muestra con formato de 2 decimales (antes salía
+ *    "Q. 500.0" en vez de "Q. 500.00").
+ *  - Recursos de BD cerrados con try-with-resources para evitar fugas de
+ *    conexión si algo lanza una excepción a la mitad.
+ */
 public class ConsultarSaldos extends JFrame {
 
     private JTable tabla;
@@ -154,7 +165,7 @@ public class ConsultarSaldos extends JFrame {
 
                 if (texto.equals("Saldos")) {
                     btn.addActionListener(e -> {
-                        new Saldos().setVisible(true);
+                        new AgregarFondos().setVisible(true);
                         dispose();
                     });
                 }
@@ -272,7 +283,7 @@ public class ConsultarSaldos extends JFrame {
                     g2.dispose();
                 }
             };
-            marcoFiltro.setBounds(40, 95, 1220, 95); // Se ajustó ligeramente la altura de 90 a 95
+            marcoFiltro.setBounds(40, 95, 1220, 95);
             marcoFiltro.setOpaque(false);
             marcoFiltro.setLayout(null);
             contenedor.add(marcoFiltro);
@@ -292,28 +303,12 @@ public class ConsultarSaldos extends JFrame {
             cbBancos.setForeground(Color.WHITE);
             cbBancos.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138, 120), 1));
 
-            cbBancos.setUI(new BasicComboBoxUI() {
-                @Override
-                protected JButton createArrowButton() {
-                    JButton btn = new JButton("▼");
-                    btn.setBorderPainted(false);
-                    btn.setContentAreaFilled(false);
-                    btn.setFocusPainted(false);
-                    btn.setForeground(amarillo);
-                    btn.setBackground(new Color(20, 30, 28));
-                    return btn;
-                }
-
-                @Override
-                protected ComboPopup createPopup() {
-                    BasicComboPopup popup = (BasicComboPopup) super.createPopup();
-                    popup.getList().setBackground(new Color(20, 30, 28));
-                    popup.getList().setForeground(Color.WHITE);
-                    popup.getList().setSelectionBackground(amarillo);
-                    popup.getList().setSelectionForeground(Color.BLACK);
-                    return popup;
-                }
-            });
+            // NOTA: antes había un cbBancos.setUI(new BasicComboBoxUI(){...}) aquí.
+            // Ese override rompía el fondo oscuro del recuadro CERRADO del combobox
+            // (aunque el desplegable sí se veía bien), dejando un fondo blanco poco
+            // legible. Con solo setBackground/setForeground/border (como en
+            // AgregarFondos y ActualizarSaldos) el tema oscuro se respeta en ambos
+            // estados: cerrado y desplegado.
 
             cbBancos.setRenderer(new DefaultListCellRenderer() {
                 @Override
@@ -348,12 +343,12 @@ public class ConsultarSaldos extends JFrame {
             marcoFiltro.add(txtTarjeta);
 
             // 3. BOTÓN CONSULTAR (A la par de la tarjeta)
-            BotonNeo btnConsultar = new BotonNeo("ⓘ Consultar", amarillo, amarilloHover);
+            BotonNeo btnConsultar = new BotonNeo("Consultar", amarillo, amarilloHover);
             btnConsultar.setForeground(Color.BLACK);
             btnConsultar.setBounds(580, 40, 150, 38);
             marcoFiltro.add(btnConsultar);
 
-            // 4. INFORMACIÓN DEL BANCO Y SALDO (Desplazados a la derecha de forma prolija)
+            // 4. INFORMACIÓN DEL BANCO Y SALDO
             JLabel lblBanco = new JLabel("Banco:");
             lblBanco.setFont(tituloCampos);
             lblBanco.setForeground(Color.WHITE);
@@ -378,7 +373,7 @@ public class ConsultarSaldos extends JFrame {
             lblSaldoValor.setBounds(910, 50, 250, 25);
             marcoFiltro.add(lblSaldoValor);
 
-            // PANEL DE LA TABLA (Mantiene su posición original abajo del marco de filtro)
+            // PANEL DE LA TABLA
             JPanel panelTabla = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -395,7 +390,7 @@ public class ConsultarSaldos extends JFrame {
             panelTabla.setBounds(40, 215, 1220, 490);
             contenedor.add(panelTabla);
 
-            String[] columnas = {"Fecha", "Actividad", "Monto", "Saldo Restante", "Estado"};
+            String[] columnas = {"Fecha", "Actividad", "Monto", "Estado"};
 
             modelo = new DefaultTableModel(columnas, 0) {
                 @Override
@@ -432,104 +427,123 @@ public class ConsultarSaldos extends JFrame {
             scroll.setBounds(15, 15, 1190, 460);
             panelTabla.add(scroll);
 
-            // Lógica funcional intacta
+            // ⚙️ LÓGICA DE CONSULTA (corregida: banco real + cuenta real)
             btnConsultar.addActionListener(e -> {
-                try {
+                int idUsuario = SesionUsuario.getIdUsuario();
+                if (idUsuario <= 0) {
+                    JOptionPane.showMessageDialog(this, "No hay una sesión válida.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String bancoSeleccionado = (String) cbBancos.getSelectedItem();
+                String numeroTarjeta = txtTarjeta.getText().trim();
+
+                if (numeroTarjeta.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Debes ingresar un número de tarjeta.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (!numeroTarjeta.matches("\\d{16}")) {
+                    JOptionPane.showMessageDialog(this, "El número de tarjeta debe contener 16 dígitos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // CORREGIDO: antes se mapeaba a códigos ("Bi", "bac"...) que no
+                // existen en la tabla `bancos`. Ahora se resuelve el id_banco real
+                // por nombre o nombre_corto, igual que en el resto de la app.
+                Integer idBanco = new CrearUsuario().obtenerIdBancoPorNombre(bancoSeleccionado);
+                if (idBanco == null) {
+                    JOptionPane.showMessageDialog(this,
+                            "No se encontró el banco \"" + bancoSeleccionado + "\" en la base de datos.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try (Connection con = conexion.getConexion()) {
+                    if (con == null) {
+                        JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Validar que la tarjeta exista, sea del usuario, del banco y esté activa
+                    try (PreparedStatement psTarjeta = con.prepareStatement(
+                            "SELECT id_tarjeta FROM tarjetas_bancarias "
+                            + "WHERE numero_tarjeta = ? AND id_usuario = ? AND id_banco = ? AND estado = 'activa'")) {
+                        psTarjeta.setString(1, numeroTarjeta);
+                        psTarjeta.setInt(2, idUsuario);
+                        psTarjeta.setInt(3, idBanco);
+
+                        try (ResultSet rsTarjeta = psTarjeta.executeQuery()) {
+                            if (!rsTarjeta.next()) {
+                                JOptionPane.showMessageDialog(this,
+                                        "No se encontró una tarjeta activa con ese número para este usuario y banco.",
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+                                return;
+                            }
+                        }
+                    }
+
+                    // CORREGIDO: la cuenta se busca directo en cuentas_bancarias por
+                    // usuario + banco, en vez de depender de tarjetas_bancarias.id_cuenta
+                    // (que puede quedar en NULL).
+                    int idCuenta;
+                    try (PreparedStatement psCuenta = con.prepareStatement(
+                            "SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ?")) {
+                        psCuenta.setInt(1, idUsuario);
+                        psCuenta.setInt(2, idBanco);
+                        try (ResultSet rsCuenta = psCuenta.executeQuery()) {
+                            if (!rsCuenta.next()) {
+                                JOptionPane.showMessageDialog(this,
+                                        "No se encontró una cuenta bancaria para este usuario en ese banco.",
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+                                return;
+                            }
+                            idCuenta = rsCuenta.getInt("id_cuenta");
+                        }
+                    }
+
                     CRUD crud = new CRUD();
-                    int idUsuario = SesionUsuario.getIdUsuario();
-                    String bancoSeleccionado = (String) cbBancos.getSelectedItem();
-                    String numeroTarjeta = txtTarjeta.getText().trim();
-
-                    if (numeroTarjeta.isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Debes ingresar un número de tarjeta.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                    if (!numeroTarjeta.matches("\\d{16}")) {
-                        JOptionPane.showMessageDialog(this, "El número de tarjeta debe contener 16 dígitos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-
-                    String nombreBD = "";
-                    switch (bancoSeleccionado) {
-                        case "Banco Industrial":
-                            nombreBD = "Bi";
-                            break;
-                        case "BAC Credomatic":
-                            nombreBD = "bac";
-                            break;
-                        case "Banrural":
-                            nombreBD = "banrural";
-                            break;
-                        case "G&T Continental":
-                            nombreBD = "gyt";
-                            break;
-                    }
-
-                    Connection con = conexion.getConexion();
-
-                    PreparedStatement psBanco = con.prepareStatement("SELECT id_banco FROM bancos WHERE nombre = ?");
-                    psBanco.setString(1, nombreBD);
-                    ResultSet rsBanco = psBanco.executeQuery();
-
-                    if (!rsBanco.next()) {
-                        JOptionPane.showMessageDialog(this, "Banco no válido.", "Error", JOptionPane.ERROR_MESSAGE);
-                        rsBanco.close();
-                        psBanco.close();
-                        con.close();
-                        return;
-                    }
-                    int idBanco = rsBanco.getInt("id_banco");
-
-                    PreparedStatement psTarjeta = con.prepareStatement(
-                            "SELECT t.id_tarjeta, c.id_cuenta, c.saldo "
-                            + "FROM tarjetas_bancarias t "
-                            + "JOIN cuentas_bancarias c ON t.id_cuenta = c.id_cuenta "
-                            + "WHERE t.numero_tarjeta = ? AND t.id_usuario = ? AND t.id_banco = ? AND t.estado = 'activa'"
-                    );
-                    psTarjeta.setString(1, numeroTarjeta);
-                    psTarjeta.setInt(2, idUsuario);
-                    psTarjeta.setInt(3, idBanco);
-
-                    ResultSet rsTarjeta = psTarjeta.executeQuery();
-
-                    if (!rsTarjeta.next()) {
-                        JOptionPane.showMessageDialog(this, "Número de tarjeta inválido o banco no registrado.", "Error", JOptionPane.ERROR_MESSAGE);
-                        rsTarjeta.close();
-                        psTarjeta.close();
-                        rsBanco.close();
-                        psBanco.close();
-                        con.close();
-                        return;
-                    }
-
-                    int idCuenta = rsTarjeta.getInt("id_cuenta");
                     double saldo = crud.consultarSaldo(idUsuario, idBanco, idCuenta);
-                    lblSaldoValor.setText("Q. " + saldo);
-                    lblBancoValor.setText(bancoSeleccionado); // Asigna el texto del banco consultado para dar feedback
+                    lblSaldoValor.setText(String.format("Q. %,.2f", saldo));
 
-                    rsTarjeta.close();
-                    psTarjeta.close();
-                    rsBanco.close();
-                    psBanco.close();
-
-                    ResultSet rsTrans = crud.consultarTransacciones(idUsuario, idBanco, idCuenta);
-                    modelo.setRowCount(0);
-
-                    while (rsTrans.next()) {
-                        Object[] fila = {
-                            rsTrans.getTimestamp("creado_en"),
-                            rsTrans.getString("tipo_transaccion"),
-                            rsTrans.getDouble("monto"),
-                            rsTrans.getDouble("saldoRestante"),
-                            rsTrans.getString("estado")
-                        };
-                        modelo.addRow(fila);
+                    // Se pidió que el nombre mostrado sea el que realmente está en la
+                    // BD (columna `nombre` de `bancos`), no solo el texto del combobox.
+                    String nombreBancoReal = bancoSeleccionado;
+                    try (PreparedStatement psNombreBanco = con.prepareStatement(
+                            "SELECT nombre FROM bancos WHERE id_banco = ?")) {
+                        psNombreBanco.setInt(1, idBanco);
+                        try (ResultSet rsNombreBanco = psNombreBanco.executeQuery()) {
+                            if (rsNombreBanco.next()) {
+                                nombreBancoReal = rsNombreBanco.getString("nombre");
+                            }
+                        }
                     }
-                    rsTrans.close();
-                    con.close();
+                    lblBancoValor.setText(nombreBancoReal);
+
+                    // Historial de transacciones de esa cuenta
+                    modelo.setRowCount(0);
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                    try (PreparedStatement psTrans = con.prepareStatement(
+                            "SELECT creado_en, tipo_transaccion, monto, estado FROM transacciones "
+                            + "WHERE id_usuario_realizador = ? AND id_cuenta_origen = ? "
+                            + "ORDER BY creado_en DESC")) {
+                        psTrans.setInt(1, idUsuario);
+                        psTrans.setInt(2, idCuenta);
+                        try (ResultSet rsTrans = psTrans.executeQuery()) {
+                            while (rsTrans.next()) {
+                                java.sql.Timestamp fecha = rsTrans.getTimestamp("creado_en");
+                                Object[] fila = {
+                                    fecha != null ? sdf.format(fecha) : "--",
+                                    rsTrans.getString("tipo_transaccion"),
+                                    String.format("%,.2f", rsTrans.getDouble("monto")),
+                                    rsTrans.getString("estado")
+                                };
+                                modelo.addRow(fila);
+                            }
+                        }
+                    }
 
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     ex.printStackTrace();
                 }
             });

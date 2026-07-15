@@ -1,15 +1,35 @@
 package gui;
 
+import funcionalidades.CrearUsuario;
 import funcionalidades.SesionUsuario;
-import javax.swing.*;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import main.CRUD.CRUD;
+import javax.swing.*;
+import javax.swing.border.LineBorder;
 import main.Conexion.conexion;
 
+/**
+ * Ventana para registrar un gasto y descontarlo del saldo de una cuenta.
+ *
+ * CORREGIDO (mismo criterio que AgregarFondos):
+ *  - Ya NO se le pide al usuario el "nuevo saldo después del gasto". El
+ *    programa consulta el saldo actual en la BD y calcula el saldo restante
+ *    automáticamente (saldoActual - montoGastado), validando que haya
+ *    fondos suficientes antes de descontar.
+ *  - La cuenta se resuelve directo por id_usuario + id_banco en
+ *    cuentas_bancarias (antes dependía de tarjetas_bancarias.id_cuenta, que
+ *    puede quedar en NULL).
+ *  - El mapeo de banco usaba códigos que no existen en la tabla `bancos`
+ *    ("Bi", "bac", "banrural", "gyt"). Ahora usa
+ *    CrearUsuario.obtenerIdBancoPorNombre(...), igual que el resto de la app.
+ *  - Se eliminó el INSERT duplicado en transacciones: antes se insertaba una
+ *    vez dentro de CRUD.actualizarSaldo(...) y otra vez manualmente aquí.
+ *    Ahora se hace un solo UPDATE + un solo INSERT, con
+ *    tipo_transaccion = 'retiro' (para que sí cuente como gasto en el
+ *    Historial y el Dashboard).
+ */
 public class ActualizarSaldos extends JFrame {
 
     private Image fondo;
@@ -121,7 +141,7 @@ public class ActualizarSaldos extends JFrame {
 
                 if (texto.equals("Saldos")) {
                     btn.addActionListener(e -> {
-                        new Saldos().setVisible(true);
+                        new AgregarFondos().setVisible(true);
                         dispose();
                     });
                 }
@@ -210,9 +230,8 @@ public class ActualizarSaldos extends JFrame {
             });
             barraSuperior.add(btnTab3);
 
-            // 🌟 CAMBIO AQUÍ: Se agrandó el alto de panelForm de 510 a 575 para alojar todos los campos ordenadamente
             PanelFormularioRedondeado panelForm = new PanelFormularioRedondeado();
-            panelForm.setBounds(425, 90, 450, 575);
+            panelForm.setBounds(425, 90, 450, 525);
             panelForm.setLayout(null);
             contenedor.add(panelForm);
 
@@ -250,7 +269,7 @@ public class ActualizarSaldos extends JFrame {
             });
             panelForm.add(cbBancos);
 
-            // 2. NÚMERO DE TARJETA (Ahora justo abajo del ComboBox)
+            // 2. NÚMERO DE TARJETA
             JLabel lblTarjeta = new JLabel("Número de tarjeta");
             lblTarjeta.setForeground(Color.WHITE);
             lblTarjeta.setFont(tituloCampos);
@@ -262,43 +281,72 @@ public class ActualizarSaldos extends JFrame {
             txtTarjeta.setFont(textoInputs);
             panelForm.add(txtTarjeta);
 
-            // 3. MONTO GASTADO
+            // --- Saldo actual (solo lectura, se llena automáticamente) ---
+            JLabel lblSaldoActualTitulo = new JLabel("Saldo actual");
+            lblSaldoActualTitulo.setForeground(Color.WHITE);
+            lblSaldoActualTitulo.setFont(tituloCampos);
+            lblSaldoActualTitulo.setBounds(30, 195, 390, 22);
+            panelForm.add(lblSaldoActualTitulo);
+
+            CampoSoloLectura cajaSaldoActual = new CampoSoloLectura();
+            cajaSaldoActual.setBounds(30, 220, 390, 45);
+            panelForm.add(cajaSaldoActual);
+
+            JLabel lblSaldoActualValor = new JLabel("Selecciona el banco e ingresa la tarjeta", SwingConstants.CENTER);
+            lblSaldoActualValor.setForeground(new Color(251, 232, 138));
+            lblSaldoActualValor.setFont(new Font("Segoe UI", Font.BOLD, 15));
+            lblSaldoActualValor.setBounds(0, 0, cajaSaldoActual.getWidth(), cajaSaldoActual.getHeight());
+            cajaSaldoActual.add(lblSaldoActualValor);
+
+            // 3. MONTO GASTADO (el programa calcula el saldo restante, ya no se pide)
             JLabel lblMontoGastado = new JLabel("Monto gastado");
             lblMontoGastado.setForeground(Color.WHITE);
             lblMontoGastado.setFont(tituloCampos);
-            lblMontoGastado.setBounds(30, 200, 390, 25);
+            lblMontoGastado.setBounds(30, 280, 390, 25);
             panelForm.add(lblMontoGastado);
 
             JTextFieldRedondeado txtMontoGastado = new JTextFieldRedondeado();
-            txtMontoGastado.setBounds(30, 230, 390, 45);
+            txtMontoGastado.setBounds(30, 310, 390, 45);
             txtMontoGastado.setFont(textoInputs);
             panelForm.add(txtMontoGastado);
 
-            // 4. NUEVO SALDO DESPUÉS DEL GASTO
-            JLabel lblNuevoSaldo = new JLabel("Nuevo saldo después del gasto");
-            lblNuevoSaldo.setForeground(Color.WHITE);
-            lblNuevoSaldo.setFont(tituloCampos);
-            lblNuevoSaldo.setBounds(30, 290, 390, 25);
-            panelForm.add(lblNuevoSaldo);
-
-            JTextFieldRedondeado txtNuevoSaldo = new JTextFieldRedondeado();
-            txtNuevoSaldo.setBounds(30, 320, 390, 45);
-            txtNuevoSaldo.setFont(textoInputs);
-            panelForm.add(txtNuevoSaldo);
-
-            // 5. DESCRIPCIÓN
+            // 4. DESCRIPCIÓN
             JLabel lblDescripcion = new JLabel("Descripción");
             lblDescripcion.setForeground(Color.WHITE);
             lblDescripcion.setFont(tituloCampos);
-            lblDescripcion.setBounds(30, 380, 390, 25);
+            lblDescripcion.setBounds(30, 370, 390, 25);
             panelForm.add(lblDescripcion);
 
             JTextFieldRedondeado txtDescripcion = new JTextFieldRedondeado();
-            txtDescripcion.setBounds(30, 410, 390, 45);
+            txtDescripcion.setBounds(30, 400, 390, 45);
             txtDescripcion.setFont(textoInputs);
             panelForm.add(txtDescripcion);
 
-            // 6. BOTÓN GUARDAR
+            // --- Consulta automática del saldo actual cuando hay banco + tarjeta válidos ---
+            Runnable actualizarSaldoMostrado = () -> {
+                String bancoSel = (String) cbBancos.getSelectedItem();
+                String tarjeta = txtTarjeta.getText().trim();
+                if (bancoSel == null || !tarjeta.matches("\\d{16}")) {
+                    lblSaldoActualValor.setText("Selecciona el banco e ingresa la tarjeta");
+                    return;
+                }
+                Double saldo = consultarSaldoActual(bancoSel, tarjeta);
+                if (saldo != null) {
+                    lblSaldoActualValor.setText(String.format("GTQ %,.2f", saldo));
+                } else {
+                    lblSaldoActualValor.setText("No se encontró esa tarjeta en ese banco");
+                }
+            };
+
+            txtTarjeta.addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override
+                public void keyReleased(java.awt.event.KeyEvent e) {
+                    actualizarSaldoMostrado.run();
+                }
+            });
+            cbBancos.addActionListener(e -> actualizarSaldoMostrado.run());
+
+            // 5. BOTÓN GUARDAR
             JButton btnGuardar = new JButton("Guardar") {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -310,7 +358,7 @@ public class ActualizarSaldos extends JFrame {
                     super.paintComponent(g);
                 }
             };
-            btnGuardar.setBounds(30, 495, 390, 50);
+            btnGuardar.setBounds(30, 460, 390, 45);
             btnGuardar.setBackground(new Color(251, 232, 138));
             btnGuardar.setForeground(Color.BLACK);
             btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 15));
@@ -331,107 +379,206 @@ public class ActualizarSaldos extends JFrame {
             });
             panelForm.add(btnGuardar);
 
+            // ⚙️ LÓGICA DE GUARDADO, con diagnóstico paso a paso (mismo criterio que AgregarFondos)
             btnGuardar.addActionListener(e -> {
+
+                // ---------- PASO 1: Validar monto gastado ----------
+                double montoGastado;
+                String montoTexto = txtMontoGastado.getText().trim();
+                if (montoTexto.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Debes ingresar el monto gastado.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 try {
-                    CRUD crud = new CRUD();
+                    montoGastado = Double.parseDouble(montoTexto);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "[PASO 1] El monto gastado debe ser un número válido.\nValor ingresado: \"" + montoTexto + "\"",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (montoGastado <= 0) {
+                    JOptionPane.showMessageDialog(this, "El monto gastado debe ser mayor a 0.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-                    int idUsuario = SesionUsuario.getIdUsuario();
-                    String bancoSeleccionado = (String) cbBancos.getSelectedItem();
-                    double montoActual = Double.parseDouble(txtMontoGastado.getText());
-                    double nuevoMonto = Double.parseDouble(txtNuevoSaldo.getText());
-                    String motivo = txtDescripcion.getText();
+                // ---------- PASO 2: Sesión ----------
+                int idUsuario = SesionUsuario.getIdUsuario();
+                if (idUsuario <= 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "[PASO 2 - Sesión] No hay un usuario válido en la sesión.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-                    String numeroTarjeta = txtTarjeta.getText().trim();
-                    if (numeroTarjeta.isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Debes ingresar un número de tarjeta.", "Error", JOptionPane.ERROR_MESSAGE);
+                // ---------- PASO 3: Validar número de tarjeta ----------
+                String numeroTarjeta = txtTarjeta.getText().trim();
+                if (numeroTarjeta.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Debes ingresar un número de tarjeta.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (!numeroTarjeta.matches("\\d{16}")) {
+                    JOptionPane.showMessageDialog(this,
+                            "[PASO 3] El número de tarjeta debe contener 16 dígitos numéricos.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // ---------- PASO 4: Resolver banco seleccionado ----------
+                String bancoSeleccionado = (String) cbBancos.getSelectedItem();
+                Integer idBanco = new CrearUsuario().obtenerIdBancoPorNombre(bancoSeleccionado);
+                if (idBanco == null) {
+                    JOptionPane.showMessageDialog(this,
+                            "[PASO 4] No se encontró el banco \"" + bancoSeleccionado + "\" en la base de datos.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String motivo = txtDescripcion.getText();
+
+                Connection con = null;
+                PreparedStatement psTarjeta = null;
+                ResultSet rsTarjeta = null;
+                PreparedStatement psCuenta = null;
+                ResultSet rsCuenta = null;
+
+                try {
+                    // ---------- PASO 5: Conexión ----------
+                    con = conexion.getConexion();
+                    if (con == null) {
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 5] No se pudo conectar a la base de datos.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
-                    if (!numeroTarjeta.matches("\\d{16}")) {
-                        JOptionPane.showMessageDialog(this, "El número de tarjeta debe contener 16 dígitos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
 
-                    String nombreBD = "";
-                    switch (bancoSeleccionado) {
-                        case "Banco Industrial":
-                            nombreBD = "Bi";
-                            break;
-                        case "BAC Credomatic":
-                            nombreBD = "bac";
-                            break;
-                        case "Banrural":
-                            nombreBD = "banrural";
-                            break;
-                        case "G&T Continental":
-                            nombreBD = "gyt";
-                            break;
-                    }
-
-                    Connection con = conexion.getConexion();
-                    PreparedStatement psBanco = con.prepareStatement("SELECT id_banco FROM bancos WHERE nombre = ?");
-                    psBanco.setString(1, nombreBD);
-                    ResultSet rsBanco = psBanco.executeQuery();
-
-                    if (!rsBanco.next()) {
-                        JOptionPane.showMessageDialog(this, "Banco no válido.", "Error", JOptionPane.ERROR_MESSAGE);
-                        rsBanco.close();
-                        psBanco.close();
-                        con.close();
-                        return;
-                    }
-                    int idBanco = rsBanco.getInt("id_banco");
-
-                    PreparedStatement psTarjeta = con.prepareStatement(
-                            "SELECT t.id_tarjeta, c.id_cuenta "
-                            + "FROM tarjetas_bancarias t "
-                            + "JOIN cuentas_bancarias c ON t.id_cuenta = c.id_cuenta "
-                            + "WHERE t.numero_tarjeta = ? AND t.id_usuario = ? AND t.id_banco = ? AND t.estado = 'activa'"
+                    // ---------- PASO 6: Validar que la tarjeta exista, sea del usuario y esté activa ----------
+                    psTarjeta = con.prepareStatement(
+                            "SELECT id_tarjeta FROM tarjetas_bancarias "
+                            + "WHERE numero_tarjeta = ? AND id_usuario = ? AND id_banco = ? AND estado = 'activa'"
                     );
                     psTarjeta.setString(1, numeroTarjeta);
                     psTarjeta.setInt(2, idUsuario);
                     psTarjeta.setInt(3, idBanco);
-
-                    ResultSet rsTarjeta = psTarjeta.executeQuery();
+                    rsTarjeta = psTarjeta.executeQuery();
 
                     if (!rsTarjeta.next()) {
-                        JOptionPane.showMessageDialog(this, "Número de tarjeta inválido o banco no registrado.", "Error", JOptionPane.ERROR_MESSAGE);
-                        rsTarjeta.close();
-                        psTarjeta.close();
-                        rsBanco.close();
-                        psBanco.close();
-                        con.close();
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 6] No se encontró una tarjeta activa con ese número para este usuario y banco.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
 
-                    int idCuenta = rsTarjeta.getInt("id_cuenta");
+                    // ---------- PASO 7: Obtener id de cuenta y saldo actual REAL desde cuentas_bancarias ----------
+                    // (ya no depende de tarjetas_bancarias.id_cuenta, que puede ser NULL)
+                    psCuenta = con.prepareStatement(
+                            "SELECT id_cuenta, saldo FROM cuentas_bancarias WHERE id_usuario = ? AND id_banco = ?"
+                    );
+                    psCuenta.setInt(1, idUsuario);
+                    psCuenta.setInt(2, idBanco);
+                    rsCuenta = psCuenta.executeQuery();
 
-                    boolean ok = crud.actualizarSaldo(idUsuario, idBanco, idCuenta, montoActual, nuevoMonto, motivo);
-                    if (ok) {
+                    if (!rsCuenta.next()) {
+                        JOptionPane.showMessageDialog(this,
+                                "[PASO 7] No se encontró una cuenta bancaria para este usuario en ese banco.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    int idCuenta = rsCuenta.getInt("id_cuenta");
+                    double saldoActual = rsCuenta.getDouble("saldo");
+
+                    // ---------- PASO 8: El PROGRAMA calcula el saldo restante (ya no lo escribe el usuario) ----------
+                    if (montoGastado > saldoActual) {
+                        JOptionPane.showMessageDialog(this,
+                                String.format("Fondos insuficientes. Saldo actual: GTQ %,.2f", saldoActual),
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    double saldoRestante = saldoActual - montoGastado;
+
+                    // ---------- PASO 9: Descontar el gasto y registrar UNA sola transacción ----------
+                    PreparedStatement psUpdate = con.prepareStatement(
+                            "UPDATE cuentas_bancarias SET saldo = ? WHERE id_cuenta = ? AND id_usuario = ? AND id_banco = ?"
+                    );
+                    psUpdate.setDouble(1, saldoRestante);
+                    psUpdate.setInt(2, idCuenta);
+                    psUpdate.setInt(3, idUsuario);
+                    psUpdate.setInt(4, idBanco);
+                    int filas = psUpdate.executeUpdate();
+                    psUpdate.close();
+
+                    if (filas > 0) {
                         PreparedStatement psTrans = con.prepareStatement(
-                                "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, moneda_origen, estado) "
-                                + "VALUES (?, ?, 'actualizacion', ?, 'GTQ', 'completada')"
+                                "INSERT INTO transacciones (id_cuenta_origen, id_usuario_realizador, tipo_transaccion, monto, descripcion, moneda_origen, estado) "
+                                + "VALUES (?, ?, 'retiro', ?, ?, 'GTQ', 'completada')"
                         );
                         psTrans.setInt(1, idCuenta);
                         psTrans.setInt(2, idUsuario);
-                        psTrans.setDouble(3, nuevoMonto);
+                        psTrans.setDouble(3, montoGastado);
+                        psTrans.setString(4, motivo != null ? motivo : "");
                         psTrans.executeUpdate();
                         psTrans.close();
 
-                        JOptionPane.showMessageDialog(this, "Saldo actualizado con éxito");
+                        JOptionPane.showMessageDialog(this,
+                                String.format("Gasto registrado.\nSaldo anterior: GTQ %,.2f\nGasto: GTQ %,.2f\nSaldo restante: GTQ %,.2f",
+                                        saldoActual, montoGastado, saldoRestante),
+                                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+                        txtMontoGastado.setText("");
+                        txtDescripcion.setText("");
+                        actualizarSaldoMostrado.run();
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                                "No se pudo actualizar el saldo. Intenta de nuevo.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
                     }
 
-                    rsTarjeta.close();
-                    psTarjeta.close();
-                    rsBanco.close();
-                    psBanco.close();
-                    con.close();
-
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     ex.printStackTrace();
+                } finally {
+                    try { if (rsCuenta != null) rsCuenta.close(); } catch (Exception ignored) {}
+                    try { if (psCuenta != null) psCuenta.close(); } catch (Exception ignored) {}
+                    try { if (rsTarjeta != null) rsTarjeta.close(); } catch (Exception ignored) {}
+                    try { if (psTarjeta != null) psTarjeta.close(); } catch (Exception ignored) {}
+                    try { if (con != null) con.close(); } catch (Exception ignored) {}
                 }
             });
 
+        }
+
+        /**
+         * Consulta rápida de solo lectura para mostrar el saldo actual en pantalla
+         * mientras el usuario llena el formulario (no valida tarjeta contra usuario
+         * en detalle, solo banco + número, para dar feedback inmediato).
+         */
+        private Double consultarSaldoActual(String bancoSeleccionado, String numeroTarjeta) {
+            int idUsuario = SesionUsuario.getIdUsuario();
+            if (idUsuario <= 0) {
+                return null;
+            }
+            Integer idBanco = new CrearUsuario().obtenerIdBancoPorNombre(bancoSeleccionado);
+            if (idBanco == null) {
+                return null;
+            }
+            String sql = "SELECT c.saldo FROM cuentas_bancarias c "
+                    + "JOIN tarjetas_bancarias t ON t.id_usuario = c.id_usuario AND t.id_banco = c.id_banco "
+                    + "WHERE c.id_usuario = ? AND c.id_banco = ? AND t.numero_tarjeta = ? AND t.estado = 'activa'";
+            try (Connection con = conexion.getConexion();
+                 PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setInt(1, idUsuario);
+                ps.setInt(2, idBanco);
+                ps.setString(3, numeroTarjeta);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getDouble("saldo");
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            return null;
         }
 
         private JButton crearBotonPestaña(String texto, int xPos) {
@@ -481,6 +628,32 @@ public class ActualizarSaldos extends JFrame {
             g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 
             g2.dispose();
+        }
+    }
+
+    // Caja de solo lectura con el mismo lenguaje visual de los campos de texto,
+    // usada para mostrar el saldo actual centrado (sin dejar un espacio "flotante").
+    class CampoSoloLectura extends JPanel {
+
+        public CampoSoloLectura() {
+            setOpaque(false);
+            setLayout(null);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(new Color(13, 18, 16));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+
+            g2.setColor(new Color(251, 232, 138, 130));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 
