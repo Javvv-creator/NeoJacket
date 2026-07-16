@@ -90,7 +90,7 @@ public class GestionMenores extends JFrame {
 
             String[] botones = {
                 "Gestión de Usuarios",
-                "Gestión de Menores Supervisados",
+                "Gestión de Menores",
                 "Gestión de Cuentas",
                 "Gestión de Tarjetas",
                 "Gestión de Divisas",
@@ -115,7 +115,7 @@ public class GestionMenores extends JFrame {
                 
                  if (texto.equals("Gestión de Menores")) {
                     btn.addActionListener(e -> {
-                        new GestionUsuario();
+                        new GestionMenores();
                         dispose();
                     });
 

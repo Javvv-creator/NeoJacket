@@ -87,7 +87,7 @@ public class DetalleCuenta extends JFrame {
         setTitle("Información de Cuenta");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setResizable(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Cambiado a DISPOSE para no cerrar todo el programa al regresar
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
         setVisible(true);
@@ -200,7 +200,7 @@ public class DetalleCuenta extends JFrame {
             Color amarillo = new Color(251, 232, 138);
 
             // ============================
-            // DOS COLUMNAS PARA QUE TODO QUEPA
+            // DOS COLUMNAS
             // ============================
             int colIzqX = 30;
             int colDerX = 700;
@@ -234,7 +234,7 @@ public class DetalleCuenta extends JFrame {
             txtUltimaTransaccion = agregarCampo(panel, "Última transacción:", colDerX, yDer, fieldOffsetX, fieldWidth, amarillo);
 
             // ============================
-            // BOTÓN REGRESAR (con espacio de sobra debajo de las columnas)
+            // BOTÓN REGRESAR
             // ============================
             BotonNeo btnRegresar = new BotonNeo("Regresar");
             btnRegresar.setBounds(30, 620, 200, 50);
@@ -266,13 +266,14 @@ public class DetalleCuenta extends JFrame {
     }
 
     // ============================
-    // CARGAR DATOS DE LA CUENTA DESDE LA BASE DE DATOS
+    // CARGAR DATOS DE LA CUENTA DESDE LA BASE DE DATOS (Corregido)
     // ============================
     private void cargarDetalle() {
 
+        // Se removieron las columnas c.fecha_creacion, c.fecha_actualizacion y c.ultima_transaccion
         String sql = "SELECT c.numero_cuenta, CONCAT(u.nombre, ' ', u.apellido) AS propietario, "
-                + "t.nombre AS tipo_cuenta, b.nombre AS banco, c.fecha_creacion, c.saldo, "
-                + "c.estado, c.moneda, c.id_cuenta, c.fecha_actualizacion, c.ultima_transaccion "
+                + "t.nombre AS tipo_cuenta, b.nombre AS banco, c.saldo, "
+                + "c.estado, c.moneda, c.id_cuenta "
                 + "FROM cuentas_bancarias c "
                 + "JOIN usuarios u ON c.id_usuario = u.id_usuario "
                 + "JOIN tipos_cuentas t ON c.id_tipo_cuenta = t.id_tipo "
@@ -290,13 +291,15 @@ public class DetalleCuenta extends JFrame {
                     txtPropietario.setText(rs.getString("propietario"));
                     txtTipoCuenta.setText(rs.getString("tipo_cuenta"));
                     txtBanco.setText(rs.getString("banco"));
-                    txtFechaCreacion.setText(String.valueOf(rs.getDate("fecha_creacion")));
-                    txtSaldo.setText(String.valueOf(rs.getBigDecimal("saldo")));
-                    txtEstado.setText(rs.getString("estado"));
+                    txtSaldo.setText("$ " + rs.getBigDecimal("saldo").toString());
+                    txtEstado.setText(rs.getString("estado").toUpperCase());
                     txtMoneda.setText(rs.getString("moneda"));
                     txtCodigoCuenta.setText(String.valueOf(rs.getInt("id_cuenta")));
-                    txtUltimaActualizacion.setText(String.valueOf(rs.getTimestamp("fecha_actualizacion")));
-                    txtUltimaTransaccion.setText(String.valueOf(rs.getTimestamp("ultima_transaccion")));
+                   
+                    // Llenamos por defecto los campos cuyas columnas no existen físicamente en la BD
+                    txtFechaCreacion.setText("No disponible");
+                    txtUltimaActualizacion.setText("No disponible");
+                    txtUltimaTransaccion.setText("No disponible");
                 } else {
                     JOptionPane.showMessageDialog(this, "No se encontró la cuenta.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
