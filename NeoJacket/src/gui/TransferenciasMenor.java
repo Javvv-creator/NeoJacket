@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import funcionalidades.CrearUsuario;
-import funcionalidades.SesionUsuario;
+import funcionalidades.SupervisionDAO;
 
 public class TransferenciasMenor extends javax.swing.JFrame {
 
@@ -53,11 +53,110 @@ public class TransferenciasMenor extends javax.swing.JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
+
+        // --- GUARDA DE SEGURIDAD ---
+        // Sin importar por dónde se haya navegado hasta aquí, si el permiso de
+        // "transferencia" no está aprobado, NUNCA se construye el formulario
+        // real de transferencias.
+        if (idMenor != null && !tienePermisoAprobado()) {
+            setContentPane(new PanelAccesoRestringido());
+            SwingUtilities.invokeLater(this::mostrarFuncionBloqueada);
+            return;
+        }
+
         setContentPane(new FondoPanel());
 
         // --- INICIALIZACIÓN DE LA FUNCIONALIDAD REAL (idéntico patrón que gui.Transferencias) ---
         new funcionalidades.TransferenciasMenor(this);
+    }
+
+    private boolean tienePermisoAprobado() {
+        if (idMenor == null) return false;
+        return new SupervisionDAO().tienePermisoAprobado(idMenor, "transferencia");
+    }
+
+    private void mostrarFuncionBloqueada() {
+        int opcion = JOptionPane.showConfirmDialog(this,
+            "Esta función no está disponible para tu tipo de cuenta.\n\n" +
+            "¿Deseas enviar una solicitud de permiso a tu tutor?",
+            "Acceso restringido", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        if (opcion == JOptionPane.YES_OPTION) {
+            SupervisionDAO dao = new SupervisionDAO();
+            Integer idAdulto = dao.obtenerIdAdultoDeMenor(idMenor);
+            if (idAdulto == null) {
+                JOptionPane.showMessageDialog(this, "No se encontró un tutor asignado.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            dao.registrarAccionBloqueada(idMenor, "transferencia");
+            boolean enviada = dao.crearSolicitudPermiso(idMenor, idAdulto, "transferencia", "Realizar una transferencia", 0);
+            if (enviada) {
+                JOptionPane.showMessageDialog(this,
+                    "✅ Solicitud enviada a tu tutor.\nPodrás realizar esta acción cuando la apruebe.",
+                    "Solicitud enviada", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo enviar la solicitud.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * Pantalla mínima mostrada cuando alguien llega a esta ventana sin tener
+     * el permiso de "transferencia" aprobado por su tutor. Reemplaza por
+     * completo al formulario de transferencias — así nunca queda expuesto.
+     */
+    class PanelAccesoRestringido extends JPanel {
+        public PanelAccesoRestringido() {
+            setLayout(new GridBagLayout());
+            setBackground(new Color(20, 32, 29));
+
+            JPanel tarjeta = new JPanel();
+            tarjeta.setPreferredSize(new Dimension(480, 260));
+            tarjeta.setBackground(new Color(25, 38, 35));
+            tarjeta.setBorder(BorderFactory.createLineBorder(new Color(90, 90, 90), 1, true));
+            tarjeta.setLayout(new GridBagLayout());
+
+            JPanel stack = new JPanel();
+            stack.setOpaque(false);
+            stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+
+            JLabel lblCandado = new JLabel("🔒");
+            lblCandado.setFont(new Font("Segoe UI", Font.PLAIN, 40));
+            lblCandado.setForeground(new Color(200, 200, 200));
+            lblCandado.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JLabel lblTitulo = new JLabel("Acceso restringido");
+            lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
+            lblTitulo.setForeground(amarilloPastel);
+            lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JLabel lblDetalle = new JLabel("<html><div style='text-align:center; width:340px;'>"
+                + "Las transferencias no están disponibles para tu tipo de cuenta "
+                + "hasta que tu tutor apruebe el permiso.</div></html>");
+            lblDetalle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            lblDetalle.setForeground(new Color(200, 205, 200));
+            lblDetalle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JButton btnRegresar = new JButton("← Regresar al Dashboard");
+            btnRegresar.setAlignmentX(Component.CENTER_ALIGNMENT);
+            btnRegresar.setFocusPainted(false);
+            btnRegresar.setBackground(new Color(94, 116, 73));
+            btnRegresar.setForeground(Color.WHITE);
+            btnRegresar.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            btnRegresar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btnRegresar.addActionListener(e -> { new DashboardMenor(idMenor).setVisible(true); dispose(); });
+
+            stack.add(lblCandado);
+            stack.add(Box.createRigidArea(new Dimension(0, 12)));
+            stack.add(lblTitulo);
+            stack.add(Box.createRigidArea(new Dimension(0, 10)));
+            stack.add(lblDetalle);
+            stack.add(Box.createRigidArea(new Dimension(0, 20)));
+            stack.add(btnRegresar);
+
+            tarjeta.add(stack);
+            add(tarjeta);
+        }
     }
 
  class FondoPanel extends JPanel {
@@ -148,7 +247,8 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             contenedor.add(lblDesc);
 
             String[] opcionesCuentas = {"Cuenta de Ahorro", "Cuenta Monetaria"};
-            String[] opcionesBancos = cargarBancosUsuario();
+            String[] opcionesBancosOrigen = cargarBancosDelTutor();
+            String[] opcionesBancosDestino = {"Banco Industrial", "Banco de América Central (BAC)", "Banrural", "Banco G&T Continental"};
             int inputWidth = 540;
             int inputHeight = 42;
 
@@ -171,7 +271,7 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             lblBancoO.setBounds(30, 48, 200, 20);
             pOrigen.add(lblBancoO);
 
-            cmbSelBancoO = new JComboBoxOscuro(opcionesBancos);
+            cmbSelBancoO = new JComboBoxOscuro(opcionesBancosOrigen);
             cmbSelBancoO.setBounds(30, 72, inputWidth, inputHeight);
             pOrigen.add(cmbSelBancoO);
 
@@ -221,7 +321,7 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             lblBancoD.setBounds(30, 48, 200, 20);
             pDestino.add(lblBancoD);
 
-            cmbSelBancoD = new JComboBoxOscuro(opcionesBancos);
+            cmbSelBancoD = new JComboBoxOscuro(opcionesBancosDestino);
             cmbSelBancoD.setBounds(30, 72, inputWidth, inputHeight);
             pDestino.add(cmbSelBancoD);
 
@@ -593,10 +693,24 @@ public class TransferenciasMenor extends javax.swing.JFrame {
         }
     }
 
-    private String[] cargarBancosUsuario() {
+    /**
+     * Trae los bancos vinculados a la cuenta del TUTOR/supervisor del menor
+     * (no del menor). Estos son los bancos disponibles como origen, ya que
+     * el dinero de una cuenta supervisada proviene de las cuentas que el
+     * tutor tiene conectadas. Si el tutor conecta un banco nuevo (ej.
+     * Banrural) después de crear la cuenta, aparecerá aquí automáticamente.
+     */
+    private String[] cargarBancosDelTutor() {
+        if (idMenor == null) {
+            return new String[]{"Sin bancos vinculados"};
+        }
+        SupervisionDAO daoSup = new SupervisionDAO();
+        Integer idAdulto = daoSup.obtenerIdAdultoDeMenor(idMenor);
+        if (idAdulto == null) {
+            return new String[]{"Sin tutor asignado"};
+        }
         CrearUsuario crear = new CrearUsuario();
-        int idParaConsulta = (idMenor != null) ? idMenor : SesionUsuario.getIdUsuario();
-        List<String> bancos = crear.obtenerBancosVinculados(idParaConsulta);
+        List<String> bancos = crear.obtenerBancosVinculados(idAdulto);
         if (bancos.isEmpty()) {
             return new String[]{"Sin bancos vinculados"};
         }
