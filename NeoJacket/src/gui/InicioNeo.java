@@ -101,7 +101,7 @@ public class InicioNeo extends JFrame {
             Color colorRedesHover = new Color(94, 116, 73, 200);
 
             BotonNeo btnInstagram = new BotonNeo("Instagram", colorRedes, colorRedesHover);
-            btnInstagram.addActionListener(e -> abrirEnlace("https://www.instagram.com/neo_jacketgt?igsh=MWt6ZXdjbjR2eW5mNA=="));
+            btnInstagram.addActionListener(e -> abrirEnlace("https://www.instagram.com/neo_jacket.gt/"));
             panelBotones.add(btnInstagram);
 
             BotonNeo btnTikTok = new BotonNeo("TikTok", colorRedes, colorRedesHover);
@@ -109,7 +109,7 @@ public class InicioNeo extends JFrame {
             panelBotones.add(btnTikTok);
 
             BotonNeo btnFacebook = new BotonNeo("Facebook", colorRedes, colorRedesHover);
-            btnFacebook.addActionListener(e -> abrirEnlace("https://www.facebook.com"));
+            btnFacebook.addActionListener(e -> abrirEnlace("https://www.facebook.com/profile.php"));
             panelBotones.add(btnFacebook);
 
             gbc.gridy = 1;

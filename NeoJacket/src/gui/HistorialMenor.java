@@ -66,6 +66,40 @@ public class HistorialMenor extends javax.swing.JFrame {
         if (idMenor != null) cargarDatosMenor();
     }
 
+    /**
+     * Crea un aviso centrado y estilizado para bloques que no aplican a
+     * cuentas de menores supervisados (ej. Resumen Financiero, Bancos
+     * Conectados, Cambio de Divisas).
+     */
+    private JPanel crearAvisoNoAplica(int width, int height) {
+        JPanel wrapper = new JPanel();
+        wrapper.setOpaque(false);
+        wrapper.setLayout(new GridBagLayout());
+        wrapper.setBounds(0, 40, width, height - 40);
+
+        JLabel lblCandado = new JLabel("🔒");
+        lblCandado.setFont(new Font("Segoe UI", Font.PLAIN, 26));
+        lblCandado.setForeground(new Color(150, 160, 150));
+        lblCandado.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JLabel lblTexto = new JLabel("Esto no aplica para este tipo de cuenta");
+        lblTexto.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        lblTexto.setForeground(new Color(170, 178, 170));
+        lblTexto.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JPanel stack = new JPanel();
+        stack.setOpaque(false);
+        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        lblCandado.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTexto.setAlignmentX(Component.CENTER_ALIGNMENT);
+        stack.add(lblCandado);
+        stack.add(Box.createRigidArea(new Dimension(0, 8)));
+        stack.add(lblTexto);
+
+        wrapper.add(stack);
+        return wrapper;
+    }
+
     private void cargarDatosMenor() {
         SupervisionDAO dao = new SupervisionDAO();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -135,7 +169,7 @@ public class HistorialMenor extends javax.swing.JFrame {
     lblAviso.setBounds(20, 122, 250, 18);
     sidebar.add(lblAviso);
 
-    String[] botones = {"Transferencias", "Divisas", "Historial"};
+    String[] botones = {"Transferencias", "Historial"};
     int y = 150;
     for (String nombre : botones) {
         JButton btn = new JButton(nombre);
@@ -152,7 +186,6 @@ public class HistorialMenor extends javax.swing.JFrame {
         }
         btn.addActionListener(e -> {
             if (nombre.equals("Transferencias")) { new TransferenciasMenor(idMenor).setVisible(true); dispose(); }
-            if (nombre.equals("Divisas"))        { new DivisasMenor(idMenor).setVisible(true); dispose(); }
         });
         sidebar.add(btn);
         y += 70;
@@ -232,9 +265,9 @@ public class HistorialMenor extends javax.swing.JFrame {
             lblTagAhorros.setBounds(25, 125, 200, 20);
             pMisCuentas.add(lblTagAhorros);
 
-            lblCtaAhorros = new JLabel("--");
-            lblCtaAhorros.setForeground(Color.WHITE);
-            lblCtaAhorros.setFont(textoInputs);
+            lblCtaAhorros = new JLabel("<html>&#128274;&nbsp; Esto no aplica para este tipo de cuenta</html>");
+            lblCtaAhorros.setForeground(new Color(160, 168, 160));
+            lblCtaAhorros.setFont(new Font("Segoe UI", Font.ITALIC, 13));
             lblCtaAhorros.setBounds(25, 148, 550, 22);
             pMisCuentas.add(lblCtaAhorros);
 
@@ -249,29 +282,14 @@ public class HistorialMenor extends javax.swing.JFrame {
             lblTitleResumen.setBounds(25, 15, 300, 22);
             pResumenFin.add(lblTitleResumen);
 
+            // Campos declarados para compatibilidad, sin mostrarse en pantalla
+            // (no aplican a cuentas de menores supervisados)
             lblSaldoDisponible = new JLabel("Saldo disponible: --");
-            lblSaldoDisponible.setForeground(Color.WHITE);
-            lblSaldoDisponible.setFont(textoInputs);
-            lblSaldoDisponible.setBounds(25, 55, 550, 22);
-            pResumenFin.add(lblSaldoDisponible);
-
             lblIngresosMes = new JLabel("Ingresos del mes: --");
-            lblIngresosMes.setForeground(new Color(130, 220, 130));
-            lblIngresosMes.setFont(textoInputs);
-            lblIngresosMes.setBounds(25, 90, 550, 22);
-            pResumenFin.add(lblIngresosMes);
-
             lblGastosMes = new JLabel("Gastos del mes: --");
-            lblGastosMes.setForeground(new Color(240, 120, 120));
-            lblGastosMes.setFont(textoInputs);
-            lblGastosMes.setBounds(25, 125, 550, 22);
-            pResumenFin.add(lblGastosMes);
-
             lblUltimaActResumen = new JLabel("Última actualización: --");
-            lblUltimaActResumen.setForeground(new Color(150, 160, 150));
-            lblUltimaActResumen.setFont(descripcionPantalla);
-            lblUltimaActResumen.setBounds(25, 160, 550, 22);
-            pResumenFin.add(lblUltimaActResumen);
+
+            pResumenFin.add(crearAvisoNoAplica(anchoBloque, 230));
 
 
             // =================================================================
@@ -287,23 +305,13 @@ public class HistorialMenor extends javax.swing.JFrame {
             lblTitleBancos.setBounds(25, 15, 300, 22);
             pBancosCon.add(lblTitleBancos);
 
+            // Campos declarados para compatibilidad, sin mostrarse en pantalla
+            // (no aplican a cuentas de menores supervisados)
             lblBanco1 = new JLabel("✔ --");
-            lblBanco1.setForeground(Color.WHITE);
-            lblBanco1.setFont(textoInputs);
-            lblBanco1.setBounds(25, 55, 550, 22);
-            pBancosCon.add(lblBanco1);
-
             lblBanco2 = new JLabel("✔ --");
-            lblBanco2.setForeground(Color.WHITE);
-            lblBanco2.setFont(textoInputs);
-            lblBanco2.setBounds(25, 90, 550, 22);
-            pBancosCon.add(lblBanco2);
-
             lblBanco3 = new JLabel("✔ --");
-            lblBanco3.setForeground(Color.WHITE);
-            lblBanco3.setFont(textoInputs);
-            lblBanco3.setBounds(25, 125, 550, 22);
-            pBancosCon.add(lblBanco3);
+
+            pBancosCon.add(crearAvisoNoAplica(anchoBloque, 190));
 
             // -----------------------------------------------------------------
             PanelBloqueEstilizado pTransRec = new PanelBloqueEstilizado();
@@ -354,29 +362,14 @@ public class HistorialMenor extends javax.swing.JFrame {
             lblTitleDiv.setBounds(25, 15, 300, 22);
             pCambioDiv.add(lblTitleDiv);
 
+            // Campos declarados para compatibilidad, sin mostrarse en pantalla
+            // (no aplican a cuentas de menores supervisados)
             lblDivUSD = new JLabel("USD          --");
-            lblDivUSD.setForeground(Color.WHITE);
-            lblDivUSD.setFont(textoInputs);
-            lblDivUSD.setBounds(25, 60, 550, 22);
-            pCambioDiv.add(lblDivUSD);
-
             lblDivEUR = new JLabel("EUR          --");
-            lblDivEUR.setForeground(Color.WHITE);
-            lblDivEUR.setFont(textoInputs);
-            lblDivEUR.setBounds(25, 100, 550, 22);
-            pCambioDiv.add(lblDivEUR);
-
             lblDivMXN = new JLabel("MXN          --");
-            lblDivMXN.setForeground(Color.WHITE);
-            lblDivMXN.setFont(textoInputs);
-            lblDivMXN.setBounds(25, 140, 550, 22);
-            pCambioDiv.add(lblDivMXN);
-
             lblUltimaActDivisas = new JLabel("Actualizado: --");
-            lblUltimaActDivisas.setForeground(new Color(150, 160, 150));
-            lblUltimaActDivisas.setFont(descripcionPantalla);
-            lblUltimaActDivisas.setBounds(25, 260, 550, 22);
-            pCambioDiv.add(lblUltimaActDivisas);
+
+            pCambioDiv.add(crearAvisoNoAplica(anchoBloque, 310));
 
             // -----------------------------------------------------------------
             PanelBloqueEstilizado pHistorialAct = new PanelBloqueEstilizado();

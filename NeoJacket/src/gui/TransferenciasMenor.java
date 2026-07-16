@@ -2,7 +2,9 @@ package gui;
 
 import javax.swing.*;
 import java.awt.*;
-import funcionalidades.SupervisionDAO;
+import java.util.List;
+import funcionalidades.CrearUsuario;
+import funcionalidades.SesionUsuario;
 
 public class TransferenciasMenor extends javax.swing.JFrame {
 
@@ -36,6 +38,10 @@ public class TransferenciasMenor extends javax.swing.JFrame {
         this(null);
     }
 
+    public Integer getIdMenor() {
+        return idMenor;
+    }
+
     public TransferenciasMenor(Integer idMenor) {
         this.idMenor = idMenor;
         initComponents();
@@ -49,6 +55,9 @@ public class TransferenciasMenor extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         
         setContentPane(new FondoPanel());
+
+        // --- INICIALIZACIÓN DE LA FUNCIONALIDAD REAL (idéntico patrón que gui.Transferencias) ---
+        new funcionalidades.TransferenciasMenor(this);
     }
 
  class FondoPanel extends JPanel {
@@ -77,7 +86,7 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             lblAviso.setBounds(20, 122, 250, 18);
             sidebar.add(lblAviso);
 
-            String[] botones = {"Transferencias", "Divisas", "Historial"};
+            String[] botones = {"Transferencias", "Historial"};
             int y = 150;
             for (String nombre : botones) {
                 JButton btn = new JButton(nombre);
@@ -93,7 +102,6 @@ public class TransferenciasMenor extends javax.swing.JFrame {
                     btn.setForeground(Color.WHITE);
                 }
                 btn.addActionListener(e -> {
-                    if (nombre.equals("Divisas"))   { new DivisasMenor(idMenor).setVisible(true); dispose(); }
                     if (nombre.equals("Historial")) { new HistorialMenor(idMenor).setVisible(true); dispose(); }
                 });
                 sidebar.add(btn);
@@ -140,7 +148,7 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             contenedor.add(lblDesc);
 
             String[] opcionesCuentas = {"Cuenta de Ahorro", "Cuenta Monetaria"};
-            String[] opcionesBancos = {"Banco Industrial", "Banco de América Central (BAC)", "Banrural", "Banco G&T Continental"};
+            String[] opcionesBancos = cargarBancosUsuario();
             int inputWidth = 540;
             int inputHeight = 42;
 
@@ -428,6 +436,88 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             btnImprimir.setVisible(false); // <--- Oculto de fábrica
             pResumen.add(btnImprimir);
 
+            btnImprimir.addActionListener(e -> {
+                try {
+                    // Validar que ya se haya hecho la transacción
+                    if (lblO_Monto.getText().contains("--") || lblD_Monto.getText().contains("--")) {
+                        JOptionPane.showMessageDialog(this,
+                                "Primero debes realizar la transferencia antes de imprimir el comprobante.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Validar que el campo no esté vacío
+                    String montoTexto = txtMonto.getText().trim();
+                    if (montoTexto.isEmpty()) {
+                        JOptionPane.showMessageDialog(this,
+                                "Debes ingresar un monto válido.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Convertir y formatear con separador de miles y dos decimales
+                    double montoValor = Double.parseDouble(montoTexto.replace(",", "."));
+                    java.text.DecimalFormat df = new java.text.DecimalFormat("Q#,##0.00");
+                    String montoFormateado = df.format(montoValor);
+
+                    // Actualizar labels
+                    lblO_Monto.setText("Monto enviado: " + montoFormateado);
+                    lblD_Monto.setText("Monto recibido: " + montoFormateado);
+
+                    // Construir el texto del comprobante
+                    String texto = "********************************\n"
+                            + "       NEOJACKET\n"
+                            + "********************************\n\n"
+                            + "COMPROBANTE DE TRANSFERENCIA\n\n"
+                            + "No. Operacion : " + java.util.UUID.randomUUID() + "\n"
+                            + "Fecha         : " + java.time.LocalDate.now() + "\n"
+                            + "Hora          : " + java.time.LocalTime.now() + "\n\n"
+                            + "CUENTA ORIGEN\n"
+                            + "********************************\n"
+                            + lblO_Nombre.getText() + "\n"
+                            + lblO_Cuenta.getText() + "\n"
+                            + lblO_Banco.getText() + "\n"
+                            + lblO_Tipo.getText() + "\n"
+                            + lblO_Monto.getText() + "\n"
+                            + "CUENTA DESTINO\n"
+                            + "********************************\n"
+                            + lblD_Nombre.getText() + "\n"
+                            + lblD_Cuenta.getText() + "\n"
+                            + lblD_Banco.getText() + "\n"
+                            + lblD_Tipo.getText() + "\n"
+                            + lblD_Monto.getText() + "\n\n"
+                            + "Estado        : TRANSACCION EXITOSA\n\n"
+                            + "Codigo Auth.  : " + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "\n"
+                            + "Referencia    : REF-" + java.time.LocalDate.now() + "-" + System.currentTimeMillis() + "\n\n"
+                            + "********************************\n"
+                            + "Este documento es un comprobante\n"
+                            + "generado desde Java (ESC/POS)\n"
+                            + "********************************\n\n"
+                            + "¡Síguenos en nuestra red social!\n\n";
+
+                    // Mandar a imprimir
+                    funcionalidades.ImpresoraComprobante.imprimir(texto, "POS-80C");
+
+                    // Limpiar campos SOLO después de imprimir
+                    txtNumCuentaO.setText("");
+                    txtNumCuentaD.setText("");
+                    txtMonto.setText("");
+                    txtPassword.setText("");
+
+                    JOptionPane.showMessageDialog(this, "Comprobante enviado a la impresora.");
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "El monto debe ser un número válido.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error al imprimir: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            });
+
             btnCancelar = new JButton("Cancelar");
             btnCancelar.setBounds(940, 52, 250, 35);
             btnCancelar.setForeground(new Color(240, 100, 100));
@@ -461,29 +551,8 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             btnTransferir.setContentAreaFilled(false);
             btnTransferir.setBorderPainted(false);
             btnTransferir.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-            // PUNTO 1 — Validación de límites para menor supervisado
-            // Se ejecuta ANTES de que funcionalidades.Transferencias procese el botón
-            btnTransferir.addActionListener(e -> {
-                if (idMenor != null) {
-                    String montoTexto = txtMonto.getText().trim();
-                    try {
-                        double monto = Double.parseDouble(montoTexto.replace(",", "."));
-                        SupervisionDAO dao = new SupervisionDAO();
-                        String errorLimite = dao.validarLimite(idMenor, monto);
-                        if (errorLimite != null) {
-                            JOptionPane.showMessageDialog(null,
-                                errorLimite,
-                                "Límite de gasto excedido",
-                                JOptionPane.WARNING_MESSAGE);
-                            // Consume el evento — funcionalidades.Transferencias no procesa
-                            return;
-                        }
-                    } catch (NumberFormatException ex) {
-                        // Si el monto no es válido, dejar que funcionalidades.Transferencias lo maneje
-                    }
-                }
-            });
+            // La validación de límite + ejecución real de la transferencia
+            // se conecta desde funcionalidades.TransferenciasMenor (ver constructor de esta clase).
 
             pResumen.add(btnTransferir);
         }
@@ -522,6 +591,16 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             g2.dispose();
             super.paintComponent(g);
         }
+    }
+
+    private String[] cargarBancosUsuario() {
+        CrearUsuario crear = new CrearUsuario();
+        int idParaConsulta = (idMenor != null) ? idMenor : SesionUsuario.getIdUsuario();
+        List<String> bancos = crear.obtenerBancosVinculados(idParaConsulta);
+        if (bancos.isEmpty()) {
+            return new String[]{"Sin bancos vinculados"};
+        }
+        return bancos.toArray(new String[0]);
     }
 
     public class JComboBoxOscuro extends JComboBox<String> {

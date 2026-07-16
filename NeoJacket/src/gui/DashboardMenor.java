@@ -136,7 +136,7 @@ public class DashboardMenor extends javax.swing.JFrame {
             lblAviso.setBounds(20, 125, 250, 18);
             sidebar.add(lblAviso);
 
-            String[] botonesMenu = {"Transferencias", "Divisas", "Historial"};
+            String[] botonesMenu = {"Transferencias", "Historial"};
             int y = 155;
             for (String textoBtn : botonesMenu) {
                 boolean bloqueado = textoBtn.equals("Transferencias") && !tienePermisoAprobado("transferencia");
@@ -153,9 +153,6 @@ public class DashboardMenor extends javax.swing.JFrame {
                         if (tienePermisoAprobado("transferencia")) { new TransferenciasMenor(idMenor).setVisible(true); dispose(); }
                         else mostrarFuncionBloqueada("transferencia", "Realizar una transferencia", 0);
                     });
-                }
-                if (textoBtn.equals("Divisas")) {
-                    btn.addActionListener(e -> { new DivisasMenor(idMenor).setVisible(true); dispose(); });
                 }
                 if (textoBtn.equals("Historial")) {
                     btn.addActionListener(e -> { new HistorialMenor(idMenor).setVisible(true); dispose(); });
@@ -234,7 +231,7 @@ public class DashboardMenor extends javax.swing.JFrame {
             // TARJETA TRANSFERENCIAS
             boolean transAprobada = tienePermisoAprobado("transferencia");
             RoundedPanel transferencias = new RoundedPanel();
-            transferencias.setBounds(40, 240, 560, 180);
+            transferencias.setBounds(40, 240, 1160, 180);
             transferencias.setBackground(new Color(25, 38, 35, 180));
             transferencias.setBorder(BorderFactory.createLineBorder(
                 transAprobada ? new Color(150, 230, 150) : Color.WHITE, 1, true));
@@ -260,31 +257,6 @@ public class DashboardMenor extends javax.swing.JFrame {
                 else mostrarFuncionBloqueada("transferencia", "Realizar una transferencia", 0);
             });
             transferencias.add(btnTransfer);
-
-            // TARJETA DIVISAS
-            RoundedPanel divisas = new RoundedPanel();
-            divisas.setBounds(620, 240, 580, 180);
-            divisas.setBackground(new Color(25, 38, 35, 180));
-            divisas.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1, true));
-            divisas.setLayout(null);
-            contenedor.add(divisas);
-
-            JLabel lblDivisas = new JLabel("Cambio de Divisas");
-            lblDivisas.setForeground(amarilloPastel);
-            lblDivisas.setFont(tituloTarjeta);
-            lblDivisas.setBounds(15, 10, 300, 25);
-            divisas.add(lblDivisas);
-
-            JLabel infoDivisas = new JLabel("Consulta tipos de cambio en tiempo real");
-            infoDivisas.setForeground(new Color(200, 200, 200));
-            infoDivisas.setFont(texto);
-            infoDivisas.setBounds(20, 50, 500, 20);
-            divisas.add(infoDivisas);
-
-            BotonNeo btnDivisas = new BotonNeo("Ver tipos de cambio →");
-            btnDivisas.setBounds(20, 110, 240, 40);
-            btnDivisas.addActionListener(e -> { new DivisasMenor(idMenor).setVisible(true); dispose(); });
-            divisas.add(btnDivisas);
 
             // TARJETA HISTORIAL con JTable
             RoundedPanel historial = new RoundedPanel();
