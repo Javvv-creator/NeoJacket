@@ -162,6 +162,17 @@ public class DashboardMenor extends javax.swing.JFrame {
                 y += 70;
             }
 
+            JButton btnFondos = new JButton("Solicitar fondos");
+            btnFondos.setBounds(20, y, 250, 55);
+            btnFondos.setFocusPainted(false);
+            btnFondos.setBorderPainted(false);
+            btnFondos.setBackground(new Color(94, 116, 73));
+            btnFondos.setForeground(Color.WHITE);
+            btnFondos.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnFondos.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btnFondos.addActionListener(e -> { new SolicitarfondosMenor(idMenor).setVisible(true); dispose(); });
+            sidebar.add(btnFondos);
+
             JButton btnCerrarSesion = new JButton("Cerrar sesión");
             btnCerrarSesion.setBounds(20, 800, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
@@ -177,7 +188,6 @@ public class DashboardMenor extends javax.swing.JFrame {
                 new InicioNeo().setVisible(true);
                 dispose();
             });
-            sidebar.add(btnCerrarSesion);
             sidebar.add(btnCerrarSesion);
 
             add(sidebar);

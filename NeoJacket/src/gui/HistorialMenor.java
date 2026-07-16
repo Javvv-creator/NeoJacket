@@ -100,6 +100,42 @@ public class HistorialMenor extends javax.swing.JFrame {
         return wrapper;
     }
 
+    private boolean tienePermisoAprobado(String tipoAccion) {
+        if (idMenor == null) return false;
+        return new SupervisionDAO().tienePermisoAprobado(idMenor, tipoAccion);
+    }
+
+    private void mostrarFuncionBloqueada(String tipoAccion, String descripcion, double monto) {
+        if (idMenor == null) {
+            JOptionPane.showMessageDialog(this,
+                "Esta función no está disponible para tu tipo de cuenta.",
+                "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int opcion = JOptionPane.showConfirmDialog(this,
+            "Esta función no está disponible para tu tipo de cuenta.\n\n" +
+            "¿Deseas enviar una solicitud de permiso a tu tutor?",
+            "Acceso restringido", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        if (opcion == JOptionPane.YES_OPTION) {
+            SupervisionDAO dao = new SupervisionDAO();
+            Integer idAdulto = dao.obtenerIdAdultoDeMenor(idMenor);
+            if (idAdulto == null) {
+                JOptionPane.showMessageDialog(this, "No se encontró un tutor asignado.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            dao.registrarAccionBloqueada(idMenor, tipoAccion);
+            boolean enviada = dao.crearSolicitudPermiso(idMenor, idAdulto, tipoAccion, descripcion, monto);
+            if (enviada) {
+                JOptionPane.showMessageDialog(this,
+                    "✅ Solicitud enviada a tu tutor.\nPodrás realizar esta acción cuando la apruebe.",
+                    "Solicitud enviada", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo enviar la solicitud.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     private void cargarDatosMenor() {
         SupervisionDAO dao = new SupervisionDAO();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -172,7 +208,8 @@ public class HistorialMenor extends javax.swing.JFrame {
     String[] botones = {"Transferencias", "Historial"};
     int y = 150;
     for (String nombre : botones) {
-        JButton btn = new JButton(nombre);
+        boolean bloqueado = nombre.equals("Transferencias") && !tienePermisoAprobado("transferencia");
+        JButton btn = new JButton(bloqueado ? nombre + "  🔒" : nombre);
         btn.setBounds(20, y, 250, 55);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
@@ -180,12 +217,18 @@ public class HistorialMenor extends javax.swing.JFrame {
         if (nombre.equals("Historial")) {
             btn.setBackground(new Color(251, 232, 138));
             btn.setForeground(Color.BLACK);
+        } else if (bloqueado) {
+            btn.setBackground(new Color(60, 60, 60));
+            btn.setForeground(new Color(180, 180, 180));
         } else {
             btn.setBackground(new Color(94, 116, 73));
             btn.setForeground(Color.WHITE);
         }
         btn.addActionListener(e -> {
-            if (nombre.equals("Transferencias")) { new TransferenciasMenor(idMenor).setVisible(true); dispose(); }
+            if (nombre.equals("Transferencias")) {
+                if (tienePermisoAprobado("transferencia")) { new TransferenciasMenor(idMenor).setVisible(true); dispose(); }
+                else mostrarFuncionBloqueada("transferencia", "Realizar una transferencia", 0);
+            }
         });
         sidebar.add(btn);
         y += 70;
