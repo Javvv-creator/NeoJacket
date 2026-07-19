@@ -121,6 +121,38 @@ public class Historial extends javax.swing.JFrame {
         }
     }
 
+    // ==========================================
+    // BOTÓN DE ACCIÓN DEL SIDEBAR (Supervisión / Cerrar sesión / Regresar)
+    // ==========================================
+    class BotonAccionNeo extends JButton {
+        private Color normal;
+        private Color hover;
+
+        public BotonAccionNeo(String texto, Color normal, Color hover, Color colorTexto) {
+            super(texto);
+            this.normal = normal;
+            this.hover = hover;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(colorTexto);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getModel().isRollover() ? hover : normal);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            super.paintComponent(g);
+            g2.dispose();
+        }
+    }
+
     class FondoPanel extends JPanel {
 
         public FondoPanel() {
@@ -145,7 +177,7 @@ public class Historial extends javax.swing.JFrame {
             };
 
             sidebar.setOpaque(false);
-            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setBounds(20, 20, 300, 870);
             sidebar.setLayout(null);
 
             Color amarillo = amarilloPastel;
@@ -161,7 +193,8 @@ public class Historial extends javax.swing.JFrame {
                 "Saldos",
                 "Bancos Conectados",
                 "Transferencias",
-                "Historial"
+                "Historial",
+                "Agregar Tarjeta"
             };
 
             int y = 140;
@@ -231,44 +264,48 @@ public class Historial extends javax.swing.JFrame {
                         dispose();
                     });
                 }
+                if (texto.equals("Agregar Tarjeta")) {
+                    btn.addActionListener(e -> {
+                        int idUsuario = SesionUsuario.getIdUsuario();
+                        new DetalleTarjetaDasboard(idUsuario);
+                        dispose();
+                    });
+                }
                 // "Historial" no lleva listener: ya estamos en esta pantalla
 
                 sidebar.add(btn);
                 y += 68;
             }
 
-            // ---------- Estos componentes van UNA sola vez, fuera del for ----------
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
-            sidebar.add(btnCerrarSesion);
-
-            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+            // Botón Supervisión — aparece justo debajo del último botón del
+            // menú, solo si el usuario tiene menores a cargo.
             SupervisionDAO daoSup = new SupervisionDAO();
             int idSesion = SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
-                JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, 800, 250, 55);
-                btnSupervision.setFocusPainted(false);
-                btnSupervision.setBorderPainted(false);
-                btnSupervision.setBackground(amarilloPastel);
-                btnSupervision.setForeground(new Color(25, 38, 35));
-                btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnSupervision.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                BotonAccionNeo btnSupervision = new BotonAccionNeo(
+                        "Supervisión",
+                        amarilloPastel,
+                        new Color(255, 245, 180),
+                        new Color(25, 38, 35));
+                btnSupervision.setBounds(20, y, 250, 55);
                 btnSupervision.addActionListener(e -> {
                     new PanelSupervision(idSesion).setVisible(true);
                     dispose();
                 });
                 sidebar.add(btnSupervision);
             }
+
+            BotonAccionNeo btnCerrarSesion = new BotonAccionNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80),
+                    Color.WHITE);
+            btnCerrarSesion.setBounds(20, 800, 250, 55);
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
 
             panel.add(sidebar);
         }
@@ -283,6 +320,19 @@ public class Historial extends javax.swing.JFrame {
             contenedor.setOpaque(false);
             contenedor.setBounds(350, 20, 1300, 950);
             add(contenedor);
+
+            // Botón Regresar al Dashboard — arriba a la derecha, estilo verde
+            BotonAccionNeo btnRegresarDashboard = new BotonAccionNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90),
+                    Color.WHITE);
+            btnRegresarDashboard.setBounds(1430, 35, 220, 40);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            add(btnRegresarDashboard);
 
             // ---------------------------------------------------
             // HEADER: "BIENVENIDO / Historial de Actividad"

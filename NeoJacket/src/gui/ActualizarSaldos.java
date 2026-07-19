@@ -2,33 +2,23 @@ package gui;
 
 import funcionalidades.CrearUsuario;
 import funcionalidades.SesionUsuario;
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import javax.swing.*;
-import javax.swing.border.LineBorder;
+import main.CRUD.CRUD;
 import main.Conexion.conexion;
 
 /**
  * Ventana para registrar un gasto y descontarlo del saldo de una cuenta.
- *
- * CORREGIDO (mismo criterio que AgregarFondos):
- *  - Ya NO se le pide al usuario el "nuevo saldo después del gasto". El
- *    programa consulta el saldo actual en la BD y calcula el saldo restante
- *    automáticamente (saldoActual - montoGastado), validando que haya
- *    fondos suficientes antes de descontar.
- *  - La cuenta se resuelve directo por id_usuario + id_banco en
- *    cuentas_bancarias (antes dependía de tarjetas_bancarias.id_cuenta, que
- *    puede quedar en NULL).
- *  - El mapeo de banco usaba códigos que no existen en la tabla `bancos`
- *    ("Bi", "bac", "banrural", "gyt"). Ahora usa
- *    CrearUsuario.obtenerIdBancoPorNombre(...), igual que el resto de la app.
- *  - Se eliminó el INSERT duplicado en transacciones: antes se insertaba una
- *    vez dentro de CRUD.actualizarSaldo(...) y otra vez manualmente aquí.
- *    Ahora se hace un solo UPDATE + un solo INSERT, con
- *    tipo_transaccion = 'retiro' (para que sí cuente como gasto en el
- *    Historial y el Dashboard).
+ * NUEVO: agregado botón "Agregar Tarjeta" en el sidebar y el campo
+ * "Monto gastado" ahora solo acepta dígitos y un punto decimal.
  */
 public class ActualizarSaldos extends JFrame {
 
@@ -52,6 +42,66 @@ public class ActualizarSaldos extends JFrame {
         setContentPane(new FondoPanel());
     }
 
+    // ==========================================
+    // BOTÓN DE ACCIÓN DEL SIDEBAR (Supervisión / Cerrar sesión / Regresar)
+    // ==========================================
+    class BotonAccionNeo extends JButton {
+        private Color normal;
+        private Color hover;
+
+        public BotonAccionNeo(String texto, Color normal, Color hover, Color colorTexto) {
+            super(texto);
+            this.normal = normal;
+            this.hover = hover;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(colorTexto);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getModel().isRollover() ? hover : normal);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            super.paintComponent(g);
+            g2.dispose();
+        }
+    }
+
+    /**
+     * Restringe un JTextField para que solo acepte dígitos y, como mucho,
+     * un punto decimal (para campos de montos/cantidades).
+     */
+    private static void permitirSoloNumeros(JTextField campo) {
+        ((AbstractDocument) campo.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+                if (resultanteValido(fb, offset, 0, string)) {
+                    super.insertString(fb, offset, string, attr);
+                }
+            }
+
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                if (resultanteValido(fb, offset, length, text)) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+
+            private boolean resultanteValido(FilterBypass fb, int offset, int length, String textoNuevo) throws BadLocationException {
+                String actual = fb.getDocument().getText(0, fb.getDocument().getLength());
+                String resultante = actual.substring(0, offset) + textoNuevo + actual.substring(offset + length);
+                return resultante.matches("\\d*(\\.\\d*)?");
+            }
+        });
+    }
+
     class FondoPanel extends JPanel {
 
         public FondoPanel() {
@@ -72,7 +122,7 @@ public class ActualizarSaldos extends JFrame {
             };
 
             sidebar.setOpaque(false);
-            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setBounds(20, 20, 300, 870);
             sidebar.setLayout(null);
 
             Color amarillo = new Color(251, 232, 138);
@@ -88,7 +138,8 @@ public class ActualizarSaldos extends JFrame {
                 "Saldos",
                 "Bancos Conectados",
                 "Transferencias",
-                "Historial"
+                "Historial",
+                "Agregar Tarjeta"
             };
 
             int y = 140;
@@ -163,23 +214,47 @@ public class ActualizarSaldos extends JFrame {
                         dispose();
                     });
                 }
-
-                JButton btnCerrarSesion = new JButton("Cerrar sesión");
-                btnCerrarSesion.setBounds(20, 880, 250, 55);
-                btnCerrarSesion.setFocusPainted(false);
-                btnCerrarSesion.setBorderPainted(false);
-                btnCerrarSesion.setBackground(new Color(191, 76, 58));
-                btnCerrarSesion.setForeground(Color.WHITE);
-                btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnCerrarSesion.addActionListener(e -> {
-                    new InicioNeo().setVisible(true);
-                    dispose();
-                });
-                sidebar.add(btnCerrarSesion);
+                if (texto.equals("Agregar Tarjeta")) {
+                    btn.addActionListener(e -> {
+                        int idUsuario = SesionUsuario.getIdUsuario();
+                        new DetalleTarjetaDasboard(idUsuario);
+                        dispose();
+                    });
+                }
 
                 sidebar.add(btn);
                 y += 68;
             }
+
+            // Botón Supervisión — aparece justo debajo del último botón del
+            // menú, solo si el usuario tiene menores a cargo.
+            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
+            int idSesion = SesionUsuario.getIdUsuario();
+            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
+                BotonAccionNeo btnSupervision = new BotonAccionNeo(
+                        "Supervisión",
+                        new Color(251, 232, 138),
+                        new Color(255, 245, 180),
+                        new Color(25, 38, 35));
+                btnSupervision.setBounds(20, y, 250, 55);
+                btnSupervision.addActionListener(e -> {
+                    new PanelSupervision(idSesion).setVisible(true);
+                    dispose();
+                });
+                sidebar.add(btnSupervision);
+            }
+
+            BotonAccionNeo btnCerrarSesion = new BotonAccionNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80),
+                    Color.WHITE);
+            btnCerrarSesion.setBounds(20, 800, 250, 55);
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
 
             panel.add(sidebar);
         }
@@ -200,6 +275,19 @@ public class ActualizarSaldos extends JFrame {
             contenedor.setBounds(350, 60, 1300, 760);
             contenedor.setBorder(new LineBorder(new Color(251, 232, 138, 50), 1));
             add(contenedor);
+
+            // Botón Regresar al Dashboard — arriba a la derecha, estilo verde
+            BotonAccionNeo btnRegresarDashboard = new BotonAccionNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90),
+                    Color.WHITE);
+            btnRegresarDashboard.setBounds(1430, 15, 220, 40);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            add(btnRegresarDashboard);
 
             JPanel barraSuperior = new JPanel();
             barraSuperior.setBounds(0, 0, 1300, 55);
@@ -231,7 +319,7 @@ public class ActualizarSaldos extends JFrame {
             barraSuperior.add(btnTab3);
 
             PanelFormularioRedondeado panelForm = new PanelFormularioRedondeado();
-            panelForm.setBounds(425, 90, 450, 525);
+            panelForm.setBounds(425, 90, 450, 575);
             panelForm.setLayout(null);
             contenedor.add(panelForm);
 
@@ -308,6 +396,7 @@ public class ActualizarSaldos extends JFrame {
             JTextFieldRedondeado txtMontoGastado = new JTextFieldRedondeado();
             txtMontoGastado.setBounds(30, 310, 390, 45);
             txtMontoGastado.setFont(textoInputs);
+            permitirSoloNumeros(txtMontoGastado);
             panelForm.add(txtMontoGastado);
 
             // 4. DESCRIPCIÓN

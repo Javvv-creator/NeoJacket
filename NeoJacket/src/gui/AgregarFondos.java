@@ -6,6 +6,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import main.CRUD.CRUD;
 import main.Conexion.conexion;
 
@@ -44,6 +48,39 @@ public class AgregarFondos extends JFrame {
         setContentPane(new FondoPanel());
     }
 
+    // ==========================================
+    // BOTÓN DE ACCIÓN DEL SIDEBAR (Supervisión / Cerrar sesión / Regresar)
+    // Bordes redondeados, colores flexibles (igual estilo que el Dashboard)
+    // ==========================================
+    class BotonAccionNeo extends JButton {
+        private Color normal;
+        private Color hover;
+
+        public BotonAccionNeo(String texto, Color normal, Color hover, Color colorTexto) {
+            super(texto);
+            this.normal = normal;
+            this.hover = hover;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(colorTexto);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getModel().isRollover() ? hover : normal);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            super.paintComponent(g);
+            g2.dispose();
+        }
+    }
+
     /**
      * Panel contenedor principal que maneja la distribución espacial de la UI y
      * el renderizado del fondo de la pantalla.
@@ -76,7 +113,7 @@ public class AgregarFondos extends JFrame {
             };
 
             sidebar.setOpaque(false);
-            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setBounds(20, 20, 300, 870);
             sidebar.setLayout(null);
 
             Color amarillo = new Color(251, 232, 138);
@@ -93,7 +130,8 @@ public class AgregarFondos extends JFrame {
                 "Saldos",
                 "Bancos Conectados",
                 "Transferencias",
-                "Historial"
+                "Historial",
+                "Agregar Tarjeta"
             };
 
             int y = 140;
@@ -174,24 +212,48 @@ public class AgregarFondos extends JFrame {
                         dispose();
                     });
                 }
+                if (texto.equals("Agregar Tarjeta")) {
+                    btn.addActionListener(e -> {
+                        int idUsuario = SesionUsuario.getIdUsuario();
+                        new DetalleTarjetaDasboard(idUsuario);
+                        dispose();
+                    });
+                }
 
                 // Botón de salida con advertencia cromática (Rojo)
-                JButton btnCerrarSesion = new JButton("Cerrar sesión");
-                btnCerrarSesion.setBounds(20, 880, 250, 55);
-                btnCerrarSesion.setFocusPainted(false);
-                btnCerrarSesion.setBorderPainted(false);
-                btnCerrarSesion.setBackground(new Color(191, 76, 58));
-                btnCerrarSesion.setForeground(Color.WHITE);
-                btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnCerrarSesion.addActionListener(e -> {
-                    new InicioNeo().setVisible(true);
-                    dispose();
-                });
-                sidebar.add(btnCerrarSesion);
-
                 sidebar.add(btn);
                 y += 68; // Incremento de desplazamiento vertical uniforme
             }
+
+            // Botón Supervisión — aparece justo debajo del último botón del
+            // menú, solo si el usuario tiene menores a cargo.
+            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
+            int idSesion = SesionUsuario.getIdUsuario();
+            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
+                BotonAccionNeo btnSupervision = new BotonAccionNeo(
+                        "Supervisión",
+                        new Color(251, 232, 138),
+                        new Color(255, 245, 180),
+                        new Color(25, 38, 35));
+                btnSupervision.setBounds(20, y, 250, 55);
+                btnSupervision.addActionListener(e -> {
+                    new PanelSupervision(idSesion).setVisible(true);
+                    dispose();
+                });
+                sidebar.add(btnSupervision);
+            }
+
+            BotonAccionNeo btnCerrarSesion = new BotonAccionNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80),
+                    Color.WHITE);
+            btnCerrarSesion.setBounds(20, 800, 250, 55);
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
 
             panel.add(sidebar);
         }
@@ -216,6 +278,19 @@ public class AgregarFondos extends JFrame {
             contenedor.setOpaque(false);
             contenedor.setBounds(350, 60, 1300, 760);
             add(contenedor);
+
+            // Botón Regresar al Dashboard — arriba a la derecha, estilo verde
+            BotonAccionNeo btnRegresarDashboard = new BotonAccionNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90),
+                    Color.WHITE);
+            btnRegresarDashboard.setBounds(1430, 15, 220, 40);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            add(btnRegresarDashboard);
 
             // Barra superior integrada para albergar el sistema de pestañas secundarias
             JPanel barraSuperior = new JPanel();
@@ -311,6 +386,7 @@ public class AgregarFondos extends JFrame {
             JTextFieldBordeAmarillo txtMonto = new JTextFieldBordeAmarillo();
             txtMonto.setBounds(35, 155, 380, 45);
             txtMonto.setFont(textoInputs);
+            permitirSoloNumeros(txtMonto);
             cartaCampos.add(txtMonto);
 
             // Campo de número de tarjeta (necesario para resolver la cuenta destino del depósito)
@@ -616,6 +692,35 @@ public class AgregarFondos extends JFrame {
                 }
             });
 
+        }
+
+        /**
+         * Restringe un JTextField para que solo acepte dígitos y, como mucho,
+         * un punto decimal (para campos de montos/cantidades). Bloquea letras
+         * y cualquier otro carácter tanto al escribir como al pegar texto.
+         */
+        private void permitirSoloNumeros(JTextField campo) {
+            ((AbstractDocument) campo.getDocument()).setDocumentFilter(new DocumentFilter() {
+                @Override
+                public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+                    if (resultanteValido(fb, offset, 0, string)) {
+                        super.insertString(fb, offset, string, attr);
+                    }
+                }
+
+                @Override
+                public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                    if (resultanteValido(fb, offset, length, text)) {
+                        super.replace(fb, offset, length, text, attrs);
+                    }
+                }
+
+                private boolean resultanteValido(FilterBypass fb, int offset, int length, String textoNuevo) throws BadLocationException {
+                    String actual = fb.getDocument().getText(0, fb.getDocument().getLength());
+                    String resultante = actual.substring(0, offset) + textoNuevo + actual.substring(offset + length);
+                    return resultante.matches("\\d*(\\.\\d*)?");
+                }
+            });
         }
 
         /**

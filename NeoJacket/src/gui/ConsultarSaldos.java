@@ -13,19 +13,6 @@ import javax.swing.table.JTableHeader;
 import main.CRUD.CRUD;
 import main.Conexion.conexion;
 
-/**
- * CORREGIDO (mismo criterio que AgregarFondos / ActualizarSaldos):
- *  - El mapeo de banco usaba códigos que no existen en la tabla `bancos`
- *    ("Bi", "bac", "banrural", "gyt"). Ahora usa
- *    CrearUsuario.obtenerIdBancoPorNombre(...).
- *  - La cuenta se resuelve directo por id_usuario + id_banco en
- *    cuentas_bancarias (antes dependía de tarjetas_bancarias.id_cuenta, que
- *    puede quedar en NULL si la tarjeta no se vinculó explícitamente).
- *  - El saldo ahora se muestra con formato de 2 decimales (antes salía
- *    "Q. 500.0" en vez de "Q. 500.00").
- *  - Recursos de BD cerrados con try-with-resources para evitar fugas de
- *    conexión si algo lanza una excepción a la mitad.
- */
 public class ConsultarSaldos extends JFrame {
 
     private JTable tabla;
@@ -103,7 +90,7 @@ public class ConsultarSaldos extends JFrame {
             };
 
             sidebar.setOpaque(false);
-            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setBounds(20, 20, 300, 870);
             sidebar.setLayout(null);
 
             Color amarillo = new Color(251, 232, 138);
@@ -116,7 +103,7 @@ public class ConsultarSaldos extends JFrame {
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            String[] opciones = {"Saldos", "Bancos Conectados", "Transferencias", "Historial"};
+            String[] opciones = {"Saldos", "Bancos Conectados", "Transferencias", "Historial", "Agregar Tarjeta"};
             int y = 140;
 
             for (String texto : opciones) {
@@ -187,16 +174,43 @@ public class ConsultarSaldos extends JFrame {
                         dispose();
                     });
                 }
+                if (texto.equals("Agregar Tarjeta")) {
+                    btn.addActionListener(e -> {
+                        int idUsuario = SesionUsuario.getIdUsuario();
+                        new DetalleTarjetaDasboard(idUsuario);
+                        dispose();
+                    });
+                }
 
                 sidebar.add(btn);
                 y += 68;
             }
 
-            BotonNeo btnCerrarSesion = new BotonNeo("Cerrar sesión", amarillo, amarilloHover);
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            // Botón Supervisión — aparece justo debajo del último botón del
+            // menú, solo si el usuario tiene menores a cargo.
+            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
+            int idSesion = SesionUsuario.getIdUsuario();
+            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
+                BotonNeo btnSupervision = new BotonNeo("Supervisión", amarillo, amarilloHover);
+                btnSupervision.setForeground(new Color(25, 38, 35));
+                btnSupervision.setBounds(20, y, 250, 55);
+                btnSupervision.addActionListener(e -> {
+                    new PanelSupervision(idSesion).setVisible(true);
+                    dispose();
+                });
+                sidebar.add(btnSupervision);
+            }
+
+            // CORREGIDO: antes se construía con (amarillo, amarilloHover) y
+            // luego se intentaba poner rojo con setBackground(), pero
+            // BotonNeo pinta con colorNormal/colorHover (no con
+            // getBackground()), así que en realidad se veía amarillo. Ahora
+            // se construye directo con los colores rojos correctos.
+            BotonNeo btnCerrarSesion = new BotonNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80));
+            btnCerrarSesion.setBounds(20, 800, 250, 55);
             btnCerrarSesion.addActionListener(e -> {
                 new InicioNeo().setVisible(true);
                 dispose();
@@ -220,6 +234,18 @@ public class ConsultarSaldos extends JFrame {
             contenedor.setOpaque(false);
             contenedor.setBounds(350, 60, 1300, 760);
             add(contenedor);
+
+            // Botón Regresar al Dashboard — arriba a la derecha, estilo verde
+            BotonNeo btnRegresarDashboard = new BotonNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90));
+            btnRegresarDashboard.setBounds(1430, 15, 220, 40);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            add(btnRegresarDashboard);
 
             JPanel barraSuperior = new JPanel() {
                 @Override
