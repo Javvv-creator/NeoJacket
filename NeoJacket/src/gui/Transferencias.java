@@ -156,11 +156,16 @@ public class Transferencias extends javax.swing.JFrame {
                         dispose();
                     });
                 }
-                if (texto.equals("Transferencias")) {
+                 if (texto.equals("Saldos")) {
                     btn.addActionListener(e -> {
-                        new Transferencias().setVisible(true);
+                        new Saldos().setVisible(true);
                         dispose();
                     });
+                }
+                if (texto.equals("Transferencias")) {
+                    btn.setEnabled(false);
+                    btn.setForeground(amarillo);
+                    btn.setToolTipText("Ya estás en esta pestaña");
                 }
                 if (texto.equals("Historial")) {
                     btn.addActionListener(e -> {
