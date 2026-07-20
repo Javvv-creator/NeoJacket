@@ -297,27 +297,23 @@ public class DatosTarjeta extends JFrame {
 
                         int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
 
-                        // Crear cuentas en los bancos
-                        crear.crearCuentaBancaria(idUsuario, 2, tipoCuenta, numero);
-                        crear.crearCuentaBancaria(idUsuario, 3, tipoCuenta, numero);
-                        crear.crearCuentaBancaria(idUsuario, 4, tipoCuenta, numero);
-
-                        // Obtener idBanco según selección
-                        int idBancoSeleccionado = 0;
-                        switch (banco) {
-                            case "Bi":
-                                idBancoSeleccionado = 1;
-                                break;
-                            case "bac":
-                                idBancoSeleccionado = 2;
-                                break;
-                            case "banrural":
-                                idBancoSeleccionado = 3;
-                                break;
-                            case "gyt":
-                                idBancoSeleccionado = 4;
-                                break;
+                        // Resolver el id del banco elegido con la MISMA búsqueda que usa
+                        // la tarjeta (por nombre / nombre_corto en la tabla bancos), para
+                        // que la cuenta y la tarjeta queden siempre en el mismo id_banco.
+                        Integer idBancoSeleccionado = crear.obtenerIdBancoPorNombre(banco);
+                        if (idBancoSeleccionado == null) {
+                            JOptionPane.showMessageDialog(null,
+                                    "No se encontró el banco seleccionado (" + banco + ") en la base de datos.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
                         }
+
+                        // CORREGIDO: antes se creaban 3 cuentas fijas en los bancos
+                        // 2, 3 y 4 sin importar qué banco eligió el usuario, por eso
+                        // en "Bancos Conectados", el Dashboard y el Historial aparecían
+                        // bancos que la persona nunca seleccionó. Ahora se crea SOLO la
+                        // cuenta del banco realmente elegido en el combobox.
+                        crear.crearCuentaBancaria(idUsuario, idBancoSeleccionado, tipoCuenta, numero);
 
                         // Recuperar idCuenta de ese banco
                         int idCuenta = crear.obtenerIdCuenta(idUsuario, idBancoSeleccionado);
@@ -326,7 +322,7 @@ public class DatosTarjeta extends JFrame {
                         servicio.vincularTarjetaConCuenta(numero, idCuenta);
 
                         JOptionPane.showMessageDialog(null,
-                                "✅ Tarjeta y cuentas bancarias creadas correctamente.",
+                                "✅ Tarjeta y cuenta bancaria creadas correctamente.",
                                 "Éxito",
                                 JOptionPane.INFORMATION_MESSAGE);
 
