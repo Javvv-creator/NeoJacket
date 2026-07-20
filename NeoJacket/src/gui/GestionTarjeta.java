@@ -2,12 +2,14 @@ package gui;
 
 import funcionalidades.ServicioTarjeta;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableRowSorter;
@@ -16,6 +18,10 @@ public class GestionTarjeta extends JFrame {
 
     private Image fondo;
     private Image logo;
+
+    private final Color amarilloPastel = new Color(251, 232, 138);
+    private final Color verdeFondoCampos = new Color(20, 32, 30);
+    private final Color verdeBotonNormal = new Color(94, 116, 73);
 
     // ============================
     // TEXTFIELD REDONDEADO
@@ -26,17 +32,19 @@ public class GestionTarjeta extends JFrame {
             setOpaque(false);
             setForeground(Color.WHITE);
             setCaretColor(Color.WHITE);
-            setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(25, 38, 35, 200));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-            g2.setColor(new Color(251, 232, 138));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            g2.setColor(new Color(13, 20, 18, 230));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+            g2.setColor(new Color(251, 232, 138, 170));
+            g2.setStroke(new BasicStroke(1.2f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
             super.paintComponent(g);
             g2.dispose();
         }
@@ -52,6 +60,7 @@ public class GestionTarjeta extends JFrame {
             setBorderPainted(false);
             setFocusPainted(false);
             setForeground(Color.WHITE);
+            setFont(new Font("Segoe UI", Font.BOLD, 13));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
@@ -59,15 +68,187 @@ public class GestionTarjeta extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(getModel().isRollover()
-                    ? new Color(251, 232, 138, 220)
-                    : new Color(94, 116, 73, 190));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-            g2.setColor(new Color(255, 255, 255, 80));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            if (getModel().isRollover()) {
+                g2.setColor(amarilloPastel);
+                setForeground(Color.BLACK);
+            } else {
+                g2.setColor(new Color(94, 116, 73, 190));
+                setForeground(Color.WHITE);
+            }
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+            g2.setColor(new Color(255, 255, 255, 60));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
             super.paintComponent(g);
             g2.dispose();
         }
+    }
+
+    // ============================
+    // BOTÓN SIDEBAR NEO
+    // ============================
+    class BotonSidebarNeo extends JButton {
+
+        private boolean esSeleccionado;
+
+        public BotonSidebarNeo(String texto, boolean esSeleccionado) {
+            super(texto);
+            this.esSeleccionado = esSeleccionado;
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setOpaque(false);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setFont(new Font("Segoe UI", Font.BOLD, 15));
+
+            if (esSeleccionado) {
+                setBackground(amarilloPastel);
+                setForeground(Color.BLACK);
+            } else {
+                setBackground(verdeBotonNormal);
+                setForeground(Color.WHITE);
+            }
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    if (!esSeleccionado) {
+                        setBackground(amarilloPastel);
+                        setForeground(Color.BLACK);
+                    }
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    if (!esSeleccionado) {
+                        setBackground(verdeBotonNormal);
+                        setForeground(Color.WHITE);
+                    }
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+            if (!esSeleccionado) {
+                g2.setColor(new Color(251, 232, 138, 100));
+                g2.setStroke(new BasicStroke(1f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+            }
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // ============================
+    // TARJETA CONTENEDORA REDONDEADA
+    // ============================
+    private JPanel crearCardPanel(Color colorBorde, int alfa, float grosor) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(25, 38, 35, 180));
+                g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 22, 22));
+                g2.setColor(new Color(colorBorde.getRed(), colorBorde.getGreen(), colorBorde.getBlue(), alfa));
+                g2.setStroke(new BasicStroke(grosor));
+                g2.draw(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 22, 22));
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setLayout(null);
+        return card;
+    }
+
+    // ============================
+    // ESTILIZADOR DE JCOMBOBOX
+    // ============================
+    private void estilizarComboBox(JComboBox<?> combo) {
+        combo.setBackground(verdeFondoCampos);
+        combo.setForeground(Color.WHITE);
+        combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        combo.setFocusable(false);
+
+        combo.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
+            @Override
+            protected JButton createArrowButton() {
+                JButton btn = new JButton() {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2.setColor(amarilloPastel);
+                        int[] xPoints = {getWidth() / 2 - 5, getWidth() / 2 + 5, getWidth() / 2};
+                        int[] yPoints = {getHeight() / 2 - 3, getHeight() / 2 - 3, getHeight() / 2 + 4};
+                        g2.fillPolygon(xPoints, yPoints, 3);
+                        g2.dispose();
+                    }
+                };
+                btn.setContentAreaFilled(false);
+                btn.setBorder(BorderFactory.createEmptyBorder());
+                return btn;
+            }
+        });
+
+        combo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setBorder(new EmptyBorder(6, 12, 6, 12));
+                if (isSelected) {
+                    lbl.setBackground(amarilloPastel);
+                    lbl.setForeground(Color.BLACK);
+                } else {
+                    lbl.setBackground(verdeFondoCampos);
+                    lbl.setForeground(Color.WHITE);
+                }
+                return lbl;
+            }
+        });
+
+        final boolean[] isHover = {false};
+
+        combo.setBorder(new javax.swing.border.Border() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(isHover[0] || combo.hasFocus() ? amarilloPastel : new Color(251, 232, 138, 170));
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawRoundRect(x, y, width - 1, height - 1, 14, 14);
+                g2.dispose();
+            }
+
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(0, 12, 0, 12);
+            }
+
+            @Override
+            public boolean isBorderOpaque() {
+                return false;
+            }
+        });
+
+        combo.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                isHover[0] = true;
+                combo.repaint();
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                isHover[0] = false;
+                combo.repaint();
+            }
+        });
     }
 
     // ============================
@@ -113,9 +294,18 @@ public class GestionTarjeta extends JFrame {
         // ============================
         private void crearSidebar() {
 
-            JPanel sidebar = new JPanel();
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                    g2.dispose();
+                }
+            };
+            sidebar.setOpaque(false);
             sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
             sidebar.setBounds(20, 20, 300, 950);
 
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -135,18 +325,9 @@ public class GestionTarjeta extends JFrame {
             int y = 140;
 
             for (String texto : botones) {
-                JButton btn = new JButton(texto);
+                boolean activo = texto.equals("Gestión de Tarjetas");
+                BotonSidebarNeo btn = new BotonSidebarNeo(texto, activo);
                 btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-
-                btn.setBackground(new Color(94, 116, 73));
-                btn.setForeground(Color.WHITE);
-
-                if (texto.equals("Gestión de Tarjetas")) {
-                    btn.setBackground(new Color(251, 232, 138));
-                    btn.setForeground(Color.BLACK);
-                }
 
                 if (texto.equals("Gestión de Usuarios")) {
                     btn.addActionListener(e -> {
@@ -194,31 +375,41 @@ public class GestionTarjeta extends JFrame {
 
             JPanel panel = new JPanel();
             panel.setLayout(null);
-            panel.setBackground(new Color(25, 38, 35, 150));
+            panel.setOpaque(false);
             panel.setBounds(350, 60, 1300, 760);
             add(panel);
+
+            // BANNER
+            JPanel banner = crearCardPanel(amarilloPastel, 230, 1f);
+            banner.setBounds(0, 0, 1300, 110);
+            panel.add(banner);
 
             JLabel titulo = new JLabel("Gestión de Tarjetas");
             titulo.setFont(new Font("Segoe UI", Font.BOLD, 34));
             titulo.setForeground(Color.WHITE);
             titulo.setBounds(30, 20, 500, 40);
-            panel.add(titulo);
+            banner.add(titulo);
 
             JLabel subtitulo = new JLabel("Administra y consulta las tarjetas registradas del sistema");
             subtitulo.setForeground(Color.WHITE);
             subtitulo.setBounds(30, 65, 600, 20);
-            panel.add(subtitulo);
+            banner.add(subtitulo);
 
-            Color amarillo = new Color(251, 232, 138);
+            BotonNeo btnVolver = new BotonNeo("← Volver");
+            btnVolver.setBounds(1300 - 160, 32, 120, 45);
+            btnVolver.addActionListener(e -> {
+                new PanelControlAdmin();
+                dispose();
+            });
+            banner.add(btnVolver);
+
+            Color amarillo = amarilloPastel;
 
             // ============================
             // PANEL FILTROS
             // ============================
-            JPanel panelFiltros = new JPanel();
-            panelFiltros.setLayout(null);
-            panelFiltros.setBackground(new Color(25, 38, 35, 180));
-            panelFiltros.setBounds(40, 130, 1180, 120);
-            panelFiltros.setBorder(BorderFactory.createLineBorder(amarillo, 2, true));
+            JPanel panelFiltros = crearCardPanel(amarilloPastel, 210, 1f);
+            panelFiltros.setBounds(0, 130, 1300, 120);
             panel.add(panelFiltros);
 
             JLabel lblId = new JLabel("ID Tarjeta");
@@ -227,7 +418,7 @@ public class GestionTarjeta extends JFrame {
             panelFiltros.add(lblId);
 
             txtIdFiltro = new RoundedTextField(20);
-            txtIdFiltro.setBounds(30, 40, 250, 40);
+            txtIdFiltro.setBounds(30, 42, 250, 42);
             panelFiltros.add(txtIdFiltro);
 
             JLabel lblTipo = new JLabel("Tipo");
@@ -236,7 +427,8 @@ public class GestionTarjeta extends JFrame {
             panelFiltros.add(lblTipo);
 
             cbTipo = new JComboBox<>(new String[]{"Todos"});
-            cbTipo.setBounds(430, 40, 250, 40);
+            estilizarComboBox(cbTipo);
+            cbTipo.setBounds(430, 42, 250, 42);
             panelFiltros.add(cbTipo);
 
             JLabel lblEstado = new JLabel("Estado");
@@ -245,27 +437,25 @@ public class GestionTarjeta extends JFrame {
             panelFiltros.add(lblEstado);
 
             cbEstado = new JComboBox<>(new String[]{"Todos"});
-            cbEstado.setBounds(730, 40, 250, 40);
+            estilizarComboBox(cbEstado);
+            cbEstado.setBounds(730, 42, 250, 42);
             panelFiltros.add(cbEstado);
 
             BotonNeo btnBuscar = new BotonNeo("Buscar");
-            btnBuscar.setBounds(1010, 40, 120, 40);
+            btnBuscar.setBounds(1030, 15, 130, 35);
             btnBuscar.addActionListener(e -> filtrarTabla());
             panelFiltros.add(btnBuscar);
 
             BotonNeo btnLimpiar = new BotonNeo("Limpiar");
-            btnLimpiar.setBounds(1010, 80, 120, 40);
+            btnLimpiar.setBounds(1030, 58, 130, 35);
             btnLimpiar.addActionListener(e -> limpiarFiltros());
             panelFiltros.add(btnLimpiar);
 
             // ============================
             // TABLA
             // ============================
-            JPanel panelTabla = new JPanel();
-            panelTabla.setLayout(null);
-            panelTabla.setBackground(new Color(25, 38, 35, 180));
-            panelTabla.setBounds(40, 270, 1180, 330);
-            panelTabla.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1, true));
+            JPanel panelTabla = crearCardPanel(Color.WHITE, 100, 1f);
+            panelTabla.setBounds(0, 270, 1300, 330);
             panel.add(panelTabla);
 
             String[] columnas = {"ID", "TARJETA", "PROPIETARIO", "TIPO", "ESTADO"};
@@ -296,8 +486,9 @@ public class GestionTarjeta extends JFrame {
             header.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
             JScrollPane scroll = new JScrollPane(tabla);
+            scroll.setBorder(BorderFactory.createEmptyBorder());
             scroll.getViewport().setBackground(new Color(25, 38, 35));
-            scroll.setBounds(10, 10, 1160, 310);
+            scroll.setBounds(15, 15, 1270, 300);
             panelTabla.add(scroll);
 
             // ============================
@@ -355,17 +546,6 @@ public class GestionTarjeta extends JFrame {
                 dispose();
             });
             panel.add(btnDesbloquear);
-
-            // ============================
-            // BOTÓN VOLVER
-            // ============================
-            JButton btnVolver = new JButton("Volver");
-            btnVolver.setBounds(1080, 20, 120, 40);
-            btnVolver.addActionListener(e -> {
-                new PanelControlAdmin();
-                dispose();
-            });
-            panel.add(btnVolver);
         }
 
         private void cargarTarjetas() {
@@ -439,5 +619,3 @@ public class GestionTarjeta extends JFrame {
         }
     }
 }
-
-

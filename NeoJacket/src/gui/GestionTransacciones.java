@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.*;
 import javax.swing.RowFilter;
@@ -18,23 +19,27 @@ public class GestionTransacciones extends JFrame {
     private Image logo;
     private final ServicioTransaccion servicioTransaccion = new ServicioTransaccion();
 
+    private final Color amarilloPastel = new Color(251, 232, 138);
+    private final Color verdeBotonNormal = new Color(94, 116, 73);
+
     class RoundedTextField extends JTextField {
         public RoundedTextField(int size) {
             super(size);
             setOpaque(false);
             setForeground(Color.WHITE);
             setCaretColor(Color.WHITE);
-            setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 10));
-            setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 12));
+            setFont(new Font("Segoe UI", Font.PLAIN, 16));
         }
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(25, 38, 35, 200));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-            g2.setColor(Color.GRAY);
-            g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+            g2.setColor(new Color(13, 20, 18, 230));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+            g2.setColor(new Color(251, 232, 138, 170));
+            g2.setStroke(new BasicStroke(1.2f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
             super.paintComponent(g);
             g2.dispose();
         }
@@ -50,7 +55,7 @@ public class GestionTransacciones extends JFrame {
             setBorderPainted(false);
             setFocusPainted(false);
             setForeground(Color.WHITE);
-            setFont(new Font("Segoe UI", Font.BOLD, 18));
+            setFont(new Font("Segoe UI", Font.BOLD, 15));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
         @Override
@@ -58,10 +63,95 @@ public class GestionTransacciones extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(getModel().isRollover() ? hover : normal);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+            g2.setColor(new Color(255, 255, 255, 60));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
             super.paintComponent(g);
             g2.dispose();
         }
+    }
+
+    // ============================
+    // BOTÓN SIDEBAR NEO
+    // ============================
+    class BotonSidebarNeo extends JButton {
+
+        private boolean esSeleccionado;
+
+        public BotonSidebarNeo(String texto, boolean esSeleccionado) {
+            super(texto);
+            this.esSeleccionado = esSeleccionado;
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setOpaque(false);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setFont(new Font("Segoe UI", Font.BOLD, 15));
+
+            if (esSeleccionado) {
+                setBackground(amarilloPastel);
+                setForeground(Color.BLACK);
+            } else {
+                setBackground(verdeBotonNormal);
+                setForeground(Color.WHITE);
+            }
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    if (!esSeleccionado) {
+                        setBackground(amarilloPastel);
+                        setForeground(Color.BLACK);
+                    }
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    if (!esSeleccionado) {
+                        setBackground(verdeBotonNormal);
+                        setForeground(Color.WHITE);
+                    }
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+            if (!esSeleccionado) {
+                g2.setColor(new Color(251, 232, 138, 100));
+                g2.setStroke(new BasicStroke(1f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+            }
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // ============================
+    // TARJETA CONTENEDORA REDONDEADA
+    // ============================
+    private JPanel crearCardPanel(Color colorBorde, int alfa, float grosor) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(25, 38, 35, 190));
+                g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 22, 22));
+                g2.setColor(new Color(colorBorde.getRed(), colorBorde.getGreen(), colorBorde.getBlue(), alfa));
+                g2.setStroke(new BasicStroke(grosor));
+                g2.draw(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 22, 22));
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setLayout(null);
+        return card;
     }
 
     public GestionTransacciones() {
@@ -86,9 +176,18 @@ public class GestionTransacciones extends JFrame {
         }
 
         private void crearSidebar() {
-            JPanel sidebar = new JPanel();
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                    g2.dispose();
+                }
+            };
+            sidebar.setOpaque(false);
             sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
             sidebar.setBounds(20, 20, 300, 950);
 
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -107,18 +206,9 @@ public class GestionTransacciones extends JFrame {
 
             int y = 140;
             for (String texto : botones) {
-                JButton btn = new JButton(texto);
+                boolean activo = texto.equals("Gestión de Transacciones");
+                BotonSidebarNeo btn = new BotonSidebarNeo(texto, activo);
                 btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-
-                if (texto.equals("Gestión de Transacciones")) {
-                    btn.setBackground(new Color(251, 232, 138));
-                    btn.setForeground(Color.BLACK);
-                } else {
-                    btn.setBackground(new Color(94, 116, 73));
-                    btn.setForeground(Color.WHITE);
-                }
 
                 if (texto.equals("Gestión de Usuarios")) {
                     btn.addActionListener(e -> {
@@ -162,24 +252,29 @@ public class GestionTransacciones extends JFrame {
         private void crearInterfaz() {
 
             // PANEL
-            JPanel panel = new JPanel();
-            panel.setLayout(null);
-            panel.setBackground(new Color(25, 38, 35, 180));
-            panel.setBounds(350, 120, 1200, 700);
-            panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2, true));
+            JPanel panel = crearCardPanel(new Color(150, 150, 150), 140, 1f);
+            panel.setBounds(350, 60, 1300, 760);
             add(panel);
 
             JLabel titulo = new JLabel("Gestión de Transacciones");
-            titulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
+            titulo.setFont(new Font("Segoe UI", Font.BOLD, 30));
             titulo.setForeground(Color.WHITE);
-            titulo.setBounds(40, 20, 500, 40);
+            titulo.setBounds(40, 25, 500, 40);
             panel.add(titulo);
 
             // BUSCADOR
             RoundedTextField txtBuscar = new RoundedTextField(20);
-            txtBuscar.setBounds(850, 25, 300, 40);
+            txtBuscar.setBounds(850, 25, 300, 42);
             txtBuscar.setText("Buscar transacciones...");
             panel.add(txtBuscar);
+
+            BotonNeo btnVolver = new BotonNeo("← Volver", new Color(40, 55, 50), amarilloPastel);
+            btnVolver.setBounds(1160, 25, 100, 42);
+            btnVolver.addActionListener(e -> {
+                new PanelControlAdmin();
+                dispose();
+            });
+            panel.add(btnVolver);
 
             // TABLA
             String[] columnas = {"ID", "Fecha", "Cuenta", "Tipo", "Monto"};
@@ -195,32 +290,34 @@ public class GestionTransacciones extends JFrame {
             tabla.setRowHeight(40);
             tabla.setBackground(new Color(25, 38, 35));
             tabla.setForeground(Color.WHITE);
-            tabla.setGridColor(Color.GRAY);
-            tabla.setSelectionBackground(Color.GRAY);
+            tabla.setGridColor(new Color(94, 116, 73));
+            tabla.setSelectionBackground(amarilloPastel);
             tabla.setSelectionForeground(Color.BLACK);
             tabla.setShowGrid(true);
 
             JTableHeader header = tabla.getTableHeader();
-            header.setBackground(Color.GRAY);
+            header.setBackground(new Color(94, 116, 73));
             header.setForeground(Color.WHITE);
-            header.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            header.setFont(new Font("Segoe UI", Font.BOLD, 15));
 
             TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modeloTabla);
             tabla.setRowSorter(sorter);
 
+            JPanel panelTabla = crearCardPanel(Color.WHITE, 90, 1f);
+            panelTabla.setBounds(40, 90, 1220, 520);
+            panel.add(panelTabla);
+
             JScrollPane scroll = new JScrollPane(tabla);
+            scroll.setBorder(BorderFactory.createEmptyBorder());
             scroll.getViewport().setBackground(new Color(25, 38, 35));
-            scroll.setBounds(40, 90, 1120, 500);
-            panel.add(scroll);
+            scroll.setBounds(15, 15, 1190, 490);
+            panelTabla.add(scroll);
 
             cargarTransacciones(modeloTabla);
 
             // BOTONES
-            Color gris = new Color(120, 120, 120);
-            Color grisHover = new Color(160, 160, 160);
-
-            BotonNeo btnDetalles = new BotonNeo("Ver detalles", gris, grisHover);
-            btnDetalles.setBounds(40, 620, 200, 50);
+            BotonNeo btnDetalles = new BotonNeo("Ver detalles", verdeBotonNormal, amarilloPastel);
+            btnDetalles.setBounds(40, 630, 200, 50);
             panel.add(btnDetalles);
 
             btnDetalles.addActionListener(e -> {
@@ -237,14 +334,6 @@ public class GestionTransacciones extends JFrame {
                 new DetallesTransaccion(idTransaccion);
                 dispose();
             });
-
-            JButton btnVolver = new JButton("Volver");
-            btnVolver.setBounds(1080, 20, 120, 40);
-            btnVolver.addActionListener(e -> {
-                new PanelControlAdmin();
-                dispose();
-            });
-            panel.add(btnVolver);
 
             txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
@@ -284,5 +373,3 @@ public class GestionTransacciones extends JFrame {
         }
     }
 }
-
-

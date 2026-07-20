@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
-import javax.swing.border.LineBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
@@ -16,6 +17,11 @@ public class GestionCuentas extends JFrame {
 
     private Image fondo;
     private Image logo;
+
+    // Paleta consistente con el resto de la app (misma que GestionUsuario)
+    private final Color amarilloPastel = new Color(251, 232, 138);
+    private final Color verdeFondoCampos = new Color(20, 32, 30);
+    private final Color verdeBotonNormal = new Color(94, 116, 73);
 
     // COMPONENTES PRINCIPALES
     private DefaultTableModel modeloTabla;
@@ -25,7 +31,7 @@ public class GestionCuentas extends JFrame {
     private JComboBox<String> cbEstado;
 
     // ============================
-    // COMPONENTE: TEXTFIELD REDONDEADO
+    // COMPONENTE: TEXTFIELD REDONDEADO (borde amarillo delgado)
     // ============================
     class RoundedTextField extends JTextField {
         public RoundedTextField(int size) {
@@ -33,7 +39,8 @@ public class GestionCuentas extends JFrame {
             setOpaque(false);
             setForeground(Color.WHITE);
             setCaretColor(Color.WHITE);
-            setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
         }
 
         @Override
@@ -41,11 +48,12 @@ public class GestionCuentas extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2.setColor(new Color(25, 38, 35, 200));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            g2.setColor(new Color(13, 20, 18, 230));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
 
-            g2.setColor(new Color(251, 232, 138));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            g2.setColor(new Color(251, 232, 138, 170));
+            g2.setStroke(new BasicStroke(1.2f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
 
             super.paintComponent(g);
             g2.dispose();
@@ -62,6 +70,7 @@ public class GestionCuentas extends JFrame {
             setBorderPainted(false);
             setFocusPainted(false);
             setForeground(Color.WHITE);
+            setFont(new Font("Segoe UI", Font.BOLD, 13));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
@@ -71,17 +80,18 @@ public class GestionCuentas extends JFrame {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             if (getModel().isRollover()) {
-                g2.setColor(new Color(251, 232, 138, 220));
+                g2.setColor(amarilloPastel);
                 setForeground(Color.BLACK);
             } else {
                 g2.setColor(new Color(94, 116, 73, 190));
                 setForeground(Color.WHITE);
             }
 
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
 
-            g2.setColor(new Color(255, 255, 255, 80));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            g2.setColor(new Color(255, 255, 255, 60));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
 
             super.paintComponent(g);
             g2.dispose();
@@ -89,45 +99,203 @@ public class GestionCuentas extends JFrame {
     }
 
     // ============================
-    // COMPONENTE: BOTÓN SIDEBAR NEO
+    // COMPONENTE: BOTÓN SIDEBAR NEO (contorno amarillo, hover amarillo)
     // ============================
     class BotonSidebarNeo extends JButton {
-        private final boolean activo;
 
-        public BotonSidebarNeo(String texto, boolean activo) {
+        private boolean esSeleccionado;
+
+        public BotonSidebarNeo(String texto, boolean esSeleccionado) {
             super(texto);
-            this.activo = activo;
+            this.esSeleccionado = esSeleccionado;
+            setFocusPainted(false);
             setContentAreaFilled(false);
             setBorderPainted(false);
-            setFocusPainted(false);
-            setHorizontalAlignment(SwingConstants.LEFT);
-            setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-            setFont(new Font("Segoe UI", Font.PLAIN, 15));
+            setOpaque(false);
             setCursor(new Cursor(Cursor.HAND_CURSOR));
-            setForeground(activo ? Color.BLACK : Color.WHITE);
+            setFont(new Font("Segoe UI", Font.BOLD, 15));
+
+            if (esSeleccionado) {
+                setBackground(amarilloPastel);
+                setForeground(Color.BLACK);
+            } else {
+                setBackground(verdeBotonNormal);
+                setForeground(Color.WHITE);
+            }
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    if (!esSeleccionado) {
+                        setBackground(amarilloPastel);
+                        setForeground(Color.BLACK);
+                    }
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    if (!esSeleccionado) {
+                        setBackground(verdeBotonNormal);
+                        setForeground(Color.WHITE);
+                    }
+                }
+            });
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
 
-            if (activo) {
-                g2.setColor(new Color(251, 232, 138));
-            } else if (getModel().isRollover()) {
-                g2.setColor(new Color(251, 232, 138, 160));
-            } else {
-                g2.setColor(new Color(94, 116, 73, 190));
+            if (!esSeleccionado) {
+                g2.setColor(new Color(251, 232, 138, 100));
+                g2.setStroke(new BasicStroke(1f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+            }
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // ============================
+    // TARJETA CONTENEDORA REDONDEADA (bordes delgados)
+    // ============================
+    private JPanel crearCardPanel(Color colorBorde, int alfa, float grosor) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(25, 38, 35, 180));
+                g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 22, 22));
+                g2.setColor(new Color(colorBorde.getRed(), colorBorde.getGreen(), colorBorde.getBlue(), alfa));
+                g2.setStroke(new BasicStroke(grosor));
+                g2.draw(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 22, 22));
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setLayout(null);
+        return card;
+    }
+
+    // ============================
+    // ESTILIZADOR DE JCOMBOBOX (oscuro, redondeado, borde amarillo delgado)
+    // ============================
+    private void estilizarComboBox(JComboBox<?> combo) {
+        combo.setBackground(verdeFondoCampos);
+        combo.setForeground(Color.WHITE);
+        combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        combo.setFocusable(false);
+
+        combo.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
+            @Override
+            protected JButton createArrowButton() {
+                JButton btn = new JButton() {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2.setColor(amarilloPastel);
+                        int[] xPoints = {getWidth() / 2 - 5, getWidth() / 2 + 5, getWidth() / 2};
+                        int[] yPoints = {getHeight() / 2 - 3, getHeight() / 2 - 3, getHeight() / 2 + 4};
+                        g2.fillPolygon(xPoints, yPoints, 3);
+                        g2.dispose();
+                    }
+                };
+                btn.setContentAreaFilled(false);
+                btn.setBorder(BorderFactory.createEmptyBorder());
+                return btn;
+            }
+        });
+
+        combo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setBorder(new EmptyBorder(6, 12, 6, 12));
+                if (isSelected) {
+                    lbl.setBackground(amarilloPastel);
+                    lbl.setForeground(Color.BLACK);
+                } else {
+                    lbl.setBackground(verdeFondoCampos);
+                    lbl.setForeground(Color.WHITE);
+                }
+                return lbl;
+            }
+        });
+
+        final boolean[] isHover = {false};
+
+        combo.setBorder(new javax.swing.border.Border() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(isHover[0] || combo.hasFocus() ? amarilloPastel : new Color(251, 232, 138, 170));
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawRoundRect(x, y, width - 1, height - 1, 14, 14);
+                g2.dispose();
             }
 
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(0, 12, 0, 12);
+            }
 
-            g2.setColor(new Color(255, 255, 255, 60));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            @Override
+            public boolean isBorderOpaque() {
+                return false;
+            }
+        });
 
-            super.paintComponent(g);
-            g2.dispose();
-        }
+        combo.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                isHover[0] = true;
+                combo.repaint();
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                isHover[0] = false;
+                combo.repaint();
+            }
+        });
+    }
+
+    private void estilizarCampoTexto(JTextField campo) {
+        campo.setBackground(verdeFondoCampos);
+        campo.setForeground(Color.WHITE);
+        campo.setCaretColor(Color.WHITE);
+        campo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        campo.setOpaque(false);
+        campo.setBorder(BorderFactory.createCompoundBorder(
+                new javax.swing.border.Border() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(amarilloPastel);
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawRoundRect(x, y, width - 1, height - 1, 14, 14);
+                g2.dispose();
+            }
+
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(0, 0, 0, 0);
+            }
+
+            @Override
+            public boolean isBorderOpaque() {
+                return false;
+            }
+        },
+                new EmptyBorder(0, 12, 0, 12)
+        ));
     }
 
     // ============================
@@ -160,9 +328,18 @@ public class GestionCuentas extends JFrame {
         }
 
         private void crearSidebar() {
-            JPanel sidebar = new JPanel();
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                    g2.dispose();
+                }
+            };
+            sidebar.setOpaque(false);
             sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
             sidebar.setBounds(20, 20, 300, 950);
 
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
@@ -218,14 +395,12 @@ public class GestionCuentas extends JFrame {
         private void crearPanelPrincipal() {
             JPanel panel = new JPanel();
             panel.setLayout(null);
-            panel.setBackground(new Color(25, 38, 35, 150));
+            panel.setOpaque(false);
             panel.setBounds(350, 60, 1300, 760);
             add(panel);
 
             // BANNER SUPERIOR
-            JPanel banner = new JPanel();
-            banner.setLayout(null);
-            banner.setBackground(new Color(25, 38, 35, 230));
+            JPanel banner = crearCardPanel(amarilloPastel, 230, 1f);
             banner.setBounds(0, 0, 1300, 110);
             panel.add(banner);
 
@@ -241,15 +416,21 @@ public class GestionCuentas extends JFrame {
             subtitulo.setBounds(30, 65, 500, 20);
             banner.add(subtitulo);
 
+            // BOTÓN VOLVER — vive dentro del banner, garantizado visible encima
+            BotonNeo btnVolver = new BotonNeo("← Volver");
+            btnVolver.setBounds(1300 - 160, 32, 120, 45);
+            btnVolver.addActionListener(e -> {
+                new PanelControlAdmin();
+                dispose(); // Cierra esta interfaz para no acumular ventanas
+            });
+            banner.add(btnVolver);
+
             // PANEL FILTROS
-            JPanel panelFiltros = new JPanel();
-            panelFiltros.setLayout(null);
-            panelFiltros.setBackground(new Color(25, 38, 35, 180));
-            panelFiltros.setBounds(40, 130, 1180, 120);
-            panelFiltros.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2, true));
+            JPanel panelFiltros = crearCardPanel(amarilloPastel, 210, 1f);
+            panelFiltros.setBounds(0, 130, 1300, 120);
             panel.add(panelFiltros);
 
-            Color amarillo = new Color(251, 232, 138);
+            Color amarillo = amarilloPastel;
 
             JLabel lblCuenta = new JLabel("Número de cuenta");
             lblCuenta.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -270,19 +451,19 @@ public class GestionCuentas extends JFrame {
             panelFiltros.add(lblEstado);
 
             txtCuenta = new RoundedTextField(20);
-            txtCuenta.setBounds(30, 45, 350, 40);
+            txtCuenta.setBounds(30, 45, 350, 42);
             panelFiltros.add(txtCuenta);
 
             // JCOMBOBOX ESTILIZADOS SIN FONDO BLANCO
             cbTipo = new JComboBox<>();
             estilizarComboBox(cbTipo);
-            cbTipo.setBounds(420, 45, 340, 40);
+            cbTipo.setBounds(420, 45, 340, 42);
             panelFiltros.add(cbTipo);
             cargarTipos();
 
             cbEstado = new JComboBox<>(new String[]{"Todos", "activa", "bloqueada"});
             estilizarComboBox(cbEstado);
-            cbEstado.setBounds(800, 45, 340, 40);
+            cbEstado.setBounds(800, 45, 340, 42);
             panelFiltros.add(cbEstado);
 
             // BOTONES DE ACCIÓN (ABAJO)
@@ -376,11 +557,8 @@ public class GestionCuentas extends JFrame {
             });
 
             // PANEL TABLA
-            JPanel panelTabla = new JPanel();
-            panelTabla.setLayout(null);
-            panelTabla.setBackground(new Color(25, 38, 35, 180));
-            panelTabla.setBounds(40, 290, 1180, 370);
-            panelTabla.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1, true));
+            JPanel panelTabla = crearCardPanel(Color.WHITE, 100, 1f);
+            panelTabla.setBounds(0, 290, 1300, 370);
             panel.add(panelTabla);
 
             String[] columnas = {"ID", "CUENTA", "PROPIETARIO", "TIPO", "SALDO", "ESTADO"};
@@ -410,18 +588,10 @@ public class GestionCuentas extends JFrame {
             header.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
             JScrollPane scroll = new JScrollPane(tabla);
+            scroll.setBorder(BorderFactory.createEmptyBorder());
             scroll.getViewport().setBackground(new Color(25, 38, 35));
-            scroll.setBounds(10, 10, 1160, 350);
+            scroll.setBounds(15, 15, 1270, 340);
             panelTabla.add(scroll);
-
-            // BOTÓN VOLVER (Cierra la ventana actual)
-            BotonNeo btnVolver = new BotonNeo("Volver");
-            btnVolver.setBounds(1080, 20, 120, 40);
-            btnVolver.addActionListener(e -> {
-                new PanelControlAdmin();
-                dispose(); // Cierra esta interfaz para no acumular ventanas
-            });
-            panel.add(btnVolver);
         }
 
         @Override
@@ -429,29 +599,6 @@ public class GestionCuentas extends JFrame {
             super.paintComponent(g);
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
-    }
-
-    // ============================
-    // ESTILIZADOR DE JCOMBOBOX (Remueve fondo blanco nativo)
-    // ============================
-    private void estilizarComboBox(JComboBox<String> cb) {
-        cb.setBackground(new Color(25, 38, 35));
-        cb.setForeground(Color.WHITE);
-        cb.setBorder(new LineBorder(new Color(251, 232, 138), 1));
-        cb.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                JLabel l = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (isSelected) {
-                    l.setBackground(new Color(251, 232, 138));
-                    l.setForeground(Color.BLACK);
-                } else {
-                    l.setBackground(new Color(25, 38, 35));
-                    l.setForeground(Color.WHITE);
-                }
-                return l;
-            }
-        });
     }
 
     // ============================
@@ -579,10 +726,20 @@ public class GestionCuentas extends JFrame {
             setLocationRelativeTo(padre);
             setResizable(false);
 
-            JPanel panel = new JPanel();
+            JPanel panel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35));
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                    g2.setColor(amarilloPastel);
+                    g2.setStroke(new BasicStroke(1.5f));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+                    g2.dispose();
+                }
+            };
             panel.setLayout(null);
-            panel.setBackground(new Color(25, 38, 35));
-            panel.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 3, true));
             setContentPane(panel);
 
             JLabel titulo = new JLabel("Nueva Cuenta");
@@ -601,9 +758,8 @@ public class GestionCuentas extends JFrame {
             panel.add(lblUsuario);
 
             JComboBox<ComboItem> cbUsuario = new JComboBox<>();
-            cbUsuario.setBounds(30, y + 22, 480, 32);
-            cbUsuario.setBackground(new Color(25, 38, 35));
-            cbUsuario.setForeground(Color.WHITE);
+            cbUsuario.setBounds(30, y + 22, 480, 36);
+            estilizarComboBox(cbUsuario);
             panel.add(cbUsuario);
             y += alturaCampo;
 
@@ -614,9 +770,8 @@ public class GestionCuentas extends JFrame {
             panel.add(lblBanco);
 
             JComboBox<ComboItem> cbBanco = new JComboBox<>();
-            cbBanco.setBounds(30, y + 22, 480, 32);
-            cbBanco.setBackground(new Color(25, 38, 35));
-            cbBanco.setForeground(Color.WHITE);
+            cbBanco.setBounds(30, y + 22, 480, 36);
+            estilizarComboBox(cbBanco);
             panel.add(cbBanco);
             y += alturaCampo;
 
@@ -627,9 +782,8 @@ public class GestionCuentas extends JFrame {
             panel.add(lblTipoCuenta);
 
             JComboBox<ComboItem> cbTipoCuenta = new JComboBox<>();
-            cbTipoCuenta.setBounds(30, y + 22, 480, 32);
-            cbTipoCuenta.setBackground(new Color(25, 38, 35));
-            cbTipoCuenta.setForeground(Color.WHITE);
+            cbTipoCuenta.setBounds(30, y + 22, 480, 36);
+            estilizarComboBox(cbTipoCuenta);
             panel.add(cbTipoCuenta);
             y += alturaCampo;
 
@@ -640,9 +794,8 @@ public class GestionCuentas extends JFrame {
             panel.add(lblMoneda);
 
             JComboBox<String> cbMoneda = new JComboBox<>();
-            cbMoneda.setBounds(30, y + 22, 480, 32);
-            cbMoneda.setBackground(new Color(25, 38, 35));
-            cbMoneda.setForeground(Color.WHITE);
+            cbMoneda.setBounds(30, y + 22, 480, 36);
+            estilizarComboBox(cbMoneda);
             panel.add(cbMoneda);
             y += alturaCampo;
 
@@ -653,7 +806,8 @@ public class GestionCuentas extends JFrame {
             panel.add(lblNumero);
 
             JTextField txtNumeroCuenta = new JTextField();
-            txtNumeroCuenta.setBounds(30, y + 22, 480, 32);
+            txtNumeroCuenta.setBounds(30, y + 22, 480, 36);
+            estilizarCampoTexto(txtNumeroCuenta);
             panel.add(txtNumeroCuenta);
             y += alturaCampo;
 
@@ -665,7 +819,8 @@ public class GestionCuentas extends JFrame {
 
             JTextField txtSaldo = new JTextField();
             txtSaldo.setText("0.00");
-            txtSaldo.setBounds(30, y + 22, 480, 32);
+            txtSaldo.setBounds(30, y + 22, 480, 36);
+            estilizarCampoTexto(txtSaldo);
             panel.add(txtSaldo);
             y += alturaCampo;
 
