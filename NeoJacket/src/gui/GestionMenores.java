@@ -316,9 +316,7 @@ public class GestionMenores extends JFrame {
             subtitulo.setBounds(30, 65, 500, 20);
             banner.add(subtitulo);
 
-            // "Volver" ahora vive DENTRO del banner (no como hermano suelto),
-            // así queda garantizado que se ve por encima, sin depender del
-            // orden de agregado en el panel padre.
+            // "Volver" ahora vive DENTRO del banner (no como hermano suelto)
             BotonVolver btnVolver = new BotonVolver("← Volver");
             btnVolver.setBounds(1220 - 150, 30, 120, 45);
             banner.add(btnVolver);
@@ -339,6 +337,7 @@ public class GestionMenores extends JFrame {
             lblIdMenor.setBounds(30, 20, 150, 25);
             panelFiltros.add(lblIdMenor);
 
+            // CORRECCIÓN AQUÍ: Se eliminó la re-declaración local de "JTextField"
             txtIdMenor = new CampoTextoOscuro();
             txtIdMenor.setBounds(150, 15, 200, 40);
             panelFiltros.add(txtIdMenor);
@@ -348,6 +347,7 @@ public class GestionMenores extends JFrame {
             lblIdTutor.setBounds(400, 20, 150, 25);
             panelFiltros.add(lblIdTutor);
 
+            // CORRECCIÓN AQUÍ: Se eliminó la re-declaración local de "JTextField"
             txtIdTutor = new CampoTextoOscuro();
             txtIdTutor.setBounds(500, 15, 200, 40);
             panelFiltros.add(txtIdTutor);
@@ -535,11 +535,12 @@ public class GestionMenores extends JFrame {
             boolean hayFiltroMenor = filtroMenor != null && !filtroMenor.isEmpty();
             boolean hayFiltroTutor = filtroTutor != null && !filtroTutor.isEmpty();
 
+            // CORRECCIÓN AQUÍ: Se cambió el filtro a s.id_menor y s.id_adulto para mayor precisión
             if (hayFiltroMenor) {
-                sql.append(" AND m.id_usuario = ?");
+                sql.append(" AND s.id_menor = ?");
             }
             if (hayFiltroTutor) {
-                sql.append(" AND t.id_usuario = ?");
+                sql.append(" AND s.id_adulto = ?");
             }
 
             try (Connection con = conexion.getConexion();
@@ -565,7 +566,7 @@ public class GestionMenores extends JFrame {
                 }
 
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "El ID debe ser un número.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "El ID debe ser un número entero válido.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Error al cargar los menores: " + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
             }

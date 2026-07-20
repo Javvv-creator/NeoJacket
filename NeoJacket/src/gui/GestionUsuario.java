@@ -165,8 +165,17 @@ public class GestionUsuario extends JFrame {
         campo.setOpaque(false);
     }
 
+    /**
+     * Estiliza un JComboBox para que:
+     * - La casilla principal (lo que se ve cerrado) sea TRANSPARENTE, dejando ver
+     *   el panel/tarjeta oscuro que hay detrás.
+     * - El texto de la casilla principal y de la lista desplegable sea BLANCO
+     *   (excepto el ítem seleccionado en el desplegable, que se ve en negro sobre amarillo).
+     * - El desplegable (popup) mantenga fondo oscuro sólido para que se pueda leer bien.
+     */
     private void estilizarComboBox(JComboBox<String> combo) {
-        combo.setBackground(verdeFondoCampos);
+        combo.setOpaque(false);
+        combo.setBackground(new Color(0, 0, 0, 0));
         combo.setForeground(Color.WHITE);
         combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
@@ -187,21 +196,51 @@ public class GestionUsuario extends JFrame {
                     }
                 };
                 btn.setContentAreaFilled(false);
+                btn.setOpaque(false);
                 btn.setBorder(BorderFactory.createEmptyBorder());
                 return btn;
             }
+
+            // CLAVE DEL FIX: BasicComboBoxUI siempre pinta un rectángulo de fondo
+            // sólido antes de dibujar el valor actual. Si no se sobrescribe esto,
+            // el combo NUNCA se ve transparente aunque el componente esté setOpaque(false).
+            @Override
+            public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
+                // No pintamos nada: dejamos ver el fondo del panel/tarjeta de atrás.
+            }
+
+            @Override
+            protected ComboBoxEditor createEditor() {
+                ComboBoxEditor editor = super.createEditor();
+                Component editorComp = editor.getEditorComponent();
+                if (editorComp instanceof JComponent) {
+                    ((JComponent) editorComp).setOpaque(false);
+                    editorComp.setBackground(new Color(0, 0, 0, 0));
+                    editorComp.setForeground(Color.WHITE);
+                }
+                return editor;
+            }
         });
 
-        // Estilizar las celdas de la lista desplegable (Fondo oscuro, Selección Amarilla)
+        // Renderer: transparente para la casilla principal (index == -1),
+        // sólido con selección amarilla dentro del desplegable.
         combo.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 lbl.setBorder(new EmptyBorder(5, 10, 5, 10));
-                if (isSelected) {
+
+                if (index == -1) {
+                    // Esta es la casilla principal (cerrada) del combo, no el desplegable
+                    lbl.setOpaque(false);
+                    lbl.setBackground(new Color(0, 0, 0, 0));
+                    lbl.setForeground(Color.WHITE);
+                } else if (isSelected) {
+                    lbl.setOpaque(true);
                     lbl.setBackground(amarilloPastel);
                     lbl.setForeground(Color.BLACK);
                 } else {
+                    lbl.setOpaque(true);
                     lbl.setBackground(verdeFondoCampos);
                     lbl.setForeground(Color.WHITE);
                 }

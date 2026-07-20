@@ -169,11 +169,16 @@ public class GestionTarjeta extends JFrame {
     // ============================
     // ESTILIZADOR DE JCOMBOBOX
     // ============================
-    private void estilizarComboBox(JComboBox<?> combo) {
-        combo.setBackground(verdeFondoCampos);
+    private void estilizarComboBox(JComboBox<String> combo) {
+        combo.setOpaque(false);
         combo.setForeground(Color.WHITE);
         combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         combo.setFocusable(false);
+
+        // Desactivar opacidad en el renderizador del componente principal
+        if (combo.getRenderer() instanceof JComponent) {
+            ((JComponent) combo.getRenderer()).setOpaque(false);
+        }
 
         combo.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
             @Override
@@ -194,6 +199,13 @@ public class GestionTarjeta extends JFrame {
                 btn.setBorder(BorderFactory.createEmptyBorder());
                 return btn;
             }
+
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                // Forzar letras siempre blancas en el cuadro de selección
+                c.setForeground(Color.WHITE);
+                super.paint(g, c);
+            }
         });
 
         combo.setRenderer(new DefaultListCellRenderer() {
@@ -201,12 +213,16 @@ public class GestionTarjeta extends JFrame {
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 lbl.setBorder(new EmptyBorder(6, 12, 6, 12));
+                
                 if (isSelected) {
                     lbl.setBackground(amarilloPastel);
                     lbl.setForeground(Color.BLACK);
+                    lbl.setOpaque(true);
                 } else {
                     lbl.setBackground(verdeFondoCampos);
                     lbl.setForeground(Color.WHITE);
+                    // Evita pintar un rectángulo blanco de fondo en la caja no desplegada
+                    lbl.setOpaque(index != -1);
                 }
                 return lbl;
             }
@@ -219,6 +235,11 @@ public class GestionTarjeta extends JFrame {
             public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Fondo oscuro translúcido redondo idéntico al de tus RoundedTextField
+                g2.setColor(new Color(13, 20, 18, 230));
+                g2.fillRoundRect(x, y, width - 1, height - 1, 14, 14);
+                
                 g2.setColor(isHover[0] || combo.hasFocus() ? amarilloPastel : new Color(251, 232, 138, 170));
                 g2.setStroke(new BasicStroke(1.2f));
                 g2.drawRoundRect(x, y, width - 1, height - 1, 14, 14);
@@ -290,7 +311,7 @@ public class GestionTarjeta extends JFrame {
         }
 
         // ============================
-        // SIDEBAR
+        // SIDEBAR (NAVEGACIÓN COMPLETA ORIGINAL)
         // ============================
         private void crearSidebar() {
 
@@ -313,57 +334,59 @@ public class GestionTarjeta extends JFrame {
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            String[] botones = {
-                "Gestión de Usuarios",
-                "Gestión de Menores",
-                "Gestión de Cuentas",
-                "Gestión de Tarjetas",
-                "Gestión de Divisas",
-                "Gestión de Transacciones"
-            };
+            // 1. Gestión de Usuarios
+            BotonSidebarNeo btnUsuarios = new BotonSidebarNeo("Gestión de Usuarios", false);
+            btnUsuarios.setBounds(20, 140, 250, 55);
+            btnUsuarios.addActionListener(e -> {
+                new GestionUsuario();
+                dispose();
+            });
+            sidebar.add(btnUsuarios);
 
-            int y = 140;
+            // 2. Gestión de Menores Supervisados
+            BotonSidebarNeo btnMenores = new BotonSidebarNeo("Gestión de Menores Supervis...", false);
+            btnMenores.setBounds(20, 210, 250, 55);
+            btnMenores.addActionListener(e -> {
+                new GestionMenores();
+                dispose();
+            });
+            sidebar.add(btnMenores);
 
-            for (String texto : botones) {
-                boolean activo = texto.equals("Gestión de Tarjetas");
-                BotonSidebarNeo btn = new BotonSidebarNeo(texto, activo);
-                btn.setBounds(20, y, 250, 55);
+            // 3. Gestión de Cuentas
+            BotonSidebarNeo btnCuentas = new BotonSidebarNeo("Gestión de Cuentas", false);
+            btnCuentas.setBounds(20, 280, 250, 55);
+            btnCuentas.addActionListener(e -> {
+                new GestionCuentas();
+                dispose();
+            });
+            sidebar.add(btnCuentas);
 
-                if (texto.equals("Gestión de Usuarios")) {
-                    btn.addActionListener(e -> {
-                        new GestionUsuario();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Menores")) {
-                    btn.addActionListener(e -> {
-                        new GestionMenores();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Cuentas")) {
-                    btn.addActionListener(e -> {
-                        new GestionCuentas();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Tarjetas")) {
-                    btn.addActionListener(e -> {
-                        new GestionTarjeta();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Divisas")) {
-                    btn.addActionListener(e -> {
-                        new GestionDivisas();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Transacciones")) {
-                    btn.addActionListener(e -> {
-                        new GestionTransacciones();
-                        dispose();
-                    });
-                }
+            // 4. Gestión de Tarjetas (Seleccionada / Activa)
+            BotonSidebarNeo btnTarjetas = new BotonSidebarNeo("Gestión de Tarjetas", true);
+            btnTarjetas.setBounds(20, 350, 250, 55);
+            btnTarjetas.addActionListener(e -> {
+                new GestionTarjeta();
+                dispose();
+            });
+            sidebar.add(btnTarjetas);
 
-                sidebar.add(btn);
-                y += 70;
-            }
+            // 5. Gestión de Divisas
+            BotonSidebarNeo btnDivisas = new BotonSidebarNeo("Gestión de Divisas", false);
+            btnDivisas.setBounds(20, 420, 250, 55);
+            btnDivisas.addActionListener(e -> {
+                new GestionDivisas();
+                dispose();
+            });
+            sidebar.add(btnDivisas);
+
+            // 6. Gestión de Transacciones
+            BotonSidebarNeo btnTransacciones = new BotonSidebarNeo("Gestión de Transacciones", false);
+            btnTransacciones.setBounds(20, 490, 250, 55);
+            btnTransacciones.addActionListener(e -> {
+                new GestionTransacciones();
+                dispose();
+            });
+            sidebar.add(btnTransacciones);
 
             add(sidebar);
         }

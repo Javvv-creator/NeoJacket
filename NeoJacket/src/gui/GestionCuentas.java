@@ -17,8 +17,8 @@ public class GestionCuentas extends JFrame {
 
     private Image fondo;
     private Image logo;
-
-    // Paleta consistente con el resto de la app (misma que GestionUsuario)
+    
+    // Paleta consistente con el resto de la app
     private final Color amarilloPastel = new Color(251, 232, 138);
     private final Color verdeFondoCampos = new Color(20, 32, 30);
     private final Color verdeBotonNormal = new Color(94, 116, 73);
@@ -47,14 +47,11 @@ public class GestionCuentas extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
             g2.setColor(new Color(13, 20, 18, 230));
             g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
-
             g2.setColor(new Color(251, 232, 138, 170));
             g2.setStroke(new BasicStroke(1.2f));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
-
             super.paintComponent(g);
             g2.dispose();
         }
@@ -78,7 +75,6 @@ public class GestionCuentas extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
             if (getModel().isRollover()) {
                 g2.setColor(amarilloPastel);
                 setForeground(Color.BLACK);
@@ -86,23 +82,19 @@ public class GestionCuentas extends JFrame {
                 g2.setColor(new Color(94, 116, 73, 190));
                 setForeground(Color.WHITE);
             }
-
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-
             g2.setColor(new Color(255, 255, 255, 60));
             g2.setStroke(new BasicStroke(1f));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
-
             super.paintComponent(g);
             g2.dispose();
         }
     }
 
     // ============================
-    // COMPONENTE: BOTÓN SIDEBAR NEO (contorno amarillo, hover amarillo)
+    // COMPONENTE: BOTÓN SIDEBAR NEO
     // ============================
     class BotonSidebarNeo extends JButton {
-
         private boolean esSeleccionado;
 
         public BotonSidebarNeo(String texto, boolean esSeleccionado) {
@@ -114,7 +106,7 @@ public class GestionCuentas extends JFrame {
             setOpaque(false);
             setCursor(new Cursor(Cursor.HAND_CURSOR));
             setFont(new Font("Segoe UI", Font.BOLD, 15));
-
+            
             if (esSeleccionado) {
                 setBackground(amarilloPastel);
                 setForeground(Color.BLACK);
@@ -131,7 +123,6 @@ public class GestionCuentas extends JFrame {
                         setForeground(Color.BLACK);
                     }
                 }
-
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent e) {
                     if (!esSeleccionado) {
@@ -148,7 +139,6 @@ public class GestionCuentas extends JFrame {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(getBackground());
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-
             if (!esSeleccionado) {
                 g2.setColor(new Color(251, 232, 138, 100));
                 g2.setStroke(new BasicStroke(1f));
@@ -160,7 +150,7 @@ public class GestionCuentas extends JFrame {
     }
 
     // ============================
-    // TARJETA CONTENEDORA REDONDEADA (bordes delgados)
+    // TARJETA CONTENEDORA REDONDEADA
     // ============================
     private JPanel crearCardPanel(Color colorBorde, int alfa, float grosor) {
         JPanel card = new JPanel() {
@@ -182,13 +172,20 @@ public class GestionCuentas extends JFrame {
     }
 
     // ============================
-    // ESTILIZADOR DE JCOMBOBOX (oscuro, redondeado, borde amarillo delgado)
+    // ESTILIZADOR DE JCOMBOBOX (CORRECCIÓN TOTAL DE TRANSPARENCIA Y TEXTO BLANCO)
     // ============================
     private void estilizarComboBox(JComboBox<?> combo) {
-        combo.setBackground(verdeFondoCampos);
+        combo.setOpaque(false);
+        combo.setBackground(new Color(0, 0, 0, 0));
         combo.setForeground(Color.WHITE);
         combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         combo.setFocusable(false);
+        
+        // Desactiva el fondo del editor de manera estricta
+        if (combo.getEditor() != null && combo.getEditor().getEditorComponent() instanceof JComponent) {
+            ((JComponent) combo.getEditor().getEditorComponent()).setOpaque(false);
+            combo.getEditor().getEditorComponent().setBackground(new Color(0, 0, 0, 0));
+        }
 
         combo.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
             @Override
@@ -206,29 +203,46 @@ public class GestionCuentas extends JFrame {
                     }
                 };
                 btn.setContentAreaFilled(false);
+                btn.setBorderPainted(false);
+                btn.setOpaque(false);
                 btn.setBorder(BorderFactory.createEmptyBorder());
                 return btn;
             }
+
+            // Evitamos que Swing pinte la capa gris o blanca por defecto del Look & Feel
+            @Override
+            public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
+                // Dejar vacío de manera intencional elimina el fondo blanco visible detrás de las letras
+            }
         });
 
+        // Configuración estricta del renderizador para mantener texto blanco cuando está cerrado
         combo.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 lbl.setBorder(new EmptyBorder(6, 12, 6, 12));
-                if (isSelected) {
-                    lbl.setBackground(amarilloPastel);
-                    lbl.setForeground(Color.BLACK);
-                } else {
-                    lbl.setBackground(verdeFondoCampos);
+                lbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                
+                if (index == -1) {
+                    lbl.setOpaque(false);
+                    lbl.setBackground(new Color(0,0,0,0));
                     lbl.setForeground(Color.WHITE);
+                } else {
+                    lbl.setOpaque(true);
+                    if (isSelected) {
+                        lbl.setBackground(amarilloPastel);
+                        lbl.setForeground(Color.BLACK);
+                    } else {
+                        lbl.setBackground(verdeFondoCampos);
+                        lbl.setForeground(Color.WHITE);
+                    }
                 }
                 return lbl;
             }
         });
 
         final boolean[] isHover = {false};
-
         combo.setBorder(new javax.swing.border.Border() {
             @Override
             public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
@@ -242,7 +256,7 @@ public class GestionCuentas extends JFrame {
 
             @Override
             public Insets getBorderInsets(Component c) {
-                return new Insets(0, 12, 0, 12);
+                return new Insets(0, 14, 0, 14);
             }
 
             @Override
@@ -257,7 +271,6 @@ public class GestionCuentas extends JFrame {
                 isHover[0] = true;
                 combo.repaint();
             }
-
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
                 isHover[0] = false;
@@ -273,28 +286,22 @@ public class GestionCuentas extends JFrame {
         campo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         campo.setOpaque(false);
         campo.setBorder(BorderFactory.createCompoundBorder(
-                new javax.swing.border.Border() {
-            @Override
-            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(amarilloPastel);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.drawRoundRect(x, y, width - 1, height - 1, 14, 14);
-                g2.dispose();
-            }
-
-            @Override
-            public Insets getBorderInsets(Component c) {
-                return new Insets(0, 0, 0, 0);
-            }
-
-            @Override
-            public boolean isBorderOpaque() {
-                return false;
-            }
-        },
-                new EmptyBorder(0, 12, 0, 12)
+            new javax.swing.border.Border() {
+                @Override
+                public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(amarilloPastel);
+                    g2.setStroke(new BasicStroke(1.2f));
+                    g2.drawRoundRect(x, y, width - 1, height - 1, 14, 14);
+                    g2.dispose();
+                }
+                @Override
+                public Insets getBorderInsets(Component c) { return new Insets(0, 0, 0, 0); }
+                @Override
+                public boolean isBorderOpaque() { return false; }
+            },
+            new EmptyBorder(0, 12, 0, 12)
         ));
     }
 
@@ -304,11 +311,9 @@ public class GestionCuentas extends JFrame {
     public GestionCuentas() {
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
-
         setTitle("Gestión de Cuentas");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setResizable(true);
-
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -319,7 +324,6 @@ public class GestionCuentas extends JFrame {
     // PANEL PRINCIPAL CON FONDO
     // ============================
     class FondoPanel extends JPanel {
-
         public FondoPanel() {
             setLayout(null);
             crearSidebar();
@@ -347,7 +351,6 @@ public class GestionCuentas extends JFrame {
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            // Títulos del menú lateral exactamente como estaban al inicio
             String[] botones = {
                 "Gestión de Usuarios",
                 "Gestión de Menores Supervisados",
@@ -356,39 +359,34 @@ public class GestionCuentas extends JFrame {
                 "Gestión de Divisas",
                 "Gestión de Transacciones"
             };
-
             int y = 140;
-
             for (String texto : botones) {
                 boolean activo = texto.equals("Gestión de Cuentas");
                 BotonSidebarNeo btn = new BotonSidebarNeo(texto, activo);
                 btn.setBounds(20, y, 250, 55);
-
                 btn.addActionListener(e -> {
                     if (texto.equals("Gestión de Cuentas")) {
                         aplicarFiltros();
                     } else if (texto.equals("Gestión de Usuarios")) {
                         new GestionUsuario();
-                        dispose(); // Cierra la ventana actual al viajar
+                        dispose();
                     } else if (texto.equals("Gestión de Menores Supervisados")) {
                         new GestionMenores();
-                        dispose(); // Cierra la ventana actual al viajar
+                        dispose();
                     } else if (texto.equals("Gestión de Tarjetas")) {
                         new GestionTarjeta();
-                        dispose(); // Cierra la ventana actual al viajar
+                        dispose();
                     } else if (texto.equals("Gestión de Divisas")) {
                         new GestionDivisas();
-                        dispose(); // Cierra la ventana actual al viajar
+                        dispose();
                     } else if (texto.equals("Gestión de Transacciones")) {
                         new GestionTransacciones();
-                        dispose(); // Cierra la ventana actual al viajar
+                        dispose();
                     }
                 });
-
                 sidebar.add(btn);
                 y += 70;
             }
-
             add(sidebar);
         }
 
@@ -416,12 +414,11 @@ public class GestionCuentas extends JFrame {
             subtitulo.setBounds(30, 65, 500, 20);
             banner.add(subtitulo);
 
-            // BOTÓN VOLVER — vive dentro del banner, garantizado visible encima
             BotonNeo btnVolver = new BotonNeo("← Volver");
             btnVolver.setBounds(1300 - 160, 32, 120, 45);
             btnVolver.addActionListener(e -> {
                 new PanelControlAdmin();
-                dispose(); // Cierra esta interfaz para no acumular ventanas
+                dispose();
             });
             banner.add(btnVolver);
 
@@ -431,7 +428,6 @@ public class GestionCuentas extends JFrame {
             panel.add(panelFiltros);
 
             Color amarillo = amarilloPastel;
-
             JLabel lblCuenta = new JLabel("Número de cuenta");
             lblCuenta.setFont(new Font("Segoe UI", Font.BOLD, 12));
             lblCuenta.setForeground(amarillo);
@@ -454,7 +450,6 @@ public class GestionCuentas extends JFrame {
             txtCuenta.setBounds(30, 45, 350, 42);
             panelFiltros.add(txtCuenta);
 
-            // JCOMBOBOX ESTILIZADOS SIN FONDO BLANCO
             cbTipo = new JComboBox<>();
             estilizarComboBox(cbTipo);
             cbTipo.setBounds(420, 45, 340, 42);
@@ -466,7 +461,7 @@ public class GestionCuentas extends JFrame {
             cbEstado.setBounds(800, 45, 340, 42);
             panelFiltros.add(cbEstado);
 
-            // BOTONES DE ACCIÓN (ABAJO)
+            // BOTONES DE ACCIÓN
             int bx = 40;
             int by = 700;
             int bw = 220;
@@ -485,10 +480,7 @@ public class GestionCuentas extends JFrame {
             BotonNeo btnCrear = new BotonNeo("Crear cuenta");
             btnCrear.setBounds(bx + 240, by, bw, bh);
             panel.add(btnCrear);
-            btnCrear.addActionListener(e -> {
-                // Abre el diálogo de forma modal (No cierra la ventana principal)
-                new DialogCrearCuenta(GestionCuentas.this);
-            });
+            btnCrear.addActionListener(e -> new DialogCrearCuenta(GestionCuentas.this));
 
             BotonNeo btnBloquear = new BotonNeo("Bloquear cuenta");
             btnBloquear.setBounds(bx + 480, by, bw, bh);
@@ -502,7 +494,6 @@ public class GestionCuentas extends JFrame {
                 int filaModelo = tabla.convertRowIndexToModel(filaSeleccionada);
                 int idCuenta = (int) modeloTabla.getValueAt(filaModelo, 0);
                 String numCuenta = (String) modeloTabla.getValueAt(filaModelo, 1);
-               
                 int confirmacion = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas bloquear la cuenta " + numCuenta + "?", "Confirmar Bloqueo", JOptionPane.YES_NO_OPTION);
                 if (confirmacion == JOptionPane.YES_OPTION) {
                     actualizarEstadoCuenta(idCuenta, "bloqueada");
@@ -521,7 +512,6 @@ public class GestionCuentas extends JFrame {
                 int filaModelo = tabla.convertRowIndexToModel(filaSeleccionada);
                 int idCuenta = (int) modeloTabla.getValueAt(filaModelo, 0);
                 String numCuenta = (String) modeloTabla.getValueAt(filaModelo, 1);
-               
                 int confirmacion = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas desbloquear la cuenta " + numCuenta + "?", "Confirmar Desbloqueo", JOptionPane.YES_NO_OPTION);
                 if (confirmacion == JOptionPane.YES_OPTION) {
                     actualizarEstadoCuenta(idCuenta, "activa");
@@ -539,12 +529,9 @@ public class GestionCuentas extends JFrame {
                 }
                 int filaModelo = tabla.convertRowIndexToModel(filaSeleccionada);
                 int idCuenta = (int) modeloTabla.getValueAt(filaModelo, 0);
-
-                // Abre la información detallada
                 new DetalleCuenta(idCuenta);
             });
 
-            // DISPARADORES DE FILTRO REACTIVOS EN TIEMPO REAL
             cbTipo.addActionListener(e -> aplicarFiltros());
             cbEstado.addActionListener(e -> aplicarFiltros());
             txtCuenta.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -562,14 +549,10 @@ public class GestionCuentas extends JFrame {
             panel.add(panelTabla);
 
             String[] columnas = {"ID", "CUENTA", "PROPIETARIO", "TIPO", "SALDO", "ESTADO"};
-
             modeloTabla = new DefaultTableModel(columnas, 0) {
                 @Override
-                public boolean isCellEditable(int row, int column) {
-                    return false;
-                }
+                public boolean isCellEditable(int row, int column) { return false; }
             };
-
             tabla = new JTable(modeloTabla);
             tabla.setRowHeight(35);
             tabla.setBackground(new Color(25, 38, 35));
@@ -579,7 +562,6 @@ public class GestionCuentas extends JFrame {
             tabla.setSelectionForeground(Color.BLACK);
             tabla.setShowGrid(true);
 
-            // Ocultar ID del renderizado
             tabla.removeColumn(tabla.getColumnModel().getColumn(0));
 
             JTableHeader header = tabla.getTableHeader();
@@ -602,29 +584,22 @@ public class GestionCuentas extends JFrame {
     }
 
     // ============================
-    // CARGAR CATEGORÍAS DE TIPOS DE CUENTA
+    // MÉTODOS DE BASE DE DATOS Y FILTROS
     // ============================
     private void cargarTipos() {
         cbTipo.addItem("Todos");
         String sql = "SELECT nombre FROM tipos_cuentas ORDER BY nombre";
-
         try (Connection con = main.Conexion.conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next()) {
                 cbTipo.addItem(rs.getString("nombre"));
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error al cargar los tipos de cuenta: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al cargar los tipos de cuenta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // ============================
-    // CONTROLADOR DE FILTROS
-    // ============================
     private void aplicarFiltros() {
         String numeroCuenta = txtCuenta.getText().trim();
         String tipo = (String) cbTipo.getSelectedItem();
@@ -632,47 +607,37 @@ public class GestionCuentas extends JFrame {
         cargarCuentas(numeroCuenta.isEmpty() ? null : numeroCuenta, tipo, estado);
     }
 
-    // ============================
-    // CONSULTA FILTRADA DE BASE DE DATOS (Sin campos inexistentes)
-    // ============================
     private void cargarCuentas(String numeroCuenta, String tipo, String estado) {
         modeloTabla.setRowCount(0);
-
         StringBuilder sql = new StringBuilder(
-                "SELECT c.id_cuenta, c.numero_cuenta, "
-                + "CONCAT(u.nombre, ' ', u.apellido) AS propietario, "
-                + "t.nombre AS tipo, c.saldo, c.estado "
-                + "FROM cuentas_bancarias c "
-                + "JOIN usuarios u ON c.id_usuario = u.id_usuario "
-                + "JOIN tipos_cuentas t ON c.id_tipo_cuenta = t.id_tipo "
-                + "WHERE 1 = 1");
-
+            "SELECT c.id_cuenta, c.numero_cuenta, "
+            + "CONCAT(u.nombre, ' ', u.apellido) AS propietario, "
+            + "t.nombre AS tipo, c.saldo, c.estado "
+            + "FROM cuentas_bancarias c "
+            + "JOIN usuarios u ON c.id_usuario = u.id_usuario "
+            + "JOIN tipos_cuentas t ON c.id_tipo_cuenta = t.id_tipo "
+            + "WHERE 1 = 1");
+            
         List<String> parametros = new ArrayList<>();
-
         if (numeroCuenta != null && !numeroCuenta.isEmpty()) {
             sql.append(" AND c.numero_cuenta LIKE ?");
             parametros.add("%" + numeroCuenta + "%");
         }
-
         if (tipo != null && !tipo.equals("Todos")) {
             sql.append(" AND t.nombre = ?");
             parametros.add(tipo);
         }
-
         if (estado != null && !estado.equals("Todos")) {
             sql.append(" AND c.estado = ?");
             parametros.add(estado);
         }
-
         sql.append(" ORDER BY c.id_cuenta DESC");
 
         try (Connection con = main.Conexion.conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql.toString())) {
-
             for (int i = 0; i < parametros.size(); i++) {
                 ps.setString(i + 1, parametros.get(i));
             }
-
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     modeloTabla.addRow(new Object[]{
@@ -686,27 +651,20 @@ public class GestionCuentas extends JFrame {
                 }
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error al cargar las cuentas: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al cargar las cuentas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // ============================
-    // ACCIÓN DIRECTA: CAMBIO DE ESTADO
-    // ============================
     private void actualizarEstadoCuenta(int idCuenta, String nuevoEstado) {
         String sql = "UPDATE cuentas_bancarias SET estado = ? WHERE id_cuenta = ?";
         try (Connection con = main.Conexion.conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-           
             ps.setString(1, nuevoEstado);
             ps.setInt(2, idCuenta);
-           
             int filasModificadas = ps.executeUpdate();
             if (filasModificadas > 0) {
                 JOptionPane.showMessageDialog(this, "El estado de la cuenta se ha actualizado a: " + nuevoEstado, "Operación Exitosa", JOptionPane.INFORMATION_MESSAGE);
-                aplicarFiltros(); // Refresca en caliente
+                aplicarFiltros();
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error al actualizar el estado de la cuenta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -717,10 +675,8 @@ public class GestionCuentas extends JFrame {
     // MODAL: CREAR NUEVA CUENTA
     // ============================
     class DialogCrearCuenta extends JDialog {
-
         public DialogCrearCuenta(JFrame padre) {
             super(padre, true);
-
             setTitle("Crear Cuenta");
             setSize(560, 560);
             setLocationRelativeTo(padre);
@@ -832,14 +788,12 @@ public class GestionCuentas extends JFrame {
             BotonNeo btnGuardar = new BotonNeo("Guardar Cuenta");
             btnGuardar.setBounds(170, y + 10, 200, 45);
             panel.add(btnGuardar);
-
             btnGuardar.addActionListener(e -> {
                 if (cbUsuario.getSelectedItem() == null || cbBanco.getSelectedItem() == null
-                        || cbTipoCuenta.getSelectedItem() == null || cbMoneda.getSelectedItem() == null) {
+                    || cbTipoCuenta.getSelectedItem() == null || cbMoneda.getSelectedItem() == null) {
                     JOptionPane.showMessageDialog(this, "Debes completar todos los campos.", "Aviso", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-
                 String numeroCuenta = txtNumeroCuenta.getText().trim();
                 String saldoTexto = txtSaldo.getText().trim();
 
@@ -847,7 +801,6 @@ public class GestionCuentas extends JFrame {
                     JOptionPane.showMessageDialog(this, "El número de cuenta es obligatorio.", "Aviso", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-
                 double saldo;
                 try {
                     saldo = Double.parseDouble(saldoTexto);
@@ -862,12 +815,11 @@ public class GestionCuentas extends JFrame {
                 String moneda = (String) cbMoneda.getSelectedItem();
 
                 String sql = "INSERT INTO cuentas_bancarias "
-                        + "(id_usuario, id_banco, id_tipo_cuenta, moneda, numero_cuenta, saldo, estado) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, 'activa')";
+                    + "(id_usuario, id_banco, id_tipo_cuenta, moneda, numero_cuenta, saldo, estado) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, 'activa')";
 
                 try (Connection con = main.Conexion.conexion.getConexion();
                      PreparedStatement ps = con.prepareStatement(sql)) {
-
                     ps.setInt(1, idUsuario);
                     ps.setInt(2, idBanco);
                     ps.setInt(3, idTipoCuenta);
@@ -878,8 +830,8 @@ public class GestionCuentas extends JFrame {
                     int filas = ps.executeUpdate();
                     if (filas > 0) {
                         JOptionPane.showMessageDialog(this, "Cuenta creada correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                        dispose(); // Solo cierra el JDialog modal, NO la ventana principal
-                        aplicarFiltros(); // Refresca inmediatamente la lista principal
+                        dispose();
+                        aplicarFiltros();
                     }
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(this, "Error al crear la cuenta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -955,6 +907,7 @@ public class GestionCuentas extends JFrame {
         }
 
         public int getId() { return id; }
+
         @Override
         public String toString() { return texto; }
     }
