@@ -29,7 +29,7 @@ public class RegistroNeo extends JFrame {
     // DIMENSIONES DE LA TARJETA
     // ============================
     private static final int PANEL_W = 640;
-    private static final int PANEL_H = 700;
+    private static final int PANEL_H = 800;
     private static final int MARGIN_X = 40;
     private static final int COL_GAP = 30;
     private static final int FIELD_W = 260;
@@ -410,6 +410,13 @@ public class RegistroNeo extends JFrame {
             cbTipo.setBounds(COL2_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(cbTipo);
 
+            // ---------- FILA 2.5: Confirmar contraseña ----------
+            y += 100;
+            panelReg.add(crearLabel("Confirmar contraseña", COL1_X, y));
+            RoundedPassField txtPassConfirm = new RoundedPassField(20);
+            txtPassConfirm.setBounds(COL1_X, y + 24, FIELD_W, FIELD_H);
+            panelReg.add(txtPassConfirm);
+
             // ---------- FILA 3: Tipo de perfil / Género ----------
             y += 100;
             panelReg.add(crearLabel("Tipo de perfil", COL1_X, y));
@@ -585,6 +592,14 @@ public class RegistroNeo extends JFrame {
 
                 String perfil = rbMenor.isSelected() ? "Menor supervisado" : "Adulto";
                 String tipoCuenta = cbTipo.getSelectedItem() != null ? cbTipo.getSelectedItem().toString() : "Monetaria";
+
+                String passwordConfirm = new String(txtPassConfirm.getPassword());
+                if (!password.equals(passwordConfirm)) {
+                    JOptionPane.showMessageDialog(null,
+                            "Las contraseñas no coinciden. Verifica que sean exactamente iguales.",
+                            "Contraseña inválida", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
 
                 if (rbMenor.isSelected()) {
                     String correoTutor = txtCorreoTutor.getText().trim();
