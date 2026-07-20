@@ -6,6 +6,10 @@ import funcionalidades.SupervisionDAO;
 import java.awt.*;
 import java.util.List;
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 public class Transferencias extends javax.swing.JFrame {
 
@@ -57,6 +61,66 @@ public class Transferencias extends javax.swing.JFrame {
         new funcionalidades.Transferencias(this);
     }
 
+    // ==========================================
+    // BOTÓN DE ACCIÓN DEL SIDEBAR (Supervisión / Cerrar sesión / Regresar)
+    // ==========================================
+    class BotonAccionNeo extends JButton {
+        private Color normal;
+        private Color hover;
+
+        public BotonAccionNeo(String texto, Color normal, Color hover, Color colorTexto) {
+            super(texto);
+            this.normal = normal;
+            this.hover = hover;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(colorTexto);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getModel().isRollover() ? hover : normal);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            super.paintComponent(g);
+            g2.dispose();
+        }
+    }
+
+    /**
+     * Restringe un JTextField para que solo acepte dígitos y, como mucho,
+     * un punto decimal (para campos de montos/cantidades).
+     */
+    private static void permitirSoloNumeros(JTextField campo) {
+        ((AbstractDocument) campo.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+                if (resultanteValido(fb, offset, 0, string)) {
+                    super.insertString(fb, offset, string, attr);
+                }
+            }
+
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                if (resultanteValido(fb, offset, length, text)) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+
+            private boolean resultanteValido(FilterBypass fb, int offset, int length, String textoNuevo) throws BadLocationException {
+                String actual = fb.getDocument().getText(0, fb.getDocument().getLength());
+                String resultante = actual.substring(0, offset) + textoNuevo + actual.substring(offset + length);
+                return resultante.matches("\\d*(\\.\\d*)?");
+            }
+        });
+    }
+
     class FondoPanel extends JPanel {
 
         public FondoPanel() {
@@ -81,7 +145,7 @@ public class Transferencias extends javax.swing.JFrame {
             };
 
             sidebar.setOpaque(false);
-            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setBounds(20, 20, 300, 870);
             sidebar.setLayout(null);
 
             Color amarillo = new Color(251, 232, 138);
@@ -98,7 +162,8 @@ public class Transferencias extends javax.swing.JFrame {
                 "Saldos",
                 "Bancos Conectados",
                 "Transferencias",
-                "Historial"
+                "Historial",
+                "Agregar Tarjeta"
             };
 
             int y = 140;
@@ -173,11 +238,22 @@ public class Transferencias extends javax.swing.JFrame {
                         dispose();
                     });
                 }
+<<<<<<< HEAD
+=======
+                if (texto.equals("Agregar Tarjeta")) {
+                    btn.addActionListener(e -> {
+                        int idUsuario = SesionUsuario.getIdUsuario();
+                        new DetalleTarjetaDasboard(idUsuario);
+                        dispose();
+                    });
+                }
+>>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
 
                 sidebar.add(btn);
                 y += 68;
             }
 
+<<<<<<< HEAD
             JButton btnCerrarSesion = new JButton("Cerrar sesión");
             btnCerrarSesion.setBounds(20, 880, 250, 55);
             btnCerrarSesion.setFocusPainted(false);
@@ -204,6 +280,19 @@ public class Transferencias extends javax.swing.JFrame {
                 btnSupervision.setForeground(new Color(25, 38, 35));
                 btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+=======
+            // Botón Supervisión — aparece justo debajo del último botón del
+            // menú, solo si el usuario tiene menores a cargo.
+            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
+            int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
+            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
+                BotonAccionNeo btnSupervision = new BotonAccionNeo(
+                        "Supervisión",
+                        new Color(251, 232, 138),
+                        new Color(255, 245, 180),
+                        new Color(25, 38, 35));
+                btnSupervision.setBounds(20, y, 250, 55);
+>>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
                 btnSupervision.addActionListener(e -> {
                     new PanelSupervision(idSesion).setVisible(true);
                     dispose();
@@ -211,6 +300,21 @@ public class Transferencias extends javax.swing.JFrame {
                 sidebar.add(btnSupervision);
             }
 
+<<<<<<< HEAD
+=======
+            BotonAccionNeo btnCerrarSesion = new BotonAccionNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80),
+                    Color.WHITE);
+            btnCerrarSesion.setBounds(20, 800, 250, 55);
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
+
+>>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
             panel.add(sidebar);
         }
 
@@ -218,6 +322,19 @@ public class Transferencias extends javax.swing.JFrame {
             PanelContenedorVerde contenedor = new PanelContenedorVerde();
             contenedor.setBounds(350, 40, 1300, 910);
             add(contenedor);
+
+            // Botón Regresar al Dashboard — arriba a la derecha, estilo verde
+            BotonAccionNeo btnRegresarDashboard = new BotonAccionNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90),
+                    Color.WHITE);
+            btnRegresarDashboard.setBounds(1430, 5, 220, 40);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            add(btnRegresarDashboard);
 
             JLabel lblTitulo = new JLabel("TRANSFERENCIAS");
             lblTitulo.setFont(tituloPantalla);
@@ -355,6 +472,7 @@ public class Transferencias extends javax.swing.JFrame {
 
             txtMonto = new JTextFieldOscuro();
             txtMonto.setBounds(30, 72, inputWidth, inputHeight);
+            permitirSoloNumeros(txtMonto);
             pDetalles.add(txtMonto);
 
             JLabel lblPassword = new JLabel("Contraseña");
@@ -513,6 +631,13 @@ public class Transferencias extends javax.swing.JFrame {
             btnImprimir.setVisible(true);
             pResumen.add(btnImprimir);
 
+            // NUEVO COMPORTAMIENTO: los campos de la transferencia YA NO se
+            // limpian al presionar "Realizar transferencia" (ver
+            // funcionalidades.Transferencias.ejecutarTransferencia(), que ya
+            // no llama a limpiarCamposSeguridad() salvo para la contraseña).
+            // Se conservan hasta que el usuario imprime el comprobante; recién
+            // ahí, tras imprimir con éxito, se limpian cuenta origen, cuenta
+            // destino, monto y contraseña.
             btnImprimir.addActionListener(e -> {
                 try {
                     // Validar que ya se haya hecho la transacción
@@ -581,7 +706,7 @@ public class Transferencias extends javax.swing.JFrame {
                     // Mandar a imprimir
                     funcionalidades.ImpresoraComprobante.imprimir(texto, "POS-80C");
 
-                    // 🔹 Limpiar campos SOLO después de imprimir
+                    // 🔹 Limpiar campos SOLO después de imprimir (aquí, no al transferir)
                     txtNumCuentaO.setText("");
                     txtNumCuentaD.setText("");
                     txtMonto.setText("");

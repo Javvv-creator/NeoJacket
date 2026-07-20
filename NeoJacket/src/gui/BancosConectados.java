@@ -33,6 +33,38 @@ public class BancosConectados extends JFrame {
     }
 
     // ==========================================================
+    // BOTÓN DE ACCIÓN DEL SIDEBAR (Supervisión / Cerrar sesión / Regresar)
+    // ==========================================================
+    class BotonAccionNeo extends JButton {
+        private Color normal;
+        private Color hover;
+
+        public BotonAccionNeo(String texto, Color normal, Color hover, Color colorTexto) {
+            super(texto);
+            this.normal = normal;
+            this.hover = hover;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(colorTexto);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getModel().isRollover() ? hover : normal);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            super.paintComponent(g);
+            g2.dispose();
+        }
+    }
+
+    // ==========================================================
     // CLASE CLONADA DEL RADIO BUTTON PREMIUM AMARILLO NEO
     // ==========================================================
     class NeoRadioButton extends JRadioButton {
@@ -131,7 +163,7 @@ public class BancosConectados extends JFrame {
             };
 
             sidebar.setOpaque(false);
-            sidebar.setBounds(20, 20, 300, 950);
+            sidebar.setBounds(20, 20, 300, 870);
             sidebar.setLayout(null);
 
             Color amarillo = new Color(251, 232, 138);
@@ -143,7 +175,7 @@ public class BancosConectados extends JFrame {
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            String[] opciones = {"Saldos", "Bancos Conectados", "Transferencias", "Historial"};
+            String[] opciones = {"Saldos", "Bancos Conectados", "Transferencias", "Historial", "Agregar Tarjeta"};
             int y = 140;
 
             for (String texto : opciones) {
@@ -208,26 +240,24 @@ public class BancosConectados extends JFrame {
                         dispose();
                     });
                 }
+                if (texto.equals("Agregar Tarjeta")) {
+                    btn.addActionListener(e -> {
+                        int idUsuario = SesionUsuario.getIdUsuario();
+                        new DetalleTarjetaDasboard(idUsuario);
+                        dispose();
+                    });
+                }
 
                 sidebar.add(btn);
                 y += 68;
             }
 
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
-
+            // Botón Supervisión — aparece justo debajo del último botón del
+            // menú, solo si el usuario tiene menores a cargo.
             funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
             int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
+<<<<<<< HEAD
                 JButton btnSupervision = new JButton("Supervisión");
                 btnSupervision.setBounds(20, y, 250, 55);
                 btnSupervision.setFocusPainted(false);
@@ -236,13 +266,33 @@ public class BancosConectados extends JFrame {
                 btnSupervision.setForeground(new Color(25, 38, 35));
                 btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+=======
+                BotonAccionNeo btnSupervision = new BotonAccionNeo(
+                        "Supervisión",
+                        new Color(251, 232, 138),
+                        new Color(255, 245, 180),
+                        new Color(25, 38, 35));
+                btnSupervision.setBounds(20, y, 250, 55);
+>>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
                 btnSupervision.addActionListener(e -> {
                     new PanelSupervision(idSesion).setVisible(true);
                     dispose();
                 });
                 sidebar.add(btnSupervision);
             }
+
+            BotonAccionNeo btnCerrarSesion = new BotonAccionNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80),
+                    Color.WHITE);
+            btnCerrarSesion.setBounds(20, 800, 250, 55);
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
             sidebar.add(btnCerrarSesion);
+
             panel.add(sidebar);
         }
 
@@ -261,6 +311,19 @@ public class BancosConectados extends JFrame {
             panelContenedorGris.setOpaque(false);
             panelContenedorGris.setBounds(350, 20, 1250, 950);
             panel.add(panelContenedorGris);
+
+            // Botón Regresar al Dashboard — arriba a la derecha, estilo verde
+            BotonAccionNeo btnRegresarDashboard = new BotonAccionNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90),
+                    Color.WHITE);
+            btnRegresarDashboard.setBounds(1365, 35, 220, 40);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            panel.add(btnRegresarDashboard);
 
             JLabel lblTitulo = new JLabel("BANCOS CONECTADOS");
             lblTitulo.setForeground(Color.WHITE);

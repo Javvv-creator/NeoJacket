@@ -391,10 +391,15 @@ public class Transferencias {
             }
             
             JOptionPane.showMessageDialog(vista, "¡Transferencia completada de manera exitosa!", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            
+
+            // CAMBIO CLAVE: ya NO se llama a limpiarCamposSeguridad() aquí.
+            // Los campos (cuentas, monto) se CONSERVAN para que el usuario
+            // pueda revisar el resumen y presionar "Imprimir comprobante".
+            // Solo se limpia la contraseña, por seguridad, y se refresca el
+            // saldo mostrado en pantalla (buscarCuentaOrigen/Destino).
+            limpiarSoloPassword();
             buscarCuentaOrigen();
             buscarCuentaDestino();
-            limpiarCamposSeguridad();
             
         } catch (SQLException ex) {
             if (con != null) {
@@ -408,6 +413,11 @@ public class Transferencias {
         }
     }
 
+    /**
+     * Botón "Cancelar": este sí limpia todo de inmediato, incluyendo
+     * cuenta origen/destino, monto y comprobante (comportamiento distinto
+     * al de una transferencia exitosa).
+     */
     private void limpiarCampos() {
         vista.txtNumCuentaO.setText("");
         vista.txtNumCuentaD.setText("");
@@ -420,9 +430,11 @@ public class Transferencias {
         buscarCuentaDestino();
     }
 
-    private void limpiarCamposSeguridad() {
-        vista.txtMonto.setText("");
+    /**
+     * Solo limpia la contraseña (por seguridad) tras una transferencia
+     * exitosa. El monto y las cuentas se conservan para el comprobante.
+     */
+    private void limpiarSoloPassword() {
         vista.txtPassword.setText("");
-        actualizarConversionesYResumen();
     }
 }

@@ -152,6 +152,28 @@ public class DashboardDAO {
     }
 
     // ==========================================
+    // ID DE LA TARJETA PRINCIPAL (la más antigua activa). Se usa para poder
+    // abrir DetalleTarjetaDashboard(idTarjeta, ...) desde cualquier menú.
+    // Devuelve -1 si el usuario todavía no tiene ninguna tarjeta.
+    // ==========================================
+    public int obtenerIdTarjetaPrincipal(int idUsuario) {
+        String sql = "SELECT id_tarjeta FROM tarjetas_bancarias "
+                + "WHERE id_usuario = ? AND estado = 'activa' ORDER BY id_tarjeta ASC LIMIT 1";
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id_tarjeta");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    // ==========================================
     // TODAS LAS TARJETAS ACTIVAS DEL USUARIO (en orden de creación)
     // Se usa para pintar una fila con botón "Copiar" por cada tarjeta
     // que el usuario haya agregado, hasta un máximo de 4.

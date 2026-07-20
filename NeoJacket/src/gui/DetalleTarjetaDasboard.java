@@ -208,7 +208,8 @@ public class DetalleTarjetaDasboard extends JFrame {
                 "Saldos",
                 "Bancos conectados",
                 "Transferencias",
-                "Historial"
+                "Historial",
+                "Agregar Tarjeta"
             };
 
             int y = 140;
