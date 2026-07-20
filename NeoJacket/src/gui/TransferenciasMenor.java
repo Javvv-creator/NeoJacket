@@ -207,6 +207,17 @@ public class TransferenciasMenor extends javax.swing.JFrame {
                 y += 70;
             }
 
+            JButton btnFondos = new JButton("Solicitar fondos");
+            btnFondos.setBounds(20, y, 250, 55);
+            btnFondos.setFocusPainted(false);
+            btnFondos.setBorderPainted(false);
+            btnFondos.setBackground(new Color(94, 116, 73));
+            btnFondos.setForeground(Color.WHITE);
+            btnFondos.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnFondos.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btnFondos.addActionListener(e -> { new SolicitarfondosMenor(idMenor).setVisible(true); dispose(); });
+            sidebar.add(btnFondos);
+
             JButton btnRegresar = new JButton("← Regresar") {
                 @Override protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g.create();
@@ -298,7 +309,7 @@ public class TransferenciasMenor extends javax.swing.JFrame {
             lblSaldoO = new JLabel("Saldo: Q0.00");
             lblSaldoO.setForeground(Color.WHITE);
             lblSaldoO.setFont(etiquetaCampos);
-            lblSaldoO.setBounds(30, 278, 400, 20);
+            lblSaldoO.setBounds(30, 278, 540, 20);
             pOrigen.add(lblSaldoO);
 
 

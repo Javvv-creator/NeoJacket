@@ -5,12 +5,19 @@ import funcionalidades.SupervisionDAO.MenorSupervisado;
 import funcionalidades.SupervisionDAO.MovimientoCuenta;
 import funcionalidades.SupervisionDAO.EventoSesion;
 import funcionalidades.SupervisionDAO.SolicitudPermiso;
+import funcionalidades.CrearUsuario;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import main.Conexion.conexion;
 
 /**
  * Pantalla de Supervisión para tutores (perfil Adulto) que tienen una o más
@@ -222,12 +229,14 @@ public class PanelSupervision extends JFrame {
 
             listaTransaccionesPanel = new JPanel();
             listaTransaccionesPanel.setLayout(new BoxLayout(listaTransaccionesPanel, BoxLayout.Y_AXIS));
-            listaTransaccionesPanel.setOpaque(false);
+            listaTransaccionesPanel.setOpaque(true);
+            listaTransaccionesPanel.setBackground(new Color(25, 38, 35));
             listaTransaccionesPanel.setBorder(new EmptyBorder(0, 15, 15, 15));
 
             JScrollPane scrollTrans = new JScrollPane(listaTransaccionesPanel);
-            scrollTrans.setOpaque(false);
-            scrollTrans.getViewport().setOpaque(false);
+            scrollTrans.setOpaque(true);
+            scrollTrans.getViewport().setOpaque(true);
+            scrollTrans.getViewport().setBackground(new Color(25, 38, 35));
             scrollTrans.setBorder(null);
             scrollTrans.getVerticalScrollBar().setUnitIncrement(16);
             tarjetaTrans.add(scrollTrans, BorderLayout.CENTER);
@@ -248,12 +257,14 @@ public class PanelSupervision extends JFrame {
 
             listaSesionesPanel = new JPanel();
             listaSesionesPanel.setLayout(new BoxLayout(listaSesionesPanel, BoxLayout.Y_AXIS));
-            listaSesionesPanel.setOpaque(false);
+            listaSesionesPanel.setOpaque(true);
+            listaSesionesPanel.setBackground(new Color(25, 38, 35));
             listaSesionesPanel.setBorder(new EmptyBorder(0, 15, 15, 15));
 
             JScrollPane scrollSesiones = new JScrollPane(listaSesionesPanel);
-            scrollSesiones.setOpaque(false);
-            scrollSesiones.getViewport().setOpaque(false);
+            scrollSesiones.setOpaque(true);
+            scrollSesiones.getViewport().setOpaque(true);
+            scrollSesiones.getViewport().setBackground(new Color(25, 38, 35));
             scrollSesiones.setBorder(null);
             scrollSesiones.getVerticalScrollBar().setUnitIncrement(16);
             tarjetaSesiones.add(scrollSesiones, BorderLayout.CENTER);
@@ -276,12 +287,14 @@ public class PanelSupervision extends JFrame {
 
             listaSolicitudesPanel = new JPanel();
             listaSolicitudesPanel.setLayout(new BoxLayout(listaSolicitudesPanel, BoxLayout.Y_AXIS));
-            listaSolicitudesPanel.setOpaque(false);
+            listaSolicitudesPanel.setOpaque(true);
+            listaSolicitudesPanel.setBackground(new Color(25, 38, 35));
             listaSolicitudesPanel.setBorder(BorderFactory.createEmptyBorder(0, 15, 10, 15));
 
             JScrollPane scrollSol = new JScrollPane(listaSolicitudesPanel);
-            scrollSol.setOpaque(false);
-            scrollSol.getViewport().setOpaque(false);
+            scrollSol.setOpaque(true);
+            scrollSol.getViewport().setOpaque(true);
+            scrollSol.getViewport().setBackground(new Color(25, 38, 35));
             scrollSol.setBorder(null);
             scrollSol.getVerticalScrollBar().setUnitIncrement(16);
             tarjetaSolicitudes.add(scrollSol, BorderLayout.CENTER);
@@ -336,6 +349,101 @@ public class PanelSupervision extends JFrame {
             cargarTransacciones(menor.idUsuario);
             cargarSesiones(menor.idUsuario);
             cargarSolicitudes(menor.idUsuario); // Invocación agregada para sincronizar datos
+
+            // Fuerza un repintado completo del panel derecho: al usar fondos
+            // semitransparentes (alpha < 255), repintar solo la etiqueta que
+            // cambió puede dejar residuos visuales del contenido anterior.
+            contenedorDerecho.revalidate();
+            contenedorDerecho.repaint();
+        }
+
+        /**
+         * Acredita el monto aprobado a la cuenta bancaria activa DEL MENOR
+         * (id_usuario = idMenor en cuentas_bancarias). Si el menor todavía
+         * no tiene ninguna cuenta creada, se le crea una automáticamente
+         * usando el banco vinculado de su tutor (CrearUsuario.crearCuenta
+         * AutomaticaParaMenor), y luego se acredita ahí.
+         * @return true si se acreditó correctamente.
+         */
+        private int buscarCuentaActivaDeUsuario(int idUsuario) {
+            String sql = "SELECT id_cuenta FROM cuentas_bancarias WHERE id_usuario = ? AND estado = 'activa' LIMIT 1";
+            try (Connection con = conexion.getConexion();
+                 PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setInt(1, idUsuario);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) return rs.getInt("id_cuenta");
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            return -1;
+        }
+
+        private boolean acreditarFondosMenor(int idMenor, double monto, String descripcion) {
+            Connection con = null;
+            try {
+                int idCuenta = buscarCuentaActivaDeUsuario(idMenor);
+
+                // Si el menor no tiene cuenta todavía, se la creamos ahora mismo.
+                if (idCuenta == -1) {
+                    Integer idAdulto = supervisionDAO.obtenerIdAdultoDeMenor(idMenor);
+                    if (idAdulto == null) {
+                        System.out.println("[DEBUG acreditarFondosMenor] No se encontró tutor activo para idMenor=" + idMenor);
+                        return false;
+                    }
+                    CrearUsuario crear = new CrearUsuario();
+                    boolean creada = crear.crearCuentaAutomaticaParaMenor(idMenor, idAdulto);
+                    if (!creada) {
+                        System.out.println("[DEBUG acreditarFondosMenor] No se pudo crear cuenta automática para idMenor=" + idMenor);
+                        return false;
+                    }
+                    idCuenta = buscarCuentaActivaDeUsuario(idMenor);
+                    if (idCuenta == -1) {
+                        System.out.println("[DEBUG acreditarFondosMenor] Cuenta creada pero no se pudo volver a encontrar para idMenor=" + idMenor);
+                        return false;
+                    }
+                }
+
+                con = conexion.getConexion();
+                con.setAutoCommit(false);
+
+                String sqlCredito = "UPDATE cuentas_bancarias SET saldo = saldo + ? WHERE id_cuenta = ?";
+                try (PreparedStatement psCredito = con.prepareStatement(sqlCredito)) {
+                    psCredito.setDouble(1, monto);
+                    psCredito.setInt(2, idCuenta);
+                    psCredito.executeUpdate();
+                }
+
+                String sqlTrans = "INSERT INTO transacciones (id_cuenta_origen, id_cuenta_destino, id_usuario_realizador, " +
+                        "tipo_transaccion, monto, moneda_origen, moneda_destino, tasa_cambio_historica, estado, descripcion) " +
+                        "VALUES (?, ?, ?, 'deposito', ?, ?, ?, ?, 'completada', ?)";
+                try (PreparedStatement psTrans = con.prepareStatement(sqlTrans)) {
+                    psTrans.setNull(1, Types.INTEGER);
+                    psTrans.setInt(2, idCuenta);
+                    psTrans.setInt(3, idMenor); // debe ser idMenor: obtenerTransaccionesRecientes filtra por id_usuario_realizador = idMenor
+                    psTrans.setDouble(4, monto);
+                    psTrans.setString(5, "GTQ");
+                    psTrans.setString(6, "GTQ");
+                    psTrans.setDouble(7, 1.0);
+                    psTrans.setString(8, descripcion != null ? descripcion : "Fondos aprobados por tutor");
+                    psTrans.executeUpdate();
+                }
+
+                con.commit();
+                System.out.println("[DEBUG acreditarFondosMenor] OK — acreditado Q" + monto + " a idCuenta=" + idCuenta + " (idMenor=" + idMenor + ")");
+                return true;
+            } catch (Exception ex) {
+                if (con != null) {
+                    try { con.rollback(); } catch (SQLException ignored) {}
+                }
+                System.out.println("[DEBUG acreditarFondosMenor] Excepción: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                ex.printStackTrace();
+                return false;
+            } finally {
+                if (con != null) {
+                    try { con.close(); } catch (SQLException ignored) {}
+                }
+            }
         }
 
         private void cargarTransacciones(int idMenor) {
@@ -460,9 +568,54 @@ public class PanelSupervision extends JFrame {
                     btnAprobar.setBorderPainted(false);
                     btnAprobar.setCursor(new Cursor(Cursor.HAND_CURSOR));
                     btnAprobar.addActionListener(e -> {
-                        daoSol.responderSolicitud(sol.idSolicitud, "aprobada");
-                        JOptionPane.showMessageDialog(null, "✅ Solicitud aprobada.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                        cargarSolicitudes(idMenor); // Recarga el flujo visual inmediatamente
+                        try {
+                            // ---------- PASO 1: Marcar solicitud como aprobada ----------
+                            daoSol.responderSolicitud(sol.idSolicitud, "aprobada");
+
+                            // ---------- PASO 2: Diagnóstico del tipo de acción ----------
+                            String tipo = sol.tipoAccion;
+                            System.out.println("[DEBUG Aprobar] idSolicitud=" + sol.idSolicitud
+                                    + " | tipoAccion=\"" + tipo + "\""
+                                    + " | monto=" + sol.monto
+                                    + " | idMenorSolicitud=" + sol.idMenor
+                                    + " | idMenorPantalla=" + idMenor);
+
+                            // ---------- PASO 3: Si es agregar_fondos, acreditar de verdad ----------
+                            if (tipo != null && tipo.trim().equalsIgnoreCase("agregar_fondos")) {
+                                boolean acreditado = acreditarFondosMenor(idMenor, sol.monto, sol.descripcion);
+                                if (acreditado) {
+                                    JOptionPane.showMessageDialog(null,
+                                        "✅ Solicitud aprobada y Q" + String.format("%,.2f", sol.monto) + " acreditados al menor.",
+                                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                                } else {
+                                    JOptionPane.showMessageDialog(null,
+                                        "[PASO 3 - acreditarFondosMenor devolvió false]\n" +
+                                        "La solicitud se aprobó, pero NO se pudo acreditar el fondo al menor.\n" +
+                                        "idMenor=" + idMenor + ", monto=" + sol.monto + "\n\n" +
+                                        "Causa: no se pudo crear/encontrar una cuenta activa para el menor, " +
+                                        "o no se encontró su tutor. Revisa la consola.",
+                                        "Atención", JOptionPane.WARNING_MESSAGE);
+                                }
+                            } else {
+                                JOptionPane.showMessageDialog(null,
+                                    "✅ Solicitud aprobada.\n[DEBUG] tipoAccion recibido: \"" + tipo + "\"",
+                                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                            }
+
+                            // ---------- PASO 4: Refrescar pantalla ----------
+                            double saldoActualizado = supervisionDAO.obtenerSaldoTotal(idMenor);
+                            lblSaldoMenorSel.setText(String.format("Q%,.2f", saldoActualizado));
+                            cargarTransacciones(idMenor);
+                            cargarSolicitudes(idMenor);
+
+                        } catch (Exception ex) {
+                            // Si algo revienta en cualquier paso, esto lo va a mostrar en vez
+                            // de fallar en silencio.
+                            JOptionPane.showMessageDialog(null,
+                                "[ERROR al aprobar] " + ex.getClass().getSimpleName() + ": " + ex.getMessage(),
+                                "Error inesperado", JOptionPane.ERROR_MESSAGE);
+                            ex.printStackTrace();
+                        }
                     });
                     filaSol.add(btnAprobar);
 

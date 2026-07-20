@@ -34,6 +34,47 @@ public class TransferenciasMenor {
         this.idMenor = vista.getIdMenor();
         inicializarListeners();
         cargarDatosIniciales();
+        cargarCuentaPropiaDelMenor();
+    }
+
+    /**
+     * Autocarga los datos de Origen con la cuenta real del propio menor
+     * (la que se le creó/acreditó al aprobar sus solicitudes de fondos), sin
+     * que tenga que escribir manualmente un número de cuenta que él mismo
+     * no conoce (se genera automáticamente al crear su cuenta).
+     */
+    private void cargarCuentaPropiaDelMenor() {
+        if (idMenor == null) return;
+
+        String sql = "SELECT c.numero_cuenta, b.nombre AS banco, tc.nombre AS tipo " +
+                     "FROM cuentas_bancarias c " +
+                     "JOIN bancos b ON c.id_banco = b.id_banco " +
+                     "JOIN tipos_cuentas tc ON c.id_tipo_cuenta = tc.id_tipo " +
+                     "WHERE c.id_usuario = ? AND c.estado = 'activa' LIMIT 1";
+
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idMenor);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String numeroCuenta = rs.getString("numero_cuenta");
+                    String banco = rs.getString("banco");
+                    String tipo = rs.getString("tipo");
+
+                    vista.txtNumCuentaO.setText(numeroCuenta);
+                    vista.cmbSelBancoO.setSelectedItem(banco);
+                    vista.cmbTipoCuentaO.setSelectedItem(tipo);
+
+                    // Reutiliza la búsqueda real ya existente para llenar
+                    // saldo, nombre del titular, etc. con datos 100% reales.
+                    buscarCuentaOrigen();
+                } else {
+                    System.out.println("[DEBUG cargarCuentaPropiaDelMenor] El menor (idMenor=" + idMenor + ") aún no tiene cuenta bancaria.");
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
     }
 
     private void inicializarListeners() {
@@ -86,7 +127,7 @@ public class TransferenciasMenor {
         String tipo = (String) vista.cmbTipoCuentaO.getSelectedItem();
 
         if (entradaInput.isEmpty()) {
-            vista.lblSaldoO.setText("Saldo: Q0.00");
+            vista.lblSaldoO.setText(idMenor != null ? "Saldo aprobado por tu tutor: Q0.00" : "Saldo: Q0.00");
             vista.lblO_Cuenta.setText("Cuenta: --");
             vista.lblO_Banco.setText("Banco: --");
             vista.lblO_Tipo.setText("Tipo: --");
@@ -125,7 +166,8 @@ public class TransferenciasMenor {
                     vista.cmbMonedaO.setSelectedItem(monedaReal);
                 }
 
-                vista.lblSaldoO.setText("Saldo: " + monedaReal + " " + String.format("%.2f", saldoOrigenActual));
+                String etiqueta = (idMenor != null) ? "Saldo aprobado por tu tutor: " : "Saldo: ";
+                vista.lblSaldoO.setText(etiqueta + monedaReal + " " + String.format("%.2f", saldoOrigenActual));
                 vista.lblO_Cuenta.setText("Cuenta: " + entradaInput);
                 vista.lblO_Nombre.setText("Nombre: " + nombreTitular);
                 vista.lblO_Tipo.setText("Tipo: " + tipo);

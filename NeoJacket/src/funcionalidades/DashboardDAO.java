@@ -230,3 +230,5 @@ public class DashboardDAO {
         return m;
     }
 }
+
+// el error de "java.lang.NullPointerException: Cannot invoke "java.sql.ResultSet.getString(String)" because "rs" is null" indica que el ResultSet es nulo, lo que significa que la consulta SQL no devolvió ningún resultado. Esto puede ocurrir si el idUsuario proporcionado no existe en la base de datos o si hay un problema con la conexión a la base de datos. Asegúrate de que el idUsuario sea válido y que la base de datos esté accesible. 

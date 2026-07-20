@@ -229,7 +229,7 @@ public class BancosConectados extends JFrame {
             int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
                 JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, 740, 250, 55);
+                btnSupervision.setBounds(20, y, 250, 55);
                 btnSupervision.setFocusPainted(false);
                 btnSupervision.setBorderPainted(false);
                 btnSupervision.setBackground(new Color(251, 232, 138));

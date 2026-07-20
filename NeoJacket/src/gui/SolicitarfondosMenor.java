@@ -6,15 +6,6 @@ import java.util.List;
 import funcionalidades.CrearUsuario;
 import funcionalidades.SupervisionDAO;
 
-/**
- * Pantalla "Solicitar Fondos" para cuentas de menores supervisados.
- * Visualmente basada en gui.AgregarFondos (misma tarjeta central, misma
- * paleta y tipografías), pero con una diferencia de fondo: un menor no
- * deposita dinero directamente a la base de datos — en vez de eso, esta
- * pantalla arma una solicitud y se la envía a su tutor para aprobación,
- * usando el mismo mecanismo que ya usa Transferencias cuando está bloqueada
- * (SupervisionDAO.crearSolicitudPermiso), bajo la categoría "agregar_fondos".
- */
 public class SolicitarfondosMenor extends javax.swing.JFrame {
 
     private Image fondo;
@@ -239,6 +230,7 @@ public class SolicitarfondosMenor extends javax.swing.JFrame {
             cbBancos.setFont(textoInputs);
             cbBancos.setBackground(new Color(13, 18, 16));
             cbBancos.setForeground(Color.WHITE);
+            cbBancos.setFocusable(false);
             cbBancos.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138, 120), 1));
             cbBancos.setRenderer(new DefaultListCellRenderer() {
                 @Override

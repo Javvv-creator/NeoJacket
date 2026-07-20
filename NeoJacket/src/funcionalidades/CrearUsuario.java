@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 import main.CRUD.CRUD;
-import main.Conexion.conexion;
+import main.Conexion.conexion; 
 
 public class CrearUsuario {
 
@@ -168,6 +168,50 @@ public class CrearUsuario {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * Crea automáticamente la cuenta bancaria de un menor recién registrado,
+     * usando el banco vinculado de su tutor (así es como Transferencias del
+     * menor ya asume que funciona: banco del tutor, cuenta propia del menor).
+     *
+     * Debe llamarse justo después de:
+     *   1) crear el usuario del menor (crearDesdeRegistroNeo)
+     *   2) vincular la supervisión (SupervisionDAO.crearSupervision(idAdulto, idMenor))
+     *
+     * @param idMenor  id_usuario del menor recién creado
+     * @param idAdulto id_usuario del tutor que lo supervisa
+     * @return true si la cuenta se creó correctamente
+     */
+    public boolean crearCuentaAutomaticaParaMenor(int idMenor, int idAdulto) {
+        List<String> bancosTutor = obtenerBancosVinculados(idAdulto);
+        if (bancosTutor.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "El tutor no tiene ningún banco vinculado todavía.\n" +
+                    "No se pudo crear automáticamente la cuenta del menor.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
+        // Usa el primer banco vinculado del tutor como banco del menor
+        String nombreBanco = bancosTutor.get(0);
+        Integer idBanco = obtenerIdBancoPorNombre(nombreBanco);
+        if (idBanco == null) {
+            JOptionPane.showMessageDialog(null,
+                    "No se pudo resolver el banco \"" + nombreBanco + "\" del tutor.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        // Genera un número de cuenta único y legible para el menor
+        String numeroCuenta = "NC-M" + idMenor + "-" + (System.currentTimeMillis() % 100000);
+
+        boolean creada = crearCuentaBancaria(idMenor, idBanco, "Ahorro", numeroCuenta);
+        if (creada) {
+            System.out.println("[DEBUG] Cuenta automática creada para menor idMenor=" + idMenor
+                    + " en banco \"" + nombreBanco + "\" (idBanco=" + idBanco + "), numeroCuenta=" + numeroCuenta);
+        }
+        return creada;
     }
 
     public int obtenerIdUsuario(String correo, String dpiNumero) {

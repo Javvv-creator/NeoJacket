@@ -251,12 +251,14 @@ public class Historial extends javax.swing.JFrame {
             });
             sidebar.add(btnCerrarSesion);
 
-            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo
+            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo.
+            // Se coloca justo debajo del último botón del menú (Historial),
+            // usando la misma variable "y" que dejó el for loop.
             SupervisionDAO daoSup = new SupervisionDAO();
             int idSesion = SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
                 JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, 800, 250, 55);
+                btnSupervision.setBounds(20, y, 250, 55);
                 btnSupervision.setFocusPainted(false);
                 btnSupervision.setBorderPainted(false);
                 btnSupervision.setBackground(amarilloPastel);
