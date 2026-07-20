@@ -238,8 +238,6 @@ public class Transferencias extends javax.swing.JFrame {
                         dispose();
                     });
                 }
-<<<<<<< HEAD
-=======
                 if (texto.equals("Agregar Tarjeta")) {
                     btn.addActionListener(e -> {
                         int idUsuario = SesionUsuario.getIdUsuario();
@@ -247,40 +245,11 @@ public class Transferencias extends javax.swing.JFrame {
                         dispose();
                     });
                 }
->>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
 
                 sidebar.add(btn);
                 y += 68;
             }
 
-<<<<<<< HEAD
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
-            sidebar.add(btnCerrarSesion);
-
-            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo.
-            // Se coloca justo debajo del último botón del menú (Historial).
-            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
-            int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
-            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
-                JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, y, 250, 55);
-                btnSupervision.setFocusPainted(false);
-                btnSupervision.setBorderPainted(false);
-                btnSupervision.setBackground(new Color(251, 232, 138));
-                btnSupervision.setForeground(new Color(25, 38, 35));
-                btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-=======
             // Botón Supervisión — aparece justo debajo del último botón del
             // menú, solo si el usuario tiene menores a cargo.
             funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
@@ -292,7 +261,6 @@ public class Transferencias extends javax.swing.JFrame {
                         new Color(255, 245, 180),
                         new Color(25, 38, 35));
                 btnSupervision.setBounds(20, y, 250, 55);
->>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
                 btnSupervision.addActionListener(e -> {
                     new PanelSupervision(idSesion).setVisible(true);
                     dispose();
@@ -300,8 +268,6 @@ public class Transferencias extends javax.swing.JFrame {
                 sidebar.add(btnSupervision);
             }
 
-<<<<<<< HEAD
-=======
             BotonAccionNeo btnCerrarSesion = new BotonAccionNeo(
                     "Cerrar sesión",
                     new Color(191, 76, 58),
@@ -314,7 +280,6 @@ public class Transferencias extends javax.swing.JFrame {
             });
             sidebar.add(btnCerrarSesion);
 
->>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
             panel.add(sidebar);
         }
 

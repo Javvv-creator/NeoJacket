@@ -1,7 +1,6 @@
 package gui;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,7 +58,6 @@ public class GestionCuentas extends JFrame {
     class BotonNeo extends JButton {
         public BotonNeo(String texto) {
             super(texto);
-            setOpaque(false); // Evita que Nimbus pinte su propio fondo gris encima
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFocusPainted(false);
@@ -99,7 +97,6 @@ public class GestionCuentas extends JFrame {
         public BotonSidebarNeo(String texto, boolean activo) {
             super(texto);
             this.activo = activo;
-            setOpaque(false); // Evita que Nimbus pinte su propio fondo gris encima
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFocusPainted(false);
@@ -176,7 +173,7 @@ public class GestionCuentas extends JFrame {
             // Títulos del menú lateral exactamente como estaban al inicio
             String[] botones = {
                 "Gestión de Usuarios",
-                "Gestión de Menores",
+                "Gestión de Menores Supervisados",
                 "Gestión de Cuentas",
                 "Gestión de Tarjetas",
                 "Gestión de Divisas",
@@ -185,59 +182,39 @@ public class GestionCuentas extends JFrame {
 
             int y = 140;
 
-              for (String texto : botones) {
-                JButton btn = new JButton(texto);
+            for (String texto : botones) {
+                boolean activo = texto.equals("Gestión de Cuentas");
+                BotonSidebarNeo btn = new BotonSidebarNeo(texto, activo);
                 btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
- 
-                if (texto.equals("Gestión de Cuentas")) {
-                    btn.setBackground(new Color(251, 232, 138));
-                    btn.setForeground(Color.BLACK);
-                } else {
-                    btn.setBackground(new Color(94, 116, 73));
-                    btn.setForeground(Color.WHITE);
-                }
-                
-                 if (texto.equals("Gestión de Cuentas")) {
-                    btn.addActionListener(e -> {
-                        new GestionCuentas();
-                        dispose();
-                    });;
-                } else if (texto.equals("Gestión de Usuarios")) {
-                    btn.addActionListener(e -> {
+
+                btn.addActionListener(e -> {
+                    if (texto.equals("Gestión de Cuentas")) {
+                        aplicarFiltros();
+                    } else if (texto.equals("Gestión de Usuarios")) {
                         new GestionUsuario();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Menores")) {
-                    btn.addActionListener(e -> {
+                        dispose(); // Cierra la ventana actual al viajar
+                    } else if (texto.equals("Gestión de Menores Supervisados")) {
                         new GestionMenores();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Tarjetas")) {
-                    btn.addActionListener(e -> {
+                        dispose(); // Cierra la ventana actual al viajar
+                    } else if (texto.equals("Gestión de Tarjetas")) {
                         new GestionTarjeta();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Divisas")) {
-                    btn.addActionListener(e -> {
+                        dispose(); // Cierra la ventana actual al viajar
+                    } else if (texto.equals("Gestión de Divisas")) {
                         new GestionDivisas();
-                        dispose();
-                    });
-                } else if (texto.equals("Gestión de Transacciones")) {
-                    btn.addActionListener(e -> {
+                        dispose(); // Cierra la ventana actual al viajar
+                    } else if (texto.equals("Gestión de Transacciones")) {
                         new GestionTransacciones();
-                        dispose();
-                    });
-                }
+                        dispose(); // Cierra la ventana actual al viajar
+                    }
+                });
 
                 sidebar.add(btn);
                 y += 70;
             }
- 
+
             add(sidebar);
         }
-            
+
         private void crearPanelPrincipal() {
             JPanel panel = new JPanel();
             panel.setLayout(null);
@@ -263,16 +240,6 @@ public class GestionCuentas extends JFrame {
             subtitulo.setForeground(Color.WHITE);
             subtitulo.setBounds(30, 65, 500, 20);
             banner.add(subtitulo);
-
-            // BOTÓN VOLVER (dentro del banner para evitar problemas de z-order)
-           JButton btnVolver = new JButton("Volver");
-            btnVolver.setBounds(1080, 20, 120, 40);
-            
-            btnVolver.addActionListener(e -> {
-                new PanelControlAdmin();
-                dispose(); 
-            });
-            panel.add(btnVolver);
 
             // PANEL FILTROS
             JPanel panelFiltros = new JPanel();
@@ -354,7 +321,7 @@ public class GestionCuentas extends JFrame {
                 int filaModelo = tabla.convertRowIndexToModel(filaSeleccionada);
                 int idCuenta = (int) modeloTabla.getValueAt(filaModelo, 0);
                 String numCuenta = (String) modeloTabla.getValueAt(filaModelo, 1);
-
+               
                 int confirmacion = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas bloquear la cuenta " + numCuenta + "?", "Confirmar Bloqueo", JOptionPane.YES_NO_OPTION);
                 if (confirmacion == JOptionPane.YES_OPTION) {
                     actualizarEstadoCuenta(idCuenta, "bloqueada");
@@ -373,7 +340,7 @@ public class GestionCuentas extends JFrame {
                 int filaModelo = tabla.convertRowIndexToModel(filaSeleccionada);
                 int idCuenta = (int) modeloTabla.getValueAt(filaModelo, 0);
                 String numCuenta = (String) modeloTabla.getValueAt(filaModelo, 1);
-
+               
                 int confirmacion = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas desbloquear la cuenta " + numCuenta + "?", "Confirmar Desbloqueo", JOptionPane.YES_NO_OPTION);
                 if (confirmacion == JOptionPane.YES_OPTION) {
                     actualizarEstadoCuenta(idCuenta, "activa");
@@ -446,6 +413,15 @@ public class GestionCuentas extends JFrame {
             scroll.getViewport().setBackground(new Color(25, 38, 35));
             scroll.setBounds(10, 10, 1160, 350);
             panelTabla.add(scroll);
+
+            // BOTÓN VOLVER (Cierra la ventana actual)
+            BotonNeo btnVolver = new BotonNeo("Volver");
+            btnVolver.setBounds(1080, 20, 120, 40);
+            btnVolver.addActionListener(e -> {
+                new PanelControlAdmin();
+                dispose(); // Cierra esta interfaz para no acumular ventanas
+            });
+            panel.add(btnVolver);
         }
 
         @Override
@@ -457,9 +433,8 @@ public class GestionCuentas extends JFrame {
 
     // ============================
     // ESTILIZADOR DE JCOMBOBOX (Remueve fondo blanco nativo)
-    // Genérico para reutilizar tanto en combos de String como en combos de ComboItem
     // ============================
-    private <T> void estilizarComboBox(JComboBox<T> cb) {
+    private void estilizarComboBox(JComboBox<String> cb) {
         cb.setBackground(new Color(25, 38, 35));
         cb.setForeground(Color.WHITE);
         cb.setBorder(new LineBorder(new Color(251, 232, 138), 1));
@@ -511,7 +486,7 @@ public class GestionCuentas extends JFrame {
     }
 
     // ============================
-    // CONSULTA FILTRADA DE BASE DE DATOS 
+    // CONSULTA FILTRADA DE BASE DE DATOS (Sin campos inexistentes)
     // ============================
     private void cargarCuentas(String numeroCuenta, String tipo, String estado) {
         modeloTabla.setRowCount(0);
@@ -577,10 +552,10 @@ public class GestionCuentas extends JFrame {
         String sql = "UPDATE cuentas_bancarias SET estado = ? WHERE id_cuenta = ?";
         try (Connection con = main.Conexion.conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
+           
             ps.setString(1, nuevoEstado);
             ps.setInt(2, idCuenta);
-
+           
             int filasModificadas = ps.executeUpdate();
             if (filasModificadas > 0) {
                 JOptionPane.showMessageDialog(this, "El estado de la cuenta se ha actualizado a: " + nuevoEstado, "Operación Exitosa", JOptionPane.INFORMATION_MESSAGE);
@@ -626,8 +601,9 @@ public class GestionCuentas extends JFrame {
             panel.add(lblUsuario);
 
             JComboBox<ComboItem> cbUsuario = new JComboBox<>();
-            estilizarComboBox(cbUsuario);
             cbUsuario.setBounds(30, y + 22, 480, 32);
+            cbUsuario.setBackground(new Color(25, 38, 35));
+            cbUsuario.setForeground(Color.WHITE);
             panel.add(cbUsuario);
             y += alturaCampo;
 
@@ -638,8 +614,9 @@ public class GestionCuentas extends JFrame {
             panel.add(lblBanco);
 
             JComboBox<ComboItem> cbBanco = new JComboBox<>();
-            estilizarComboBox(cbBanco);
             cbBanco.setBounds(30, y + 22, 480, 32);
+            cbBanco.setBackground(new Color(25, 38, 35));
+            cbBanco.setForeground(Color.WHITE);
             panel.add(cbBanco);
             y += alturaCampo;
 
@@ -650,8 +627,9 @@ public class GestionCuentas extends JFrame {
             panel.add(lblTipoCuenta);
 
             JComboBox<ComboItem> cbTipoCuenta = new JComboBox<>();
-            estilizarComboBox(cbTipoCuenta);
             cbTipoCuenta.setBounds(30, y + 22, 480, 32);
+            cbTipoCuenta.setBackground(new Color(25, 38, 35));
+            cbTipoCuenta.setForeground(Color.WHITE);
             panel.add(cbTipoCuenta);
             y += alturaCampo;
 
@@ -662,8 +640,9 @@ public class GestionCuentas extends JFrame {
             panel.add(lblMoneda);
 
             JComboBox<String> cbMoneda = new JComboBox<>();
-            estilizarComboBox(cbMoneda);
             cbMoneda.setBounds(30, y + 22, 480, 32);
+            cbMoneda.setBackground(new Color(25, 38, 35));
+            cbMoneda.setForeground(Color.WHITE);
             panel.add(cbMoneda);
             y += alturaCampo;
 

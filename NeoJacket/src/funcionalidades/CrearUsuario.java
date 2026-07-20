@@ -238,6 +238,36 @@ public class CrearUsuario {
         return idUsuario;
     }
 
+    /**
+     * Devuelve el id_cuenta de la cuenta bancaria activa más reciente
+     * que tiene el usuario en el banco indicado.
+     *
+     * @param idUsuario id del usuario dueño de la cuenta
+     * @param idBanco   id del banco donde se busca la cuenta
+     * @return el id_cuenta encontrado, o -1 si no existe ninguna cuenta activa
+     *         para ese usuario en ese banco
+     */
+    public int obtenerIdCuenta(int idUsuario, int idBanco) {
+        int idCuenta = -1;
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_cuenta FROM cuentas_bancarias "
+                     + "WHERE id_usuario = ? AND id_banco = ? AND estado = 'activa' "
+                     + "ORDER BY id_cuenta DESC LIMIT 1"
+             )) {
+            ps.setInt(1, idUsuario);
+            ps.setInt(2, idBanco);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    idCuenta = rs.getInt("id_cuenta");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return idCuenta;
+    }
+
     public Integer obtenerIdBancoPorNombre(String banco) {
         if (banco == null || banco.trim().isEmpty()) {
             return null;

@@ -257,23 +257,12 @@ public class BancosConectados extends JFrame {
             funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
             int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
             if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
-<<<<<<< HEAD
-                JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, y, 250, 55);
-                btnSupervision.setFocusPainted(false);
-                btnSupervision.setBorderPainted(false);
-                btnSupervision.setBackground(new Color(251, 232, 138));
-                btnSupervision.setForeground(new Color(25, 38, 35));
-                btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnSupervision.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-=======
                 BotonAccionNeo btnSupervision = new BotonAccionNeo(
                         "Supervisión",
                         new Color(251, 232, 138),
                         new Color(255, 245, 180),
                         new Color(25, 38, 35));
                 btnSupervision.setBounds(20, y, 250, 55);
->>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
                 btnSupervision.addActionListener(e -> {
                     new PanelSupervision(idSesion).setVisible(true);
                     dispose();

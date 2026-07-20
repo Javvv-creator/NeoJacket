@@ -273,3 +273,9 @@ CREATE INDEX idx_tarjetas_usuario_banco ON tarjetas_bancarias(id_usuario, id_ban
 ALTER TABLE transacciones 
 MODIFY COLUMN tipo_transaccion 
 ENUM('deposito','retiro','actualizacion','transferencia') NOT NULL DEFAULT 'deposito';
+
+ALTER TABLE cuentas_bancarias
+ADD COLUMN fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+select * from usuarios;

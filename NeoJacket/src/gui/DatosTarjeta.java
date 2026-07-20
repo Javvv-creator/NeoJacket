@@ -9,9 +9,9 @@ public class DatosTarjeta extends JFrame {
 
     private Image fondo;
     private Image logo;
-    private final String correoUsuario;
-    private final String dpiUsuario;
-    private final String tipoCuenta;
+    private String correoUsuario;
+    private String dpiUsuario;
+    private String tipoCuenta;
 
     // ============================
     // TEXTFIELD REDONDEADO
@@ -32,16 +32,14 @@ public class DatosTarjeta extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // Fondo redondeado
             g2.setColor(new Color(25, 38, 35, 200));
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
 
-            // Borde redondeado
             g2.setColor(new Color(251, 232, 138));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
 
+            super.paintComponent(g);
             g2.dispose();
-            super.paintComponent(g); 
         }
     }
 
@@ -50,8 +48,8 @@ public class DatosTarjeta extends JFrame {
     // ============================
     class BotonNeo extends JButton {
 
-        private final Color normal;
-        private final Color hover;
+        private Color normal;
+        private Color hover;
 
         public BotonNeo(String texto, Color normal, Color hover) {
             super(texto);
@@ -74,13 +72,13 @@ public class DatosTarjeta extends JFrame {
             g2.setColor(getModel().isRollover() ? hover : normal);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
 
-            g2.dispose();
             super.paintComponent(g);
+            g2.dispose();
         }
     }
 
-    // ============================
-    // COMBOBOX NEO (CORREGIDO)
+// ============================
+    // COMBOBOX NEO
     // ============================
     class ComboNeo extends JComboBox<String> {
 
@@ -94,33 +92,25 @@ public class DatosTarjeta extends JFrame {
             setBackground(new Color(25, 38, 35));
             setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 5));
 
-            // Renderizador corregido para asegurar visibilidad del texto
             setRenderer(new DefaultListCellRenderer() {
                 @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                         boolean isSelected, boolean cellHasFocus) {
-                    
-                    // Usamos super para obtener la configuración base del JLabel
                     JLabel lbl = (JLabel) super.getListCellRendererComponent(
                             list, value, index, isSelected, cellHasFocus);
 
+                    list.setBackground(new Color(25, 38, 35));
+                    list.setSelectionBackground(new Color(60, 85, 70));
+                    list.setSelectionForeground(new Color(251, 232, 138));
+
                     lbl.setOpaque(true);
-                    lbl.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-                    
-                    // Colores de los elementos de la lista desplegable
-                    if (isSelected) {
-                        lbl.setBackground(new Color(60, 85, 70));
-                        lbl.setForeground(new Color(251, 232, 138)); // Texto amarillo Neo
-                    } else {
-                        lbl.setBackground(new Color(25, 38, 35));
-                        lbl.setForeground(Color.WHITE); // Texto blanco
-                    }
-                    
+                    lbl.setBackground(isSelected ? new Color(60, 85, 70) : new Color(25, 38, 35));
+                    lbl.setForeground(isSelected ? new Color(251, 232, 138) : Color.WHITE);
                     lbl.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+                    lbl.setFont(new Font("Segoe UI", Font.PLAIN, 18));
                     return lbl;
                 }
             });
-
             setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
                 @Override
                 protected JButton createArrowButton() {
@@ -142,13 +132,21 @@ public class DatosTarjeta extends JFrame {
                         protected JScrollPane createScroller() {
                             JScrollPane scroller = new JScrollPane(list,
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-                            
+                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) {
+                                @Override
+                                protected void paintComponent(Graphics g) {
+                                    g.setColor(new Color(25, 38, 35));
+                                    g.fillRect(0, 0, getWidth(), getHeight());
+                                    super.paintComponent(g);
+                                }
+                            };
                             scroller.setOpaque(true);
                             scroller.setBackground(new Color(25, 38, 35));
                             scroller.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138)));
                             scroller.getViewport().setOpaque(true);
                             scroller.getViewport().setBackground(new Color(25, 38, 35));
+                            scroller.getVerticalScrollBar().setOpaque(true);
+                            scroller.getVerticalScrollBar().setBackground(new Color(25, 38, 35));
                             return scroller;
                         }
                     };
@@ -159,29 +157,40 @@ public class DatosTarjeta extends JFrame {
                 }
             });
 
-            // Forzar que el editor o el texto seleccionado herede el color correcto
-            if (getEditor() != null && getEditor().getEditorComponent() != null) {
-                getEditor().getEditorComponent().setForeground(Color.WHITE);
-                getEditor().getEditorComponent().setBackground(new Color(25, 38, 35));
-            }
+           
+            addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+                @Override
+                public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+                    SwingUtilities.invokeLater(() -> {
+                        Window ventana = SwingUtilities.getWindowAncestor(ComboNeo.this);
+                        if (ventana != null) {
+                            ventana.repaint();
+                        }
+                    });
+                }
+
+                @Override
+                public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                }
+
+                @Override
+                public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+                }
+            });
         }
 
-        @Override
+         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // Pintar fondo del combo principal
             g2.setColor(new Color(25, 38, 35, 200));
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
 
-            // Dibujar borde dorado
             g2.setColor(new Color(251, 232, 138));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
 
             g2.dispose();
-
-            // Llamamos a super para que Swing dibuje el texto seleccionado encima del fondo que creamos
             super.paintComponent(g);
         }
     }
@@ -190,18 +199,13 @@ public class DatosTarjeta extends JFrame {
     // CONSTRUCTOR
     // ============================
     public DatosTarjeta(String correoUsuario, String dpiUsuario, String tipoCuenta) {
+
         this.correoUsuario = correoUsuario;
         this.dpiUsuario = dpiUsuario;
         this.tipoCuenta = tipoCuenta;
 
-        try {
-            java.net.URL urlFondo = getClass().getResource("/gui/image/fondo.png");
-            java.net.URL urlLogo = getClass().getResource("/gui/image/logoblanco.png");
-            if (urlFondo != null) fondo = new ImageIcon(urlFondo).getImage();
-            if (urlLogo != null) logo = new ImageIcon(urlLogo).getImage();
-        } catch (Exception e) {
-            System.err.println("Error al cargar los recursos de imagen: " + e.getMessage());
-        }
+        fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
+        logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
 
         setTitle("Neo Jacket - Datos de Tarjeta");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -217,57 +221,58 @@ public class DatosTarjeta extends JFrame {
     // ============================
     class FondoPanel extends JPanel {
 
-        private JPanel panelFormulario;
-        private JLabel lblLogo;
-
         public FondoPanel() {
             setLayout(null);
             crearFormulario();
         }
 
         private void crearFormulario() {
-            if (logo != null) {
-                Image logoEscalado = logo.getScaledInstance(260, 120, Image.SCALE_SMOOTH);
-                lblLogo = new JLabel(new ImageIcon(logoEscalado));
-                lblLogo.setBounds(50, 40, 260, 120);
-                add(lblLogo);
-            }
 
-            panelFormulario = new JPanel();
-            panelFormulario.setLayout(null);
-            panelFormulario.setBackground(new Color(25, 38, 35, 180));
-            panelFormulario.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2, true));
-            add(panelFormulario);
+            // LOGO
+            Image logoEscalado = logo.getScaledInstance(260, 120, Image.SCALE_SMOOTH);
+            JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
+            lblLogo.setBounds(50, 40, 260, 120);
+            add(lblLogo);
+
+            // PANEL
+            JPanel panel = new JPanel();
+            panel.setLayout(null);
+            panel.setBackground(new Color(25, 38, 35, 180));
+            panel.setBounds(650, 120, 550, 650);
+            panel.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2, true));
+            add(panel);
 
             JLabel titulo = new JLabel("Datos de Tarjeta");
             titulo.setFont(new Font("Segoe UI", Font.BOLD, 26));
             titulo.setForeground(Color.WHITE);
             titulo.setBounds(40, 20, 400, 40);
-            panelFormulario.add(titulo);
+            panel.add(titulo);
 
-            panelFormulario.add(crearLabel("Tipo de tarjeta", 40, 90));
+            // CAMPOS EDITABLES
+            panel.add(crearLabel("Tipo de tarjeta", 40, 90));
             JTextField txtTipo = crearField(40, 125);
-            panelFormulario.add(txtTipo);
+            panel.add(txtTipo);
 
-            panelFormulario.add(crearLabel("País de su cuenta o tarjeta", 40, 190));
+            panel.add(crearLabel("País de su cuenta o tarjeta", 40, 190));
             JTextField txtPais = crearField(40, 225);
-            panelFormulario.add(txtPais);
+            panel.add(txtPais);
 
-            panelFormulario.add(crearLabel("Número de cuenta o tarjeta *", 40, 290));
+            panel.add(crearLabel("Número de cuenta o tarjeta *", 40, 290));
             JTextField txtNumero = crearField(40, 325);
-            panelFormulario.add(txtNumero);
+            panel.add(txtNumero);
 
-            panelFormulario.add(crearLabel("Seleccione el banco", 40, 390));
+            panel.add(crearLabel("Seleccione el banco", 40, 390));
             ComboNeo cbBanco = new ComboNeo(new String[]{"Bi", "bac", "banrural", "gyt"});
             cbBanco.setBounds(40, 425, 450, 50);
-            panelFormulario.add(cbBanco);
+            panel.add(cbBanco);
 
+            // BOTÓN GUARDAR
             Color amarillo = new Color(251, 232, 138);
             Color amarilloHover = new Color(255, 245, 180);
 
             BotonNeo btnGuardar = new BotonNeo("Guardar", amarillo, amarilloHover);
             btnGuardar.setBounds(75, 500, 400, 55);
-            panelFormulario.add(btnGuardar);
+            panel.add(btnGuardar);
 
             btnGuardar.addActionListener(e -> {
                 String tipo = txtTipo.getText().trim();
@@ -276,52 +281,58 @@ public class DatosTarjeta extends JFrame {
                 String banco = cbBanco.getSelectedItem().toString();
 
                 try {
-                    CrearUsuario crear = new CrearUsuario();
                     AgregarTarjeta servicio = new AgregarTarjeta();
 
-                    // 1. Obtener ID del usuario registrado
-                    int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
-                    if (idUsuario == -1) {
-                        throw new IllegalArgumentException("No se pudo localizar el ID del usuario recién registrado.");
-                    }
+                    boolean guardado = servicio.registrarTarjeta(
+                            correoUsuario,
+                            dpiUsuario,
+                            tipo,
+                            pais,
+                            numero,
+                            banco);
 
-                    // 2. Obtener el ID del banco basándonos en el nombre seleccionado
-                    Integer idBanco = crear.obtenerIdBancoPorNombre(banco);
-                    if (idBanco == null) {
-                        throw new IllegalArgumentException("El banco seleccionado no existe en el sistema.");
-                    }
+                    if (guardado) {
 
-                    // 3. Crear la cuenta bancaria en la base de datos vinculando el ID de usuario, banco y número de cuenta
-                    boolean cuentaCreada = crear.crearCuentaBancaria(idUsuario, idBanco, tipoCuenta, numero);
+                        CrearUsuario crear = new CrearUsuario();
 
-                    if (cuentaCreada) {
-                        // 4. Registrar la tarjeta asociada. 
-                        // El método registrarTarjeta internamente llamará a obtenerCuentaIdPorNumeroYBanco
-                        // y enlazará automáticamente la tarjeta con la cuenta que acabamos de insertar.
-                        boolean tarjetaGuardada = servicio.registrarTarjeta(
-                                correoUsuario,
-                                dpiUsuario,
-                                tipo,
-                                pais,
-                                numero,
-                                banco
-                        );
+                        int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
 
-                        if (tarjetaGuardada) {
-                            JOptionPane.showMessageDialog(null,
-                                    "✅ Cuenta bancaria y Tarjeta asociadas correctamente.",
-                                    "Éxito",
-                                    JOptionPane.INFORMATION_MESSAGE);
+                        // Crear cuentas en los bancos
+                        crear.crearCuentaBancaria(idUsuario, 2, tipoCuenta, numero);
+                        crear.crearCuentaBancaria(idUsuario, 3, tipoCuenta, numero);
+                        crear.crearCuentaBancaria(idUsuario, 4, tipoCuenta, numero);
 
-                            new InicioNeo().setVisible(true);
-                            dispose();
-                        } else {
-                            throw new Exception("La cuenta fue creada, pero falló el registro de la tarjeta.");
+                        // Obtener idBanco según selección
+                        int idBancoSeleccionado = 0;
+                        switch (banco) {
+                            case "Bi":
+                                idBancoSeleccionado = 1;
+                                break;
+                            case "bac":
+                                idBancoSeleccionado = 2;
+                                break;
+                            case "banrural":
+                                idBancoSeleccionado = 3;
+                                break;
+                            case "gyt":
+                                idBancoSeleccionado = 4;
+                                break;
                         }
-                    } else {
-                        throw new Exception("No se pudo crear la cuenta bancaria.");
-                    }
 
+                        // Recuperar idCuenta de ese banco
+                        int idCuenta = crear.obtenerIdCuenta(idUsuario, idBancoSeleccionado);
+
+                        // Vincular tarjeta con la cuenta
+                        servicio.vincularTarjetaConCuenta(numero, idCuenta);
+
+                        JOptionPane.showMessageDialog(null,
+                                "✅ Tarjeta y cuentas bancarias creadas correctamente.",
+                                "Éxito",
+                                JOptionPane.INFORMATION_MESSAGE);
+
+                        new InicioNeo().setVisible(true);
+                        dispose();
+                    }
                 } catch (IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(null,
                             "❌ " + ex.getMessage(),
@@ -329,20 +340,21 @@ public class DatosTarjeta extends JFrame {
                             JOptionPane.WARNING_MESSAGE);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null,
-                            "Error al procesar el registro: " + ex.getMessage(),
+                            "Error al guardar los datos de la tarjeta: " + ex.getMessage(),
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
                     ex.printStackTrace();
                 }
             });
 
+            // BOTÓN VOLVER AL INICIO
             Color verde = new Color(94, 116, 73, 200);
             Color verdeHover = new Color(120, 150, 90);
 
             BotonNeo btnVolver = new BotonNeo("Volver al inicio", verde, verdeHover);
             btnVolver.setForeground(Color.WHITE);
             btnVolver.setBounds(75, 570, 400, 55);
-            panelFormulario.add(btnVolver);
+            panel.add(btnVolver);
 
             btnVolver.addActionListener(e -> {
                 new InicioNeo().setVisible(true);
@@ -365,24 +377,9 @@ public class DatosTarjeta extends JFrame {
         }
 
         @Override
-        public void doLayout() {
-            super.doLayout();
-            int x = (getWidth() - 550) / 2;
-            int y = (getHeight() - 650) / 2;
-            if (panelFormulario != null) {
-                panelFormulario.setBounds(x, y, 550, 650);
-            }
-            if (lblLogo != null) {
-                lblLogo.setBounds(50, 40, 260, 120);
-            }
-        }
-
-        @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            if (fondo != null) {
-                g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
-            }
+            g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
     }
 }

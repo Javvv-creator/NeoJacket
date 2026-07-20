@@ -162,7 +162,7 @@ public class Historial extends javax.swing.JFrame {
         }
 
         // ==========================================
-        // SIDEBAR (corregido: cerrar sesión / supervisión ya no se duplican)
+        // SIDEBAR 
         // ==========================================
         private void crearSidebar(JPanel panel) {
 
@@ -277,36 +277,6 @@ public class Historial extends javax.swing.JFrame {
                 y += 68;
             }
 
-<<<<<<< HEAD
-            // ---------- Estos componentes van UNA sola vez, fuera del for ----------
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnCerrarSesion.addActionListener(e -> {
-                new InicioNeo().setVisible(true);
-                dispose();
-            });
-            sidebar.add(btnCerrarSesion);
-
-            // Botón Supervisión — aparece solo si el usuario tiene menores a cargo.
-            // Se coloca justo debajo del último botón del menú (Historial),
-            // usando la misma variable "y" que dejó el for loop.
-            SupervisionDAO daoSup = new SupervisionDAO();
-            int idSesion = SesionUsuario.getIdUsuario();
-            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
-                JButton btnSupervision = new JButton("Supervisión");
-                btnSupervision.setBounds(20, y, 250, 55);
-                btnSupervision.setFocusPainted(false);
-                btnSupervision.setBorderPainted(false);
-                btnSupervision.setBackground(amarilloPastel);
-                btnSupervision.setForeground(new Color(25, 38, 35));
-                btnSupervision.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                btnSupervision.setCursor(new Cursor(Cursor.HAND_CURSOR));
-=======
             // Botón Supervisión — aparece justo debajo del último botón del
             // menú, solo si el usuario tiene menores a cargo.
             SupervisionDAO daoSup = new SupervisionDAO();
@@ -318,7 +288,6 @@ public class Historial extends javax.swing.JFrame {
                         new Color(255, 245, 180),
                         new Color(25, 38, 35));
                 btnSupervision.setBounds(20, y, 250, 55);
->>>>>>> f99f0847734ab6098965c506f1dac261463ac6d9
                 btnSupervision.addActionListener(e -> {
                     new PanelSupervision(idSesion).setVisible(true);
                     dispose();
@@ -394,7 +363,7 @@ public class Historial extends javax.swing.JFrame {
             int anchoBloque = 600;
 
             // =================================================================
-            // FILA 1: MIS CUENTAS (IZQ)  vs  RESUMEN FINANCIERO (DER, marco dorado)
+            // FILA 1: MIS CUENTAS 
             // =================================================================
             int row1Y = 140, row1H = 210;
 
