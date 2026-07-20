@@ -1,20 +1,49 @@
 package main.Conexion;
 
-import java.sql.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
 import javax.swing.JOptionPane;
 
 public class conexion {
-    // Al ser static, estas variables le pertenecen a la clase y no a un objeto
-    private static Connection con;
-    private static final String URL = "jdbc:mysql://localhost:3306/neojacket_db";          
-    private static final String USER = "root";
-    private static final String PASSWORD = "123456789";
 
-    // Modificamos el método a static para poder llamarlo directamente
+    // Valores por defecto para desarrollo local; se sobreescriben si existe db.properties.
+    private static final String URL_DEFAULT = "jdbc:mysql://localhost:3306/neojacket_db";
+    private static final String USER_DEFAULT = "root";
+    private static final String PASSWORD_DEFAULT = "123456789";
+
+    private static final String ARCHIVO_CONFIG = "db.properties";
+
+    private static String url;
+    private static String user;
+    private static String password;
+    private static boolean configCargada = false;
+
+    private static synchronized void cargarConfig() {
+        if (configCargada) {
+            return;
+        }
+        Properties props = new Properties();
+        try (InputStream in = new FileInputStream(ARCHIVO_CONFIG)) {
+            props.load(in);
+        } catch (IOException e) {
+            // No existe db.properties: se usan los valores por defecto de desarrollo local.
+        }
+        url = props.getProperty("db.url", URL_DEFAULT);
+        user = props.getProperty("db.user", USER_DEFAULT);
+        password = props.getProperty("db.password", PASSWORD_DEFAULT);
+        configCargada = true;
+    }
+
     public static Connection getConexion() {
+        cargarConfig();
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection(URL, USER, PASSWORD);
+            return DriverManager.getConnection(url, user, password);
         } catch (ClassNotFoundException e) {
             JOptionPane.showMessageDialog(null,
                     "No se encontró el driver MySQL JDBC.\n" +
@@ -36,6 +65,6 @@ public class conexion {
                     JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
-        return con;
+        return null;
     }
 }

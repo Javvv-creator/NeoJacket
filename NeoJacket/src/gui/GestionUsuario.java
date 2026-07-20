@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import funcionalidades.PasswordUtil;
 import main.Conexion.conexion;
 
 public class GestionUsuario extends JFrame {
@@ -818,7 +819,7 @@ public class GestionUsuario extends JFrame {
                     ps.setString(5, telefono.isEmpty() ? null : telefono);
                     ps.setString(6, fecha);
                     ps.setString(7, genero);
-                    ps.setString(8, password);
+                    ps.setString(8, PasswordUtil.hash(password));
                     ps.setString(9, dpi.isEmpty() ? null : dpi);
 
                     if (ps.executeUpdate() > 0) {

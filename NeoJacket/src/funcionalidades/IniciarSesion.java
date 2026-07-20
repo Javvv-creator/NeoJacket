@@ -17,14 +17,9 @@ public class IniciarSesion {
             throw new IllegalArgumentException("La contraseña es obligatoria.");
         }
 
-        String sql = "SELECT id_rol, estado FROM usuarios WHERE nombre = ? AND password_hash = ?";
+        String sql = "SELECT id_rol, estado, password_hash FROM usuarios WHERE nombre = ?";
 
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            con = conexion.getConexion();
+        try (Connection con = conexion.getConexion()) {
             if (con == null) {
                 JOptionPane.showMessageDialog(null,
                         "No se pudo establecer conexión con la base de datos.",
@@ -33,23 +28,29 @@ public class IniciarSesion {
                 return null;
             }
 
-            ps = con.prepareStatement(sql);
-            ps.setString(1, nombre.trim());
-            ps.setString(2, password);
-            rs = ps.executeQuery();
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, nombre.trim());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        return null;
+                    }
 
-            if (rs.next()) {
-                String estado = rs.getString("estado");
-                if (!"activo".equalsIgnoreCase(estado)) {
-                    JOptionPane.showMessageDialog(null,
-                            "La cuenta no está activa. Consulte con soporte.",
-                            "Cuenta inactiva",
-                            JOptionPane.WARNING_MESSAGE);
-                    return null;
+                    if (!PasswordUtil.verify(password, rs.getString("password_hash"))) {
+                        return null;
+                    }
+
+                    String estado = rs.getString("estado");
+                    if (!"activo".equalsIgnoreCase(estado)) {
+                        JOptionPane.showMessageDialog(null,
+                                "La cuenta no está activa. Consulte con soporte.",
+                                "Cuenta inactiva",
+                                JOptionPane.WARNING_MESSAGE);
+                        return null;
+                    }
+
+                    int idRol = rs.getInt("id_rol");
+                    return idRol == 1 ? "ADMIN" : "CLIENTE";
                 }
-
-                int idRol = rs.getInt("id_rol");
-                return idRol == 1 ? "ADMIN" : "CLIENTE";
             }
 
         } catch (SQLException e) {
@@ -58,50 +59,26 @@ public class IniciarSesion {
                     "Error de base de datos",
                     JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (ps != null) ps.close();
-                if (con != null) con.close();
-                if (rs != null) {
-                    rs.close();
-                }
-                if (ps != null) {
-                    ps.close();
-                }
-                if (con != null) {
-                    con.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
 
         return null;
     }
-    
+
     public int obtenerIdUsuario(String nombre, String password) {
-        int idUsuario = -1;
-        try {
-            Connection con = conexion.getConexion();
-            PreparedStatement ps = con.prepareStatement(
-                "SELECT id_usuario FROM usuarios WHERE nombre = ? AND password_hash = ?"
-            );
+        String sql = "SELECT id_usuario, password_hash FROM usuarios WHERE nombre = ?";
+
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, nombre.trim());
-            ps.setString(2, password);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("id_usuario");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next() && PasswordUtil.verify(password, rs.getString("password_hash"))) {
+                    return rs.getInt("id_usuario");
+                }
             }
-
-            rs.close();
-            ps.close();
-            con.close();
         } catch (Exception e) {
             e.printStackTrace();
-             return 0; 
+            return 0;
         }
-        return idUsuario;
+        return -1;
     }
 }

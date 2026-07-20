@@ -217,16 +217,13 @@ public class AgregarTarjeta {
     }
 
     public void vincularTarjetaConCuenta(String numeroTarjeta, int idCuenta) {
-        try {
-            Connection con = conexion.getConexion();
-            PreparedStatement ps = con.prepareStatement(
-                    "UPDATE tarjetas_bancarias SET id_cuenta = ? WHERE numero_tarjeta = ?"
-            );
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "UPDATE tarjetas_bancarias SET id_cuenta = ? WHERE numero_tarjeta = ?"
+             )) {
             ps.setInt(1, idCuenta);
             ps.setString(2, numeroTarjeta);
             ps.executeUpdate();
-            ps.close();
-            con.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }

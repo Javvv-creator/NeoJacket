@@ -300,12 +300,22 @@ public class DetalleTarjetaDasboard extends JFrame {
             panel.add(titulo);
 
             panel.add(crearLabel("Tipo de tarjeta", 40, 90));
-            JTextField txtTipo = crearField(40, 125);
-            panel.add(txtTipo);
+            JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Débito", "Crédito"});
+            cbTipo.setBounds(40, 125, 450, 50);
+            cbTipo.setBackground(new Color(25, 38, 35, 200));
+            cbTipo.setForeground(Color.WHITE);
+            cbTipo.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            cbTipo.setFocusable(false);
+            panel.add(cbTipo);
 
             panel.add(crearLabel("País de su cuenta o tarjeta", 40, 190));
-            JTextField txtPais = crearField(40, 225);
-            panel.add(txtPais);
+            JComboBox<String> cbPais = new JComboBox<>(new String[]{"Guatemala"});
+            cbPais.setBounds(40, 225, 450, 50);
+            cbPais.setBackground(new Color(25, 38, 35, 200));
+            cbPais.setForeground(Color.WHITE);
+            cbPais.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            cbPais.setFocusable(false);
+            panel.add(cbPais);
 
             panel.add(crearLabel("Número de cuenta o tarjeta *", 40, 290));
             JTextField txtNumero = crearField(40, 325);
@@ -328,8 +338,8 @@ public class DetalleTarjetaDasboard extends JFrame {
             panel.add(btnGuardar);
 
             btnGuardar.addActionListener(e -> {
-                String tipo = txtTipo.getText().trim();
-                String pais = txtPais.getText().trim();
+                String tipo = cbTipo.getSelectedItem().toString();
+                String pais = cbPais.getSelectedItem().toString();
                 String numero = txtNumero.getText().trim();
                 String banco = cbBanco.getSelectedItem().toString();
 

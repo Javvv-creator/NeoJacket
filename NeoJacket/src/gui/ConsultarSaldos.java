@@ -206,6 +206,18 @@ public class ConsultarSaldos extends JFrame {
             // BotonNeo pinta con colorNormal/colorHover (no con
             // getBackground()), así que en realidad se veía amarillo. Ahora
             // se construye directo con los colores rojos correctos.
+            // Botón Regresar al Dashboard — ahora en el sidebar, arriba de Cerrar sesión
+            BotonNeo btnRegresarDashboard = new BotonNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90));
+            btnRegresarDashboard.setBounds(20, 730, 250, 55);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnRegresarDashboard);
+
             BotonNeo btnCerrarSesion = new BotonNeo(
                     "Cerrar sesión",
                     new Color(191, 76, 58),
@@ -235,18 +247,6 @@ public class ConsultarSaldos extends JFrame {
             contenedor.setBounds(350, 60, 1300, 760);
             add(contenedor);
 
-            // Botón Regresar al Dashboard — arriba a la derecha, estilo verde
-            BotonNeo btnRegresarDashboard = new BotonNeo(
-                    "← Regresar al Dashboard",
-                    new Color(94, 116, 73, 220),
-                    new Color(120, 150, 90));
-            btnRegresarDashboard.setBounds(1430, 15, 220, 40);
-            btnRegresarDashboard.addActionListener(e -> {
-                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
-                dispose();
-            });
-            add(btnRegresarDashboard);
-
             JPanel barraSuperior = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -265,24 +265,14 @@ public class ConsultarSaldos extends JFrame {
             Color amarilloHover = new Color(255, 245, 180);
             Color tabInactivo = new Color(40, 58, 54);
 
-            JButton btnTab1 = new JButton("Agregar Fondos");
-            btnTab1.setBounds(0, 0, 433, 55);
-            btnTab1.setBackground(tabInactivo);
-            btnTab1.setForeground(Color.WHITE);
-            btnTab1.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnTab1.setFocusPainted(false);
+            JButton btnTab1 = crearBotonPestaña("Agregar Fondos", 0);
             btnTab1.addActionListener(e -> {
                 new AgregarFondos().setVisible(true);
                 dispose();
             });
             barraSuperior.add(btnTab1);
 
-            JButton btnTab2 = new JButton("Actualizar Saldos");
-            btnTab2.setBounds(433, 0, 434, 55);
-            btnTab2.setBackground(tabInactivo);
-            btnTab2.setForeground(Color.WHITE);
-            btnTab2.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            btnTab2.setFocusPainted(false);
+            JButton btnTab2 = crearBotonPestaña("Actualizar Saldos", 433);
             btnTab2.addActionListener(e -> {
                 new ActualizarSaldos().setVisible(true);
                 dispose();
@@ -574,6 +564,32 @@ public class ConsultarSaldos extends JFrame {
                 }
             });
 
+        }
+
+        // Mismo estilo de pestaña (con hover) que usan ActualizarSaldos/AgregarFondos
+        private JButton crearBotonPestaña(String texto, int xPos) {
+            JButton btn = new JButton(texto);
+            btn.setBounds(xPos, 0, 434, 55);
+            btn.setBackground(new Color(16, 22, 20));
+            btn.setForeground(new Color(150, 150, 150));
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btn.setFocusPainted(false);
+            btn.setBorder(BorderFactory.createEmptyBorder());
+            btn.setContentAreaFilled(false);
+            btn.setOpaque(true);
+
+            btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    btn.setForeground(Color.WHITE);
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    btn.setForeground(new Color(150, 150, 150));
+                }
+            });
+            return btn;
         }
 
         @Override

@@ -6,6 +6,7 @@ import funcionalidades.SupervisionDAO.MovimientoCuenta;
 import funcionalidades.SupervisionDAO.EventoSesion;
 import funcionalidades.SupervisionDAO.SolicitudPermiso;
 import funcionalidades.CrearUsuario;
+import funcionalidades.DashboardDAO;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -18,6 +19,7 @@ import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import main.Conexion.conexion;
+import gui.components.BotonNeo;
 
 /**
  * Pantalla de Supervisión para tutores (perfil Adulto) que tienen una o más
@@ -45,34 +47,6 @@ public class PanelSupervision extends JFrame {
     private JPanel listaSolicitudesPanel; // Atributo agregado para refresco dinámico
 
     private Integer idMenorSeleccionado = null;
-
-    // ==========================================
-    // BOTÓN NEO (mismo estilo que el resto del sistema)
-    // ==========================================
-    class BotonNeo extends JButton {
-        public BotonNeo(String texto) {
-            super(texto);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setForeground(Color.WHITE);
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(getModel().isRollover()
-                    ? new Color(251, 232, 138, 220)
-                    : new Color(94, 116, 73, 190));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-            g2.setColor(new Color(255, 255, 255, 80));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
 
     // ==========================================
     // PANEL CON BORDES REDONDEADOS
@@ -379,38 +353,76 @@ public class PanelSupervision extends JFrame {
             return -1;
         }
 
-        private boolean acreditarFondosMenor(int idMenor, double monto, String descripcion) {
+        /**
+         * Transfiere fondos reales del supervisor (idTutor) al menor: valida
+         * con bloqueo de fila que el tutor todavía tenga saldo suficiente
+         * (protege contra condiciones de carrera entre la validación previa
+         * al aprobar y este método), descuenta su cuenta y acredita al menor,
+         * todo en una sola transacción.
+         */
+        private boolean transferirFondosDeSupervisorAMenor(int idTutor, int idMenor, double monto, String descripcion) {
             Connection con = null;
             try {
-                int idCuenta = buscarCuentaActivaDeUsuario(idMenor);
+                int idCuentaMenor = buscarCuentaActivaDeUsuario(idMenor);
 
                 // Si el menor no tiene cuenta todavía, se la creamos ahora mismo.
-                if (idCuenta == -1) {
+                if (idCuentaMenor == -1) {
                     Integer idAdulto = supervisionDAO.obtenerIdAdultoDeMenor(idMenor);
                     if (idAdulto == null) {
-                        System.out.println("[DEBUG acreditarFondosMenor] No se encontró tutor activo para idMenor=" + idMenor);
+                        System.out.println("[DEBUG transferirFondosDeSupervisorAMenor] No se encontró tutor activo para idMenor=" + idMenor);
                         return false;
                     }
                     CrearUsuario crear = new CrearUsuario();
                     boolean creada = crear.crearCuentaAutomaticaParaMenor(idMenor, idAdulto);
                     if (!creada) {
-                        System.out.println("[DEBUG acreditarFondosMenor] No se pudo crear cuenta automática para idMenor=" + idMenor);
+                        System.out.println("[DEBUG transferirFondosDeSupervisorAMenor] No se pudo crear cuenta automática para idMenor=" + idMenor);
                         return false;
                     }
-                    idCuenta = buscarCuentaActivaDeUsuario(idMenor);
-                    if (idCuenta == -1) {
-                        System.out.println("[DEBUG acreditarFondosMenor] Cuenta creada pero no se pudo volver a encontrar para idMenor=" + idMenor);
+                    idCuentaMenor = buscarCuentaActivaDeUsuario(idMenor);
+                    if (idCuentaMenor == -1) {
+                        System.out.println("[DEBUG transferirFondosDeSupervisorAMenor] Cuenta creada pero no se pudo volver a encontrar para idMenor=" + idMenor);
                         return false;
                     }
+                }
+
+                int idCuentaTutor = buscarCuentaActivaDeUsuario(idTutor);
+                if (idCuentaTutor == -1) {
+                    System.out.println("[DEBUG transferirFondosDeSupervisorAMenor] El tutor idTutor=" + idTutor + " no tiene cuenta activa.");
+                    return false;
                 }
 
                 con = conexion.getConexion();
                 con.setAutoCommit(false);
 
+                String sqlSaldoTutor = "SELECT saldo FROM cuentas_bancarias WHERE id_cuenta = ? FOR UPDATE";
+                double saldoTutor;
+                try (PreparedStatement psSaldo = con.prepareStatement(sqlSaldoTutor)) {
+                    psSaldo.setInt(1, idCuentaTutor);
+                    try (ResultSet rs = psSaldo.executeQuery()) {
+                        if (!rs.next()) {
+                            con.rollback();
+                            return false;
+                        }
+                        saldoTutor = rs.getDouble("saldo");
+                    }
+                }
+                if (monto > saldoTutor) {
+                    con.rollback();
+                    System.out.println("[DEBUG transferirFondosDeSupervisorAMenor] Saldo insuficiente al momento de debitar: saldoTutor=" + saldoTutor + ", monto=" + monto);
+                    return false;
+                }
+
+                String sqlDebito = "UPDATE cuentas_bancarias SET saldo = saldo - ? WHERE id_cuenta = ?";
+                try (PreparedStatement psDebito = con.prepareStatement(sqlDebito)) {
+                    psDebito.setDouble(1, monto);
+                    psDebito.setInt(2, idCuentaTutor);
+                    psDebito.executeUpdate();
+                }
+
                 String sqlCredito = "UPDATE cuentas_bancarias SET saldo = saldo + ? WHERE id_cuenta = ?";
                 try (PreparedStatement psCredito = con.prepareStatement(sqlCredito)) {
                     psCredito.setDouble(1, monto);
-                    psCredito.setInt(2, idCuenta);
+                    psCredito.setInt(2, idCuentaMenor);
                     psCredito.executeUpdate();
                 }
 
@@ -418,8 +430,8 @@ public class PanelSupervision extends JFrame {
                         "tipo_transaccion, monto, moneda_origen, moneda_destino, tasa_cambio_historica, estado, descripcion) " +
                         "VALUES (?, ?, ?, 'deposito', ?, ?, ?, ?, 'completada', ?)";
                 try (PreparedStatement psTrans = con.prepareStatement(sqlTrans)) {
-                    psTrans.setNull(1, Types.INTEGER);
-                    psTrans.setInt(2, idCuenta);
+                    psTrans.setInt(1, idCuentaTutor);
+                    psTrans.setInt(2, idCuentaMenor);
                     psTrans.setInt(3, idMenor); // debe ser idMenor: obtenerTransaccionesRecientes filtra por id_usuario_realizador = idMenor
                     psTrans.setDouble(4, monto);
                     psTrans.setString(5, "GTQ");
@@ -430,13 +442,13 @@ public class PanelSupervision extends JFrame {
                 }
 
                 con.commit();
-                System.out.println("[DEBUG acreditarFondosMenor] OK — acreditado Q" + monto + " a idCuenta=" + idCuenta + " (idMenor=" + idMenor + ")");
+                System.out.println("[DEBUG transferirFondosDeSupervisorAMenor] OK — Q" + monto + " de idCuentaTutor=" + idCuentaTutor + " a idCuentaMenor=" + idCuentaMenor);
                 return true;
             } catch (Exception ex) {
                 if (con != null) {
                     try { con.rollback(); } catch (SQLException ignored) {}
                 }
-                System.out.println("[DEBUG acreditarFondosMenor] Excepción: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                System.out.println("[DEBUG transferirFondosDeSupervisorAMenor] Excepción: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
                 ex.printStackTrace();
                 return false;
             } finally {
@@ -569,10 +581,7 @@ public class PanelSupervision extends JFrame {
                     btnAprobar.setCursor(new Cursor(Cursor.HAND_CURSOR));
                     btnAprobar.addActionListener(e -> {
                         try {
-                            // ---------- PASO 1: Marcar solicitud como aprobada ----------
-                            daoSol.responderSolicitud(sol.idSolicitud, "aprobada");
-
-                            // ---------- PASO 2: Diagnóstico del tipo de acción ----------
+                            // ---------- PASO 0: Diagnóstico del tipo de acción ----------
                             String tipo = sol.tipoAccion;
                             System.out.println("[DEBUG Aprobar] idSolicitud=" + sol.idSolicitud
                                     + " | tipoAccion=\"" + tipo + "\""
@@ -580,20 +589,35 @@ public class PanelSupervision extends JFrame {
                                     + " | idMenorSolicitud=" + sol.idMenor
                                     + " | idMenorPantalla=" + idMenor);
 
-                            // ---------- PASO 3: Si es agregar_fondos, acreditar de verdad ----------
+                            // ---------- PASO 1: Validar fondos del supervisor ANTES de aprobar ----------
+                            // Si la solicitud es de fondos y el supervisor no alcanza a cubrirla,
+                            // no se procesa nada: ni se marca aprobada ni se acredita al menor.
                             if (tipo != null && tipo.trim().equalsIgnoreCase("agregar_fondos")) {
-                                boolean acreditado = acreditarFondosMenor(idMenor, sol.monto, sol.descripcion);
-                                if (acreditado) {
+                                double saldoSupervisor = new DashboardDAO().obtenerSaldoTotal(idTutor);
+                                if (sol.monto > saldoSupervisor) {
+                                    JOptionPane.showMessageDialog(PanelSupervision.this,
+                                            "Excede sus fondos disponibles",
+                                            "Fondos insuficientes", JOptionPane.WARNING_MESSAGE);
+                                    return;
+                                }
+                            }
+
+                            // ---------- PASO 2: Marcar solicitud como aprobada ----------
+                            daoSol.responderSolicitud(sol.idSolicitud, "aprobada");
+
+                            // ---------- PASO 3: Si es agregar_fondos, transferir de verdad (tutor → menor) ----------
+                            if (tipo != null && tipo.trim().equalsIgnoreCase("agregar_fondos")) {
+                                boolean transferido = transferirFondosDeSupervisorAMenor(idTutor, idMenor, sol.monto, sol.descripcion);
+                                if (transferido) {
                                     JOptionPane.showMessageDialog(null,
-                                        "✅ Solicitud aprobada y Q" + String.format("%,.2f", sol.monto) + " acreditados al menor.",
+                                        "✅ Solicitud aprobada y Q" + String.format("%,.2f", sol.monto) + " transferidos al menor.",
                                         "Éxito", JOptionPane.INFORMATION_MESSAGE);
                                 } else {
                                     JOptionPane.showMessageDialog(null,
-                                        "[PASO 3 - acreditarFondosMenor devolvió false]\n" +
-                                        "La solicitud se aprobó, pero NO se pudo acreditar el fondo al menor.\n" +
+                                        "[PASO 3 - transferirFondosDeSupervisorAMenor devolvió false]\n" +
+                                        "La solicitud se aprobó, pero NO se pudo transferir el fondo al menor.\n" +
                                         "idMenor=" + idMenor + ", monto=" + sol.monto + "\n\n" +
-                                        "Causa: no se pudo crear/encontrar una cuenta activa para el menor, " +
-                                        "o no se encontró su tutor. Revisa la consola.",
+                                        "Causa: no se pudo crear/encontrar una cuenta activa para el menor o el tutor. Revisa la consola.",
                                         "Atención", JOptionPane.WARNING_MESSAGE);
                                 }
                             } else {

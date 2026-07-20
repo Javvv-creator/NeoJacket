@@ -242,8 +242,10 @@ CREATE TABLE auditoria_logs (
 );
 
 -- Usuario administrador base (id_rol = 1)
+-- La contraseña en texto plano es "123456789"; el valor de abajo es su hash
+-- PBKDF2WithHmacSHA256 generado con funcionalidades.PasswordUtil (ver ese archivo).
 INSERT INTO usuarios (id_rol, nombre, apellido, correo, fecha_nacimiento, password_hash)
-VALUES (1, 'Javier', 'Top', 'javier@ex.com', '2000-01-01', '123456789');
+VALUES (1, 'Javier', 'Top', 'javier@ex.com', '2000-01-01', '120000:DsZg4ey6iQOeRTh0gjOkgg==:U311JatMaSRzkNYwLGOv6KPn4y2VnxcU/1LBUFrHaYI=');
 
 -- =========================================================================
 -- 6. ÍNDICES EXPLÍCITOS PARA LLAVES FORÁNEAS (Optimización de Rendimiento)

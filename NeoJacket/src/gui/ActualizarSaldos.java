@@ -244,6 +244,19 @@ public class ActualizarSaldos extends JFrame {
                 sidebar.add(btnSupervision);
             }
 
+            // Botón Regresar al Dashboard — ahora en el sidebar, arriba de Cerrar sesión
+            BotonAccionNeo btnRegresarDashboard = new BotonAccionNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90),
+                    Color.WHITE);
+            btnRegresarDashboard.setBounds(20, 730, 250, 55);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnRegresarDashboard);
+
             BotonAccionNeo btnCerrarSesion = new BotonAccionNeo(
                     "Cerrar sesión",
                     new Color(191, 76, 58),
@@ -277,18 +290,6 @@ public class ActualizarSaldos extends JFrame {
             add(contenedor);
 
             // Botón Regresar al Dashboard — arriba a la derecha, estilo verde
-            BotonAccionNeo btnRegresarDashboard = new BotonAccionNeo(
-                    "← Regresar al Dashboard",
-                    new Color(94, 116, 73, 220),
-                    new Color(120, 150, 90),
-                    Color.WHITE);
-            btnRegresarDashboard.setBounds(1430, 15, 220, 40);
-            btnRegresarDashboard.addActionListener(e -> {
-                new Dashboard(SesionUsuario.getIdUsuario()).setVisible(true);
-                dispose();
-            });
-            add(btnRegresarDashboard);
-
             JPanel barraSuperior = new JPanel();
             barraSuperior.setBounds(0, 0, 1300, 55);
             barraSuperior.setBackground(new Color(23, 32, 29));

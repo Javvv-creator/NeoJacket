@@ -39,7 +39,7 @@ public class Dashboard extends javax.swing.JFrame {
     private List<DashboardDAO.Movimiento> movimientosRecientes;
     private List<DashboardDAO.Movimiento> actividadReciente;
     private String numeroCuentaMostrar;
-    private List<String> tarjetasActivas;
+    private List<DashboardDAO.TarjetaResumen> tarjetasActivas;
 
     // ==========================================
     // TEXTFIELD REDONDEADO
@@ -206,7 +206,7 @@ public class Dashboard extends javax.swing.JFrame {
             actividadReciente = new java.util.ArrayList<>();
             numeroCuentaMostrar = numeroCuentaSimulado;
             tarjetasActivas = new java.util.ArrayList<>();
-            tarjetasActivas.add(numeroTarjetaSimulado);
+            tarjetasActivas.add(tarjetaSimulada());
             return;
         }
 
@@ -225,11 +225,21 @@ public class Dashboard extends javax.swing.JFrame {
 
         // TODAS las tarjetas activas del usuario (hasta 4). Si aún no tiene
         // ninguna, se muestra la simulada como respaldo (igual que antes).
-        tarjetasActivas = dashboardDAO.obtenerNumerosTarjetasActivas(idUsuarioReal);
+        tarjetasActivas = dashboardDAO.obtenerTarjetasActivas(idUsuarioReal);
         if (tarjetasActivas == null || tarjetasActivas.isEmpty()) {
             tarjetasActivas = new java.util.ArrayList<>();
-            tarjetasActivas.add(numeroTarjetaSimulado);
+            tarjetasActivas.add(tarjetaSimulada());
         }
+    }
+
+    // Tarjeta de respaldo (sin registro real en BD) cuando el usuario todavía
+    // no tiene ninguna tarjeta agregada. idTarjeta = -1 marca que no es real,
+    // así el Dashboard sabe que no debe abrir un detalle para ella.
+    private DashboardDAO.TarjetaResumen tarjetaSimulada() {
+        DashboardDAO.TarjetaResumen t = new DashboardDAO.TarjetaResumen();
+        t.idTarjeta = -1;
+        t.numero = numeroTarjetaSimulado;
+        return t;
     }
 
     // ==========================================
@@ -489,12 +499,44 @@ public class Dashboard extends javax.swing.JFrame {
 
             int filaY = 15 + filaAlto;
             int numeroTarjetaIdx = 1;
-            for (String numeroTarjeta : tarjetasActivas) {
+            for (DashboardDAO.TarjetaResumen tarjeta : tarjetasActivas) {
+                String numeroTarjeta = tarjeta.numero;
+
                 JLabel lblTarjetaText = new JLabel("Número de Tarjeta " + numeroTarjetaIdx + ": " + numeroTarjeta);
                 lblTarjetaText.setForeground(Color.WHITE);
                 lblTarjetaText.setFont(fontTexto);
                 lblTarjetaText.setBounds(20, filaY, 420, 25);
                 numeroCard.add(lblTarjetaText);
+
+                // Botón "Ver": abre el detalle de ESA tarjeta específica. Solo
+                // disponible para tarjetas reales (idTarjeta > 0); la tarjeta
+                // simulada de respaldo (idTarjeta == -1) no existe en BD.
+                if (tarjeta.idTarjeta > 0) {
+                    final int idTarjetaParaVer = tarjeta.idTarjeta;
+                    JButton btnVer = new JButton("Ver") {
+                        @Override
+                        protected void paintComponent(Graphics g) {
+                            Graphics2D g2 = (Graphics2D) g.create();
+                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                            g2.setColor(getModel().isRollover() ? new Color(120, 150, 90) : new Color(94, 116, 73));
+                            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                            g2.dispose();
+                            super.paintComponent(g);
+                        }
+                    };
+                    btnVer.setBounds(445, filaY - 3, 90, 30);
+                    btnVer.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                    btnVer.setForeground(Color.WHITE);
+                    btnVer.setFocusPainted(false);
+                    btnVer.setContentAreaFilled(false);
+                    btnVer.setBorderPainted(false);
+                    btnVer.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    btnVer.addActionListener(e -> {
+                        new DetalleTarjetaUsuario(idTarjetaParaVer).setVisible(true);
+                        dispose();
+                    });
+                    numeroCard.add(btnVer);
+                }
 
                 final String numeroParaCopiar = numeroTarjeta;
                 JButton btnCopiar = new JButton("Copiar") {

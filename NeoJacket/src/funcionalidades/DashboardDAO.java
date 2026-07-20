@@ -28,6 +28,15 @@ public class DashboardDAO {
         public Timestamp fecha;
     }
 
+    /**
+     * Resumen mínimo de una tarjeta para listarla en el Dashboard y poder
+     * abrir su pantalla de detalle (necesita el id, no solo el número).
+     */
+    public static class TarjetaResumen {
+        public int idTarjeta;
+        public String numero;
+    }
+
     // ==========================================
     // NOMBRE DEL USUARIO
     // ==========================================
@@ -188,6 +197,31 @@ public class DashboardDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     lista.add(rs.getString("numero_tarjeta"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
+    // ==========================================
+    // TARJETAS ACTIVAS CON SU ID (hasta 4) — usado por el Dashboard para que
+    // cada tarjeta listada sea clickeable y abra su propia pantalla de detalle.
+    // ==========================================
+    public List<TarjetaResumen> obtenerTarjetasActivas(int idUsuario) {
+        List<TarjetaResumen> lista = new ArrayList<>();
+        String sql = "SELECT id_tarjeta, numero_tarjeta FROM tarjetas_bancarias "
+                + "WHERE id_usuario = ? AND estado = 'activa' ORDER BY id_tarjeta ASC LIMIT 4";
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    TarjetaResumen t = new TarjetaResumen();
+                    t.idTarjeta = rs.getInt("id_tarjeta");
+                    t.numero = rs.getString("numero_tarjeta");
+                    lista.add(t);
                 }
             }
         } catch (SQLException e) {

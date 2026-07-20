@@ -12,6 +12,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import gui.components.BotonNeoCompacto;
+import gui.components.RoundedTextFieldCompacto;
 
 public class GestionCuentas extends JFrame {
 
@@ -26,70 +28,9 @@ public class GestionCuentas extends JFrame {
     // COMPONENTES PRINCIPALES
     private DefaultTableModel modeloTabla;
     private JTable tabla;
-    private RoundedTextField txtCuenta;
+    private RoundedTextFieldCompacto txtCuenta;
     private JComboBox<String> cbTipo;
     private JComboBox<String> cbEstado;
-
-    // ============================
-    // COMPONENTE: TEXTFIELD REDONDEADO (borde amarillo delgado)
-    // ============================
-    class RoundedTextField extends JTextField {
-        public RoundedTextField(int size) {
-            super(size);
-            setOpaque(false);
-            setForeground(Color.WHITE);
-            setCaretColor(Color.WHITE);
-            setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(13, 20, 18, 230));
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
-            g2.setColor(new Color(251, 232, 138, 170));
-            g2.setStroke(new BasicStroke(1.2f));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
-
-    // ============================
-    // COMPONENTE: BOTÓN ESTILO NEO
-    // ============================
-    class BotonNeo extends JButton {
-        public BotonNeo(String texto) {
-            super(texto);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setForeground(Color.WHITE);
-            setFont(new Font("Segoe UI", Font.BOLD, 13));
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            if (getModel().isRollover()) {
-                g2.setColor(amarilloPastel);
-                setForeground(Color.BLACK);
-            } else {
-                g2.setColor(new Color(94, 116, 73, 190));
-                setForeground(Color.WHITE);
-            }
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-            g2.setColor(new Color(255, 255, 255, 60));
-            g2.setStroke(new BasicStroke(1f));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
 
     // ============================
     // COMPONENTE: BOTÓN SIDEBAR NEO
@@ -414,7 +355,7 @@ public class GestionCuentas extends JFrame {
             subtitulo.setBounds(30, 65, 500, 20);
             banner.add(subtitulo);
 
-            BotonNeo btnVolver = new BotonNeo("← Volver");
+            BotonNeoCompacto btnVolver = new BotonNeoCompacto("← Volver");
             btnVolver.setBounds(1300 - 160, 32, 120, 45);
             btnVolver.addActionListener(e -> {
                 new PanelControlAdmin();
@@ -446,7 +387,7 @@ public class GestionCuentas extends JFrame {
             lblEstado.setBounds(800, 15, 150, 20);
             panelFiltros.add(lblEstado);
 
-            txtCuenta = new RoundedTextField(20);
+            txtCuenta = new RoundedTextFieldCompacto(20);
             txtCuenta.setBounds(30, 45, 350, 42);
             panelFiltros.add(txtCuenta);
 
@@ -467,7 +408,7 @@ public class GestionCuentas extends JFrame {
             int bw = 220;
             int bh = 50;
 
-            BotonNeo btnExplorar = new BotonNeo("Explorar lista");
+            BotonNeoCompacto btnExplorar = new BotonNeoCompacto("Explorar lista");
             btnExplorar.setBounds(bx, by, bw, bh);
             panel.add(btnExplorar);
             btnExplorar.addActionListener(e -> {
@@ -477,12 +418,12 @@ public class GestionCuentas extends JFrame {
                 cargarCuentas(null, "Todos", "Todos");
             });
 
-            BotonNeo btnCrear = new BotonNeo("Crear cuenta");
+            BotonNeoCompacto btnCrear = new BotonNeoCompacto("Crear cuenta");
             btnCrear.setBounds(bx + 240, by, bw, bh);
             panel.add(btnCrear);
             btnCrear.addActionListener(e -> new DialogCrearCuenta(GestionCuentas.this));
 
-            BotonNeo btnBloquear = new BotonNeo("Bloquear cuenta");
+            BotonNeoCompacto btnBloquear = new BotonNeoCompacto("Bloquear cuenta");
             btnBloquear.setBounds(bx + 480, by, bw, bh);
             panel.add(btnBloquear);
             btnBloquear.addActionListener(e -> {
@@ -500,7 +441,7 @@ public class GestionCuentas extends JFrame {
                 }
             });
 
-            BotonNeo btnDesbloquear = new BotonNeo("Desbloquear cuenta");
+            BotonNeoCompacto btnDesbloquear = new BotonNeoCompacto("Desbloquear cuenta");
             btnDesbloquear.setBounds(bx + 720, by, bw, bh);
             panel.add(btnDesbloquear);
             btnDesbloquear.addActionListener(e -> {
@@ -518,7 +459,7 @@ public class GestionCuentas extends JFrame {
                 }
             });
 
-            BotonNeo btnInfo = new BotonNeo("Información cuenta");
+            BotonNeoCompacto btnInfo = new BotonNeoCompacto("Información cuenta");
             btnInfo.setBounds(bx + 960, by, bw, bh);
             panel.add(btnInfo);
             btnInfo.addActionListener(e -> {
@@ -785,7 +726,7 @@ public class GestionCuentas extends JFrame {
             cargarTiposCuentaCombo(cbTipoCuenta);
             cargarMonedas(cbMoneda);
 
-            BotonNeo btnGuardar = new BotonNeo("Guardar Cuenta");
+            BotonNeoCompacto btnGuardar = new BotonNeoCompacto("Guardar Cuenta");
             btnGuardar.setBounds(170, y + 10, 200, 45);
             panel.add(btnGuardar);
             btnGuardar.addActionListener(e -> {

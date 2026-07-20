@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import funcionalidades.API;
+import gui.components.BotonNeoCompacto;
 
 public class GestionDivisas extends JFrame {
 
@@ -18,38 +19,6 @@ public class GestionDivisas extends JFrame {
 
     private final Color amarilloPastel = new Color(251, 232, 138);
     private final Color verdeBotonNormal = new Color(94, 116, 73);
-
-    // Botón personalizado con efecto Hover
-    class BotonNeo extends JButton {
-        public BotonNeo(String texto) {
-            super(texto);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setForeground(Color.WHITE);
-            setFont(new Font("Segoe UI", Font.BOLD, 13));
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            if (getModel().isRollover()) {
-                g2.setColor(amarilloPastel);
-                setForeground(Color.BLACK);
-            } else {
-                g2.setColor(new Color(94, 116, 73, 190));
-                setForeground(Color.WHITE);
-            }
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-            g2.setColor(new Color(255, 255, 255, 60));
-            g2.setStroke(new BasicStroke(1f));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
 
     // ============================
     // BOTÓN SIDEBAR NEO
@@ -253,7 +222,7 @@ public class GestionDivisas extends JFrame {
             subtitulo.setBounds(30, 65, 600, 20);
             banner.add(subtitulo);
 
-            BotonNeo btnVolver = new BotonNeo("← Volver");
+            BotonNeoCompacto btnVolver = new BotonNeoCompacto("← Volver");
             btnVolver.setBounds(1300 - 160, 32, 120, 45);
             btnVolver.addActionListener(e -> {
                 new PanelControlAdmin();
@@ -298,7 +267,7 @@ public class GestionDivisas extends JFrame {
 
             int bx = 40; int by = 620; int bw = 250; int bh = 50;
 
-            BotonNeo btnActualizar = new BotonNeo("Actualizar tipo de cambio");
+            BotonNeoCompacto btnActualizar = new BotonNeoCompacto("Actualizar tipo de cambio");
             btnActualizar.setBounds(bx, by, bw, bh);
             btnActualizar.addActionListener(e -> cargarDatosDesdeAPI());
             panel.add(btnActualizar);

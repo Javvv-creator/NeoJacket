@@ -333,7 +333,7 @@ public class TransferenciasMenor {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String passBd = rs.getString("password_hash");
-                    return passBd.equals(passwordClaro);
+                    return PasswordUtil.verify(passwordClaro, passBd);
                 }
             }
         } catch (SQLException ex) {

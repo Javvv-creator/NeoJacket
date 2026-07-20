@@ -13,6 +13,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableRowSorter;
+import gui.components.BotonNeoCompacto;
+import gui.components.RoundedTextFieldCompacto;
 
 public class GestionTarjeta extends JFrame {
 
@@ -22,67 +24,6 @@ public class GestionTarjeta extends JFrame {
     private final Color amarilloPastel = new Color(251, 232, 138);
     private final Color verdeFondoCampos = new Color(20, 32, 30);
     private final Color verdeBotonNormal = new Color(94, 116, 73);
-
-    // ============================
-    // TEXTFIELD REDONDEADO
-    // ============================
-    class RoundedTextField extends JTextField {
-        public RoundedTextField(int size) {
-            super(size);
-            setOpaque(false);
-            setForeground(Color.WHITE);
-            setCaretColor(Color.WHITE);
-            setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(13, 20, 18, 230));
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
-            g2.setColor(new Color(251, 232, 138, 170));
-            g2.setStroke(new BasicStroke(1.2f));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
-
-    // ============================
-    // BOTÓN NEO
-    // ============================
-    class BotonNeo extends JButton {
-        public BotonNeo(String texto) {
-            super(texto);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setForeground(Color.WHITE);
-            setFont(new Font("Segoe UI", Font.BOLD, 13));
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            if (getModel().isRollover()) {
-                g2.setColor(amarilloPastel);
-                setForeground(Color.BLACK);
-            } else {
-                g2.setColor(new Color(94, 116, 73, 190));
-                setForeground(Color.WHITE);
-            }
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-            g2.setColor(new Color(255, 255, 255, 60));
-            g2.setStroke(new BasicStroke(1f));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
 
     // ============================
     // BOTÓN SIDEBAR NEO
@@ -236,7 +177,7 @@ public class GestionTarjeta extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Fondo oscuro translúcido redondo idéntico al de tus RoundedTextField
+                // Fondo oscuro translúcido redondo idéntico al de tus RoundedTextFieldCompacto
                 g2.setColor(new Color(13, 20, 18, 230));
                 g2.fillRoundRect(x, y, width - 1, height - 1, 14, 14);
                 
@@ -298,7 +239,7 @@ public class GestionTarjeta extends JFrame {
         private DefaultTableModel modeloTabla;
         private JTable tabla;
         private TableRowSorter<DefaultTableModel> sorter;
-        private RoundedTextField txtIdFiltro;
+        private RoundedTextFieldCompacto txtIdFiltro;
         private JComboBox<String> cbTipo;
         private JComboBox<String> cbEstado;
 
@@ -418,7 +359,7 @@ public class GestionTarjeta extends JFrame {
             subtitulo.setBounds(30, 65, 600, 20);
             banner.add(subtitulo);
 
-            BotonNeo btnVolver = new BotonNeo("← Volver");
+            BotonNeoCompacto btnVolver = new BotonNeoCompacto("← Volver");
             btnVolver.setBounds(1300 - 160, 32, 120, 45);
             btnVolver.addActionListener(e -> {
                 new PanelControlAdmin();
@@ -440,7 +381,7 @@ public class GestionTarjeta extends JFrame {
             lblId.setBounds(30, 10, 200, 20);
             panelFiltros.add(lblId);
 
-            txtIdFiltro = new RoundedTextField(20);
+            txtIdFiltro = new RoundedTextFieldCompacto(20);
             txtIdFiltro.setBounds(30, 42, 250, 42);
             panelFiltros.add(txtIdFiltro);
 
@@ -464,12 +405,12 @@ public class GestionTarjeta extends JFrame {
             cbEstado.setBounds(730, 42, 250, 42);
             panelFiltros.add(cbEstado);
 
-            BotonNeo btnBuscar = new BotonNeo("Buscar");
+            BotonNeoCompacto btnBuscar = new BotonNeoCompacto("Buscar");
             btnBuscar.setBounds(1030, 15, 130, 35);
             btnBuscar.addActionListener(e -> filtrarTabla());
             panelFiltros.add(btnBuscar);
 
-            BotonNeo btnLimpiar = new BotonNeo("Limpiar");
+            BotonNeoCompacto btnLimpiar = new BotonNeoCompacto("Limpiar");
             btnLimpiar.setBounds(1030, 58, 130, 35);
             btnLimpiar.addActionListener(e -> limpiarFiltros());
             panelFiltros.add(btnLimpiar);
@@ -522,7 +463,7 @@ public class GestionTarjeta extends JFrame {
             int bw = 250;
             int bh = 50;
 
-            BotonNeo btnDetalles = new BotonNeo("Ver detalles");
+            BotonNeoCompacto btnDetalles = new BotonNeoCompacto("Ver detalles");
             btnDetalles.setBounds(bx, by, bw, bh);
             btnDetalles.addActionListener(e -> {
                 int idTarjeta = obtenerIdSeleccionado();
@@ -538,7 +479,7 @@ public class GestionTarjeta extends JFrame {
             });
             panel.add(btnDetalles);
 
-            BotonNeo btnBloquear = new BotonNeo("Bloquear Tarjeta");
+            BotonNeoCompacto btnBloquear = new BotonNeoCompacto("Bloquear Tarjeta");
             btnBloquear.setBounds(bx + 300, by, bw, bh);
             btnBloquear.addActionListener(e -> {
                 int idTarjeta = obtenerIdSeleccionado();
@@ -554,7 +495,7 @@ public class GestionTarjeta extends JFrame {
             });
             panel.add(btnBloquear);
 
-            BotonNeo btnDesbloquear = new BotonNeo("Desbloquear Tarjeta");
+            BotonNeoCompacto btnDesbloquear = new BotonNeoCompacto("Desbloquear Tarjeta");
             btnDesbloquear.setBounds(bx + 600, by, bw, bh);
             btnDesbloquear.addActionListener(e -> {
                 int idTarjeta = obtenerIdSeleccionado();
