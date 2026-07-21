@@ -42,6 +42,123 @@ public class DetalleTarjetaDasboard extends JFrame {
     }
 
     // ============================
+    // COMBOBOX NEO (100% custom, sin JComboBox)
+    // Reemplaza por completo el JComboBox de Swing con un JPanel clicable +
+    // JPopupMenu propio (heavyweight) para eliminar cualquier residuo visual
+    // sobre el panel con imagen de fondo.
+    // ============================
+    class ComboNeo extends JPanel {
+
+        private String seleccionado;
+        private final JLabel lblValor;
+        private final JPopupMenu popup;
+
+        public ComboNeo(String[] opciones) {
+            this.seleccionado = opciones.length > 0 ? opciones[0] : "";
+            setOpaque(false);
+            setLayout(new BorderLayout());
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            lblValor = new JLabel(seleccionado);
+            lblValor.setForeground(Color.WHITE);
+            lblValor.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            lblValor.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+            add(lblValor, BorderLayout.CENTER);
+
+            JLabel lblFlecha = new JLabel("▼");
+            lblFlecha.setForeground(amarilloPastel);
+            lblFlecha.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            lblFlecha.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15));
+            add(lblFlecha, BorderLayout.EAST);
+
+            popup = new JPopupMenu();
+            popup.setBackground(new Color(25, 38, 35));
+            popup.setBorder(BorderFactory.createLineBorder(amarilloPastel, 1));
+
+            // CLAVE: fuerza al popup a ser "heavyweight" (ventana real del
+            // sistema operativo) en lugar de pintarse como capa ligera
+            // encima del Graphics del panel con fondo.png. Esto elimina el
+            // "fantasma" gris/blanco que quedaba tras cerrar el desplegable.
+            popup.setLightWeightPopupEnabled(false);
+
+            for (String opcion : opciones) {
+                JMenuItem item = new JMenuItem(opcion);
+                item.setOpaque(true);
+                item.setBackground(new Color(25, 38, 35));
+                item.setForeground(Color.WHITE);
+                item.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                item.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+
+                item.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent e) {
+                        item.setBackground(amarilloPastel);
+                        item.setForeground(Color.BLACK);
+                    }
+
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        item.setBackground(new Color(25, 38, 35));
+                        item.setForeground(Color.WHITE);
+                    }
+                });
+
+                item.addActionListener(e -> {
+                    seleccionado = opcion;
+                    lblValor.setText(opcion);
+                });
+
+                popup.add(item);
+            }
+
+            // Al cerrarse el popup, forzamos un repintado total de la
+            // ventana para limpiar cualquier residuo visual que el sistema
+            // operativo haya dejado en esa zona.
+            popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+                @Override
+                public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {}
+
+                @Override
+                public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+                    SwingUtilities.invokeLater(() -> {
+                        Window ventana = SwingUtilities.getWindowAncestor(ComboNeo.this);
+                        if (ventana != null) {
+                            ventana.repaint();
+                        }
+                    });
+                }
+
+                @Override
+                public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {}
+            });
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    popup.setPopupSize(getWidth(), popup.getPreferredSize().height);
+                    popup.show(ComboNeo.this, 0, getHeight());
+                }
+            });
+        }
+
+        public String getSelectedItem() {
+            return seleccionado;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(25, 38, 35, 220));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+            g2.setColor(amarilloPastel);
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // ============================
     // BOTÓN NEO (formulario)
     // ============================
     class BotonNeo extends JButton {
@@ -286,10 +403,12 @@ public class DetalleTarjetaDasboard extends JFrame {
         // ============================
         private void crearFormulario() {
 
+            int anchoPanel = 550;
+
             JPanel panel = new JPanel();
             panel.setLayout(null);
             panel.setBackground(new Color(25, 38, 35, 180));
-            panel.setBounds(650, 120, 550, 650);
+            panel.setBounds(650, 120, anchoPanel, 650);
             panel.setBorder(BorderFactory.createLineBorder(amarilloPastel, 2, true));
             add(panel);
 
@@ -300,21 +419,13 @@ public class DetalleTarjetaDasboard extends JFrame {
             panel.add(titulo);
 
             panel.add(crearLabel("Tipo de tarjeta", 40, 90));
-            JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Débito", "Crédito"});
+            ComboNeo cbTipo = new ComboNeo(new String[]{"Débito", "Crédito"});
             cbTipo.setBounds(40, 125, 450, 50);
-            cbTipo.setBackground(new Color(25, 38, 35, 200));
-            cbTipo.setForeground(Color.WHITE);
-            cbTipo.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            cbTipo.setFocusable(false);
             panel.add(cbTipo);
 
             panel.add(crearLabel("País de su cuenta o tarjeta", 40, 190));
-            JComboBox<String> cbPais = new JComboBox<>(new String[]{"Guatemala"});
+            ComboNeo cbPais = new ComboNeo(new String[]{"Guatemala"});
             cbPais.setBounds(40, 225, 450, 50);
-            cbPais.setBackground(new Color(25, 38, 35, 200));
-            cbPais.setForeground(Color.WHITE);
-            cbPais.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            cbPais.setFocusable(false);
             panel.add(cbPais);
 
             panel.add(crearLabel("Número de cuenta o tarjeta *", 40, 290));
@@ -322,26 +433,26 @@ public class DetalleTarjetaDasboard extends JFrame {
             panel.add(txtNumero);
 
             panel.add(crearLabel("Seleccione el banco", 40, 390));
-            JComboBox<String> cbBanco = new JComboBox<>(new String[]{"Banco Industrial", "Banco de América Central (BAC)", "Banrural", "Banco G&T Continental"});
+            ComboNeo cbBanco = new ComboNeo(new String[]{"Banco Industrial", "Banco de América Central (BAC)", "Banrural", "Banco G&T Continental"});
             cbBanco.setBounds(40, 425, 450, 50);
-            cbBanco.setBackground(new Color(25, 38, 35, 200));
-            cbBanco.setForeground(Color.WHITE);
-            cbBanco.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            cbBanco.setFocusable(false);
             panel.add(cbBanco);
 
             Color amarillo = amarilloPastel;
             Color amarilloHover = new Color(255, 245, 180);
 
+            // --- Botones centrados: ancho 400 dentro de un panel de 550 ---
+            int anchoBoton = 400;
+            int xCentrado = (anchoPanel - anchoBoton) / 2;
+
             BotonNeo btnGuardar = new BotonNeo("Guardar", amarillo, amarilloHover);
-            btnGuardar.setBounds(40, 500, 400, 55);
+            btnGuardar.setBounds(xCentrado, 500, anchoBoton, 55);
             panel.add(btnGuardar);
 
             btnGuardar.addActionListener(e -> {
-                String tipo = cbTipo.getSelectedItem().toString();
-                String pais = cbPais.getSelectedItem().toString();
+                String tipo = cbTipo.getSelectedItem();
+                String pais = cbPais.getSelectedItem();
                 String numero = txtNumero.getText().trim();
-                String banco = cbBanco.getSelectedItem().toString();
+                String banco = cbBanco.getSelectedItem();
 
                 if (idUsuarioActual == null) {
                     JOptionPane.showMessageDialog(null,
@@ -351,10 +462,6 @@ public class DetalleTarjetaDasboard extends JFrame {
                 }
 
                 try {
-                    // Usamos el idUsuario de la sesión directamente: no se
-                    // busca por correo/DPI y NO se vuelven a crear las 4
-                    // cuentas bancarias (esas ya existen desde el registro
-                    // inicial del usuario). Solo se registra la tarjeta.
                     AgregarTarjeta servicio = new AgregarTarjeta();
                     boolean guardado = servicio.registrarTarjeta(
                             idUsuarioActual,
@@ -391,7 +498,7 @@ public class DetalleTarjetaDasboard extends JFrame {
 
             BotonNeo btnVolver = new BotonNeo("Volver al Dashboard", verde, verdeHover);
             btnVolver.setForeground(Color.WHITE);
-            btnVolver.setBounds(40, 570, 400, 55);
+            btnVolver.setBounds(xCentrado, 570, anchoBoton, 55);
             panel.add(btnVolver);
 
             btnVolver.addActionListener(e -> {

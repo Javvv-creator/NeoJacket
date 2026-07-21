@@ -18,7 +18,8 @@ public class AgregarTarjeta {
             String tipoTarjeta,
             String pais,
             String numeroCuenta,
-            String bancoNombre) {
+            String bancoNombre,
+            String opcionesCuentas) {
 
         if (correoUsuario == null || correoUsuario.trim().isEmpty()) {
             throw new IllegalArgumentException("El correo del usuario es obligatorio.");
@@ -95,7 +96,11 @@ public class AgregarTarjeta {
     }
 
     // ============================
-    // HELPER COMÚN: hace el insert una vez que ya se tiene el idUsuario
+    // HELPER COMÚN: hace el insert una vez que ya se tiene el idUsuario.
+    // AHORA: si no existe una cuenta bancaria previa con ese número+banco,
+    // se crea automáticamente en cuentas_bancarias, para que la tarjeta
+    // nueva SIEMPRE quede reflejada en "Cuentas" y "Bancos Conectados"
+    // del Dashboard/Historial (que cuentan filas de cuentas_bancarias).
     // ============================
     private boolean insertarTarjeta(Connection con, int idUsuario, String tipoTarjeta,
             String pais, String numeroCuenta, String bancoNombre) throws SQLException {
@@ -106,6 +111,16 @@ public class AgregarTarjeta {
         }
 
         Integer idCuenta = obtenerCuentaIdPorNumeroYBanco(con, numeroCuenta, idBanco);
+
+        if (idCuenta == null) {
+            // No existe la cuenta todavía: la creamos para que la tarjeta
+            // quede vinculada a un registro real en cuentas_bancarias.
+            Integer idTipoCuenta = obtenerTipoCuentaId(con, tipoTarjeta);
+            if (idTipoCuenta == null) {
+                throw new IllegalArgumentException("No se encontró un tipo de cuenta configurado para '" + tipoTarjeta + "'.");
+            }
+            idCuenta = crearCuentaBancaria(con, idUsuario, idBanco, idTipoCuenta, numeroCuenta);
+        }
 
         String sql = "INSERT INTO tarjetas_bancarias "
                 + "(id_usuario, id_cuenta, id_banco, tipo_tarjeta, pais, numero_tarjeta, estado) "
@@ -126,6 +141,65 @@ public class AgregarTarjeta {
         }
 
         return true;
+    }
+
+    // ============================
+    // Mapea el tipo de tarjeta elegido en el formulario (Débito/Crédito) al
+    // id de tipos_cuentas correspondiente. "Crédito" -> Tarjeta de crédito;
+    // cualquier otro valor (Débito) -> Cuenta Monetaria, que es el tipo de
+    // cuenta de uso diario por defecto.
+    // ============================
+    private Integer obtenerTipoCuentaId(Connection con, String tipoTarjeta) throws SQLException {
+        String nombreTipo = "Crédito".equalsIgnoreCase(tipoTarjeta.trim())
+                ? "Tarjeta de crédito"
+                : "Cuenta Monetaria";
+
+        String sql = "SELECT id_tipo FROM tipos_cuentas WHERE nombre = ? LIMIT 1";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombreTipo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id_tipo");
+                }
+            }
+        }
+        return null;
+    }
+
+    // ============================
+    // Crea la fila en cuentas_bancarias con saldo inicial 0.00 y moneda GTQ.
+    // Devuelve el id_cuenta generado, o null si por alguna razón no se pudo
+    // recuperar la llave generada.
+    // ============================
+    private Integer crearCuentaBancaria(Connection con, int idUsuario, int idBanco,
+            int idTipoCuenta, String numeroCuenta) throws SQLException {
+
+        String sql = "INSERT INTO cuentas_bancarias "
+                + "(id_usuario, id_banco, id_tipo_cuenta, moneda, numero_cuenta, saldo, estado) "
+                + "VALUES (?, ?, ?, 'GTQ', ?, 0.00, 'activa')";
+
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, idUsuario);
+            ps.setInt(2, idBanco);
+            ps.setInt(3, idTipoCuenta);
+            ps.setString(4, numeroCuenta.trim());
+            ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            // Si otro proceso ya creó una cuenta con el mismo número+banco
+            // justo antes (choque de la restricción UNIQUE), la buscamos de
+            // nuevo en vez de fallar la operación completa.
+            if (e.getSQLState() != null && e.getSQLState().startsWith("23")) {
+                return obtenerCuentaIdPorNumeroYBanco(con, numeroCuenta, idBanco);
+            }
+            throw e;
+        }
+        return null;
     }
 
     private void validarCamposTarjeta(String tipoTarjeta, String pais, String numeroCuenta, String bancoNombre) {

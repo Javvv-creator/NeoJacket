@@ -299,7 +299,8 @@ public class DatosTarjeta extends JFrame {
                             tipo,
                             pais,
                             numero,
-                            banco);
+                            banco,
+                            cuenta);
 
                     if (guardado) {
 
