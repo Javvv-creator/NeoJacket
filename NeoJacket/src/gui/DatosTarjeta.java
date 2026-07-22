@@ -1,7 +1,6 @@
 package gui;
 
 import funcionalidades.AgregarTarjeta;
-import funcionalidades.CrearUsuario;
 import java.awt.*;
 import javax.swing.*;
 
@@ -77,7 +76,7 @@ public class DatosTarjeta extends JFrame {
         }
     }
 
-// ============================
+    // ============================
     // COMBOBOX NEO
     // ============================
     class ComboNeo extends JComboBox<String> {
@@ -157,7 +156,6 @@ public class DatosTarjeta extends JFrame {
                 }
             });
 
-           
             addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
                 @Override
                 public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
@@ -179,7 +177,7 @@ public class DatosTarjeta extends JFrame {
             });
         }
 
-         @Override
+        @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -293,6 +291,7 @@ public class DatosTarjeta extends JFrame {
                 try {
                     AgregarTarjeta servicio = new AgregarTarjeta();
 
+                    // Se pasa tipoCuenta en lugar de la variable inexistente 'cuenta'
                     boolean guardado = servicio.registrarTarjeta(
                             correoUsuario,
                             dpiUsuario,
@@ -300,40 +299,11 @@ public class DatosTarjeta extends JFrame {
                             pais,
                             numero,
                             banco,
-                            cuenta);
+                            tipoCuenta);
 
                     if (guardado) {
-
-                        CrearUsuario crear = new CrearUsuario();
-
-                        int idUsuario = crear.obtenerIdUsuario(correoUsuario, dpiUsuario);
-
-                        // Resolver el id del banco elegido con la MISMA búsqueda que usa
-                        // la tarjeta (por nombre / nombre_corto en la tabla bancos), para
-                        // que la cuenta y la tarjeta queden siempre en el mismo id_banco.
-                        Integer idBancoSeleccionado = crear.obtenerIdBancoPorNombre(banco);
-                        if (idBancoSeleccionado == null) {
-                            JOptionPane.showMessageDialog(null,
-                                    "No se encontró el banco seleccionado (" + banco + ") en la base de datos.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-
-                        // CORREGIDO: antes se creaban 3 cuentas fijas en los bancos
-                        // 2, 3 y 4 sin importar qué banco eligió el usuario, por eso
-                        // en "Bancos Conectados", el Dashboard y el Historial aparecían
-                        // bancos que la persona nunca seleccionó. Ahora se crea SOLO la
-                        // cuenta del banco realmente elegido en el combobox.
-                        crear.crearCuentaBancaria(idUsuario, idBancoSeleccionado, tipoCuenta, numero);
-
-                        // Recuperar idCuenta de ese banco
-                        int idCuenta = crear.obtenerIdCuenta(idUsuario, idBancoSeleccionado);
-
-                        // Vincular tarjeta con la cuenta
-                        servicio.vincularTarjetaConCuenta(numero, idCuenta);
-
                         JOptionPane.showMessageDialog(null,
-                                "✅ Tarjeta y cuenta bancaria creadas correctamente.",
+                                "✅ Tarjeta y cuenta bancaria asociadas correctamente.",
                                 "Éxito",
                                 JOptionPane.INFORMATION_MESSAGE);
 

@@ -19,7 +19,7 @@ public class AgregarTarjeta {
             String pais,
             String numeroCuenta,
             String bancoNombre,
-            String opcionesCuentas) {
+            String tipoCuenta) {
 
         if (correoUsuario == null || correoUsuario.trim().isEmpty()) {
             throw new IllegalArgumentException("El correo del usuario es obligatorio.");
@@ -27,7 +27,7 @@ public class AgregarTarjeta {
         if (dpiUsuario == null || dpiUsuario.trim().isEmpty()) {
             throw new IllegalArgumentException("El DPI del usuario es obligatorio.");
         }
-        validarCamposTarjeta(tipoTarjeta, pais, numeroCuenta, bancoNombre);
+        validarCamposTarjeta(tipoTarjeta, pais, numeroCuenta, bancoNombre, tipoCuenta);
 
         Connection con = conexion.getConexion();
         if (con == null) {
@@ -46,7 +46,7 @@ public class AgregarTarjeta {
                 throw new IllegalArgumentException("No se encontró el usuario registrado con el correo o DPI proporcionado.");
             }
 
-            return insertarTarjeta(con, idUsuario, tipoTarjeta, pais, numeroCuenta, bancoNombre);
+            return insertarTarjeta(con, idUsuario, tipoTarjeta, pais, numeroCuenta, bancoNombre, tipoCuenta);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null,
                     "Error al guardar la tarjeta: " + e.getMessage(),
@@ -60,16 +60,16 @@ public class AgregarTarjeta {
     }
 
     // ============================
-    // Usado desde el DASHBOARD (usuario ya logueado, se usa el idUsuario de sesión)
-    // No necesita correo ni DPI porque ya sabemos quién es.
+    // Usado desde el DASHBOARD 
     // ============================
     public boolean registrarTarjeta(int idUsuario,
             String tipoTarjeta,
             String pais,
             String numeroCuenta,
-            String bancoNombre) {
+            String bancoNombre,
+            String tipoCuenta) {
 
-        validarCamposTarjeta(tipoTarjeta, pais, numeroCuenta, bancoNombre);
+        validarCamposTarjeta(tipoTarjeta, pais, numeroCuenta, bancoNombre, tipoCuenta);
 
         Connection con = conexion.getConexion();
         if (con == null) {
@@ -82,7 +82,7 @@ public class AgregarTarjeta {
 
         try {
             createTarjetasTableIfNotExists(con);
-            return insertarTarjeta(con, idUsuario, tipoTarjeta, pais, numeroCuenta, bancoNombre);
+            return insertarTarjeta(con, idUsuario, tipoTarjeta, pais, numeroCuenta, bancoNombre, tipoCuenta);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null,
                     "Error al guardar la tarjeta: " + e.getMessage(),
@@ -96,14 +96,10 @@ public class AgregarTarjeta {
     }
 
     // ============================
-    // HELPER COMÚN: hace el insert una vez que ya se tiene el idUsuario.
-    // AHORA: si no existe una cuenta bancaria previa con ese número+banco,
-    // se crea automáticamente en cuentas_bancarias, para que la tarjeta
-    // nueva SIEMPRE quede reflejada en "Cuentas" y "Bancos Conectados"
-    // del Dashboard/Historial (que cuentan filas de cuentas_bancarias).
+    // HELPER COMÚN
     // ============================
     private boolean insertarTarjeta(Connection con, int idUsuario, String tipoTarjeta,
-            String pais, String numeroCuenta, String bancoNombre) throws SQLException {
+            String pais, String numeroCuenta, String bancoNombre, String tipoCuenta) throws SQLException {
 
         Integer idBanco = obtenerBancoId(con, bancoNombre);
         if (idBanco == null) {
@@ -113,11 +109,11 @@ public class AgregarTarjeta {
         Integer idCuenta = obtenerCuentaIdPorNumeroYBanco(con, numeroCuenta, idBanco);
 
         if (idCuenta == null) {
-            // No existe la cuenta todavía: la creamos para que la tarjeta
-            // quede vinculada a un registro real en cuentas_bancarias.
-            Integer idTipoCuenta = obtenerTipoCuentaId(con, tipoTarjeta);
+            // No existe la cuenta todavía: la creamos usando el tipo de
+            // cuenta que el usuario eligió explícitamente en el formulario.
+            Integer idTipoCuenta = obtenerTipoCuentaId(con, tipoCuenta);
             if (idTipoCuenta == null) {
-                throw new IllegalArgumentException("No se encontró un tipo de cuenta configurado para '" + tipoTarjeta + "'.");
+                throw new IllegalArgumentException("No se encontró el tipo de cuenta '" + tipoCuenta + "' configurado en el sistema.");
             }
             idCuenta = crearCuentaBancaria(con, idUsuario, idBanco, idTipoCuenta, numeroCuenta);
         }
@@ -144,19 +140,13 @@ public class AgregarTarjeta {
     }
 
     // ============================
-    // Mapea el tipo de tarjeta elegido en el formulario (Débito/Crédito) al
-    // id de tipos_cuentas correspondiente. "Crédito" -> Tarjeta de crédito;
-    // cualquier otro valor (Débito) -> Cuenta Monetaria, que es el tipo de
-    // cuenta de uso diario por defecto.
+    // Busca el id_tipo en tipos_cuentas a partir del nombre exacto elegido
+    // en el combo del formulario ("Cuenta de Ahorro", "Cuenta Monetaria").
     // ============================
-    private Integer obtenerTipoCuentaId(Connection con, String tipoTarjeta) throws SQLException {
-        String nombreTipo = "Crédito".equalsIgnoreCase(tipoTarjeta.trim())
-                ? "Tarjeta de crédito"
-                : "Cuenta Monetaria";
-
+    private Integer obtenerTipoCuentaId(Connection con, String tipoCuenta) throws SQLException {
         String sql = "SELECT id_tipo FROM tipos_cuentas WHERE nombre = ? LIMIT 1";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, nombreTipo);
+            ps.setString(1, tipoCuenta.trim());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("id_tipo");
@@ -202,7 +192,8 @@ public class AgregarTarjeta {
         return null;
     }
 
-    private void validarCamposTarjeta(String tipoTarjeta, String pais, String numeroCuenta, String bancoNombre) {
+    private void validarCamposTarjeta(String tipoTarjeta, String pais, String numeroCuenta,
+            String bancoNombre, String tipoCuenta) {
         if (tipoTarjeta == null || tipoTarjeta.trim().isEmpty()) {
             throw new IllegalArgumentException("El tipo de tarjeta es obligatorio.");
         }
@@ -214,6 +205,9 @@ public class AgregarTarjeta {
         }
         if (bancoNombre == null || bancoNombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del banco es obligatorio.");
+        }
+        if (tipoCuenta == null || tipoCuenta.trim().isEmpty()) {
+            throw new IllegalArgumentException("El tipo de cuenta es obligatorio.");
         }
     }
 

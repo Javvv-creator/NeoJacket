@@ -42,10 +42,7 @@ public class DetalleTarjetaDasboard extends JFrame {
     }
 
     // ============================
-    // COMBOBOX NEO (100% custom, sin JComboBox)
-    // Reemplaza por completo el JComboBox de Swing con un JPanel clicable +
-    // JPopupMenu propio (heavyweight) para eliminar cualquier residuo visual
-    // sobre el panel con imagen de fondo.
+    // COMBOBOX NEO
     // ============================
     class ComboNeo extends JPanel {
 
@@ -75,10 +72,7 @@ public class DetalleTarjetaDasboard extends JFrame {
             popup.setBackground(new Color(25, 38, 35));
             popup.setBorder(BorderFactory.createLineBorder(amarilloPastel, 1));
 
-            // CLAVE: fuerza al popup a ser "heavyweight" (ventana real del
-            // sistema operativo) en lugar de pintarse como capa ligera
-            // encima del Graphics del panel con fondo.png. Esto elimina el
-            // "fantasma" gris/blanco que quedaba tras cerrar el desplegable.
+            // CLAVE
             popup.setLightWeightPopupEnabled(false);
 
             for (String opcion : opciones) {
@@ -111,9 +105,6 @@ public class DetalleTarjetaDasboard extends JFrame {
                 popup.add(item);
             }
 
-            // Al cerrarse el popup, forzamos un repintado total de la
-            // ventana para limpiar cualquier residuo visual que el sistema
-            // operativo haya dejado en esa zona.
             popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
                 @Override
                 public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {}
@@ -399,16 +390,17 @@ public class DetalleTarjetaDasboard extends JFrame {
         }
 
         // ============================
-        // FORMULARIO (mismo contenido que DatosTarjeta, adaptado)
+        // FORMULARIO (ahora con el campo "Tipo de cuenta" agregado)
         // ============================
         private void crearFormulario() {
 
             int anchoPanel = 550;
+            int altoPanel = 780;
 
             JPanel panel = new JPanel();
             panel.setLayout(null);
             panel.setBackground(new Color(25, 38, 35, 180));
-            panel.setBounds(650, 120, anchoPanel, 650);
+            panel.setBounds(650, 90, anchoPanel, altoPanel);
             panel.setBorder(BorderFactory.createLineBorder(amarilloPastel, 2, true));
             add(panel);
 
@@ -437,6 +429,12 @@ public class DetalleTarjetaDasboard extends JFrame {
             cbBanco.setBounds(40, 425, 450, 50);
             panel.add(cbBanco);
 
+            // --- NUEVO: Tipo de cuenta (mapea directo con tipos_cuentas) ---
+            panel.add(crearLabel("Tipo de cuenta", 40, 490));
+            ComboNeo cbTipoCuenta = new ComboNeo(new String[]{"Cuenta Monetaria", "Cuenta de Ahorro"});
+            cbTipoCuenta.setBounds(40, 525, 450, 50);
+            panel.add(cbTipoCuenta);
+
             Color amarillo = amarilloPastel;
             Color amarilloHover = new Color(255, 245, 180);
 
@@ -445,7 +443,7 @@ public class DetalleTarjetaDasboard extends JFrame {
             int xCentrado = (anchoPanel - anchoBoton) / 2;
 
             BotonNeo btnGuardar = new BotonNeo("Guardar", amarillo, amarilloHover);
-            btnGuardar.setBounds(xCentrado, 500, anchoBoton, 55);
+            btnGuardar.setBounds(xCentrado, 610, anchoBoton, 55);
             panel.add(btnGuardar);
 
             btnGuardar.addActionListener(e -> {
@@ -453,6 +451,7 @@ public class DetalleTarjetaDasboard extends JFrame {
                 String pais = cbPais.getSelectedItem();
                 String numero = txtNumero.getText().trim();
                 String banco = cbBanco.getSelectedItem();
+                String tipoCuenta = cbTipoCuenta.getSelectedItem();
 
                 if (idUsuarioActual == null) {
                     JOptionPane.showMessageDialog(null,
@@ -468,7 +467,8 @@ public class DetalleTarjetaDasboard extends JFrame {
                             tipo,
                             pais,
                             numero,
-                            banco);
+                            banco,
+                            tipoCuenta);
 
                     if (guardado) {
                         JOptionPane.showMessageDialog(null,
@@ -498,7 +498,7 @@ public class DetalleTarjetaDasboard extends JFrame {
 
             BotonNeo btnVolver = new BotonNeo("Volver al Dashboard", verde, verdeHover);
             btnVolver.setForeground(Color.WHITE);
-            btnVolver.setBounds(xCentrado, 570, anchoBoton, 55);
+            btnVolver.setBounds(xCentrado, 680, anchoBoton, 55);
             panel.add(btnVolver);
 
             btnVolver.addActionListener(e -> {
