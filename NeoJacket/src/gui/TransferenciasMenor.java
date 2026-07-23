@@ -831,3 +831,5 @@ public class TransferenciasMenor extends javax.swing.JFrame {
         });
     }
 }
+
+
