@@ -140,13 +140,17 @@ public class AgregarTarjeta {
     }
 
     // ============================
-    // Busca el id_tipo en tipos_cuentas a partir del nombre exacto elegido
-    // en el combo del formulario ("Cuenta de Ahorro", "Cuenta Monetaria").
+    // Busca el id_tipo en tipos_cuentas a partir del nombre elegido en el
+    // combo del formulario ("Ahorro", "Monetaria", etc.).
+    //
+    // FIX: la comparación ahora ignora mayúsculas/minúsculas y espacios
+    // sobrantes (LOWER(TRIM(nombre)) = LOWER(TRIM(?))), para que no falle
+    // por diferencias de formato como "Ahorro" vs "ahorro" o "Ahorro ".
     // ============================
     private Integer obtenerTipoCuentaId(Connection con, String tipoCuenta) throws SQLException {
-        String sql = "SELECT id_tipo FROM tipos_cuentas WHERE nombre = ? LIMIT 1";
+        String sql = "SELECT id_tipo FROM tipos_cuentas WHERE LOWER(TRIM(nombre)) = LOWER(TRIM(?)) LIMIT 1";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, tipoCuenta.trim());
+            ps.setString(1, tipoCuenta);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("id_tipo");

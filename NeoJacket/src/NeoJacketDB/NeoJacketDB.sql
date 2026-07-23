@@ -281,3 +281,4 @@ ADD COLUMN fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 
 select * from usuarios;
+INSERT INTO tipos_cuentas (nombre) VALUES ('Ahorro'), ('Monetaria');
