@@ -68,13 +68,18 @@ public class Transferencias {
     }
 
     /**
-     * BLOQUE 1: Busca la cuenta origen filtrando por el Banco seleccionado.
-     * Permite ingresar tanto el Número de Cuenta como el Número de Tarjeta para facilitar la exposición.
+     * BLOQUE 1: Busca la cuenta origen filtrando SOLO por número (cuenta o
+     * tarjeta) y banco. YA NO exige que el combo "Tipo" coincida de
+     * antemano con el tipo real en la BD (ese combo solo tenía 2 opciones
+     * fijas y no incluía "Cuenta Corriente", por lo que cuentas de ese tipo
+     * nunca se encontraban). En vez de eso, una vez encontrada la cuenta,
+     * el combo de Tipo se autoajusta al valor real (igual que ya hace la
+     * moneda), quitando la fragilidad de que el usuario adivine el tipo
+     * correcto.
      */
     private void buscarCuentaOrigen() {
         String entradaInput = vista.txtNumCuentaO.getText().trim();
         String banco = (String) vista.cmbSelBancoO.getSelectedItem();
-        String tipo = (String) vista.cmbTipoCuentaO.getSelectedItem();
 
         if (entradaInput.isEmpty()) {
             vista.lblSaldoO.setText("Saldo: Q0.00");
@@ -87,16 +92,17 @@ public class Transferencias {
             return;
         }
 
-        // QUERY UNIFICADA: Busca el número directamente tanto en la cuenta como en la tarjeta
-        // garantizando que funcionen como el mismo identificador para la exposición.
-        String query = "SELECT c.id_cuenta, c.saldo, c.moneda, c.numero_cuenta, u.id_usuario, u.nombre, u.apellido " +
+        // QUERY UNIFICADA: Busca el número directamente tanto en la cuenta
+        // como en la tarjeta, filtrando solo por banco (ya NO por tipo).
+        String query = "SELECT c.id_cuenta, c.saldo, c.moneda, c.numero_cuenta, tc.nombre AS tipo_real, " +
+                       "u.id_usuario, u.nombre, u.apellido " +
                        "FROM cuentas_bancarias c " +
                        "JOIN bancos b ON c.id_banco = b.id_banco " +
                        "JOIN tipos_cuentas tc ON c.id_tipo_cuenta = tc.id_tipo " +
                        "JOIN usuarios u ON c.id_usuario = u.id_usuario " +
                        "LEFT JOIN tarjetas_bancarias t ON c.id_cuenta = t.id_cuenta " +
                        "WHERE (c.numero_cuenta = ? OR t.numero_tarjeta = ?) " +
-                       "AND b.nombre = ? AND tc.nombre = ? AND c.estado = 'activa'";
+                       "AND b.nombre = ? AND c.estado = 'activa'";
 
         try (Connection con = conexion.getConexion(); 
              PreparedStatement ps = con.prepareStatement(query)) {
@@ -104,7 +110,6 @@ public class Transferencias {
             ps.setString(1, entradaInput);
             ps.setString(2, entradaInput);
             ps.setString(3, banco);
-            ps.setString(4, tipo);
             
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -112,6 +117,7 @@ public class Transferencias {
                 idUsuarioRealizador  = rs.getInt("id_usuario"); 
                 saldoOrigenActual = rs.getDouble("saldo");
                 String monedaReal = rs.getString("moneda");
+                String tipoReal = rs.getString("tipo_real");
                 String nombreTitular = rs.getString("nombre") + " " + rs.getString("apellido");
 
                 // Sincroniza la moneda del ComboBox automáticamente
@@ -119,11 +125,17 @@ public class Transferencias {
                     vista.cmbMonedaO.setSelectedItem(monedaReal);
                 }
 
+                // Sincroniza el Tipo de cuenta automáticamente con el valor
+                // real en la BD (si el combo tiene esa opción disponible).
+                if (vista.cmbTipoCuentaO.getSelectedItem() != null && !vista.cmbTipoCuentaO.getSelectedItem().equals(tipoReal)) {
+                    vista.cmbTipoCuentaO.setSelectedItem(tipoReal);
+                }
+
                 // Muestra el número ingresado (el de la tarjeta/cuenta) directamente en la interfaz
                 vista.lblSaldoO.setText("Saldo: " + monedaReal + " " + String.format("%.2f", saldoOrigenActual));
                 vista.lblO_Cuenta.setText("Cuenta: " + entradaInput); // Aquí forzamos que use el mismo número visible
                 vista.lblO_Nombre.setText("Nombre: " + nombreTitular);
-                vista.lblO_Tipo.setText("Tipo: " + tipo);
+                vista.lblO_Tipo.setText("Tipo: " + tipoReal);
                 vista.lblO_Banco.setText("Banco: " + banco);
                 
                 // Muestra el nombre de quien hace la transferencia en el Bloque 2
@@ -145,11 +157,14 @@ public class Transferencias {
     /**
      * BLOQUE 2: Busca los datos de destino.
      * Requerimiento: No importa si está registrada o no en la BD, la transferencia continuará.
+     * Igual que en origen, YA NO filtra por el combo "Tipo": busca solo por
+     * número (cuenta o tarjeta) + banco, y luego autoajusta el combo Tipo
+     * al valor real encontrado.
      */
     private void buscarCuentaDestino() {
         String entradaInput = vista.txtNumCuentaD.getText().trim();
         String banco = (String) vista.cmbSelBancoD.getSelectedItem();
-        String tipo = (String) vista.cmbTipoCuentaD.getSelectedItem();
+        String tipoSeleccionado = (String) vista.cmbTipoCuentaD.getSelectedItem();
 
         if (entradaInput.isEmpty()) {
             vista.lblD_Cuenta.setText("Cuenta: --");
@@ -162,13 +177,13 @@ public class Transferencias {
         String cuentaConPrefijo = entradaInput.startsWith("NC-") ? entradaInput : "NC-" + entradaInput;
         String bancoBusqueda = "%" + banco.trim().toLowerCase() + "%";
 
-        String query = "SELECT c.id_cuenta, u.nombre, u.apellido " +
+        String query = "SELECT c.id_cuenta, tc.nombre AS tipo_real, u.nombre, u.apellido " +
                     "FROM cuentas_bancarias c " +
                     "JOIN bancos b ON c.id_banco = b.id_banco " +
                     "JOIN tipos_cuentas tc ON c.id_tipo_cuenta = tc.id_tipo " +
                     "JOIN usuarios u ON c.id_usuario = u.id_usuario " +
                     "WHERE (c.numero_cuenta = ? OR c.numero_cuenta = ? OR c.id_cuenta IN (SELECT id_cuenta FROM tarjetas_bancarias WHERE numero_tarjeta = ?)) " +
-                    "AND LOWER(b.nombre) LIKE ? AND tc.nombre = ?";
+                    "AND LOWER(b.nombre) LIKE ?";
 
         try (Connection con = conexion.getConexion();
             PreparedStatement ps = con.prepareStatement(query)) {
@@ -177,22 +192,28 @@ public class Transferencias {
             ps.setString(2, cuentaConPrefijo);
             ps.setString(3, entradaInput);
             ps.setString(4, bancoBusqueda);
-            ps.setString(5, tipo);
             
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 idCuentaDestinoValida = rs.getInt("id_cuenta");
+                String tipoReal = rs.getString("tipo_real");
                 String destinatario = rs.getString("nombre") + " " + rs.getString("apellido");
+
+                // Sincroniza el Tipo de cuenta automáticamente con el valor
+                // real en la BD (si el combo tiene esa opción disponible).
+                if (tipoReal != null && !tipoReal.equals(tipoSeleccionado)) {
+                    vista.cmbTipoCuentaD.setSelectedItem(tipoReal);
+                }
 
                 vista.lblD_Cuenta.setText("Cuenta: " + entradaInput);
                 vista.lblD_Nombre.setText("Destinatario: " + destinatario);
-                vista.lblD_Tipo.setText("Tipo: " + tipo);
+                vista.lblD_Tipo.setText("Tipo: " + tipoReal);
                 vista.lblD_Banco.setText("Banco: " + banco);
             } else {
                 idCuentaDestinoValida = -1; 
                 vista.lblD_Cuenta.setText("Cuenta: " + entradaInput + " (Externa)");
                 vista.lblD_Nombre.setText("Destinatario: Cliente Externo");
-                vista.lblD_Tipo.setText("Tipo: " + tipo);
+                vista.lblD_Tipo.setText("Tipo: " + tipoSeleccionado);
                 vista.lblD_Banco.setText("Banco: " + banco);
             }
         } catch (SQLException ex) {
