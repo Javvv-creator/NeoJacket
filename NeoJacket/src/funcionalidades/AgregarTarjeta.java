@@ -207,6 +207,9 @@ public class AgregarTarjeta {
         if (numeroCuenta == null || numeroCuenta.trim().isEmpty()) {
             throw new IllegalArgumentException("El número de cuenta o tarjeta es obligatorio.");
         }
+        if (!numeroCuenta.trim().matches("\\d{16}")) {
+            throw new IllegalArgumentException("El número de tarjeta debe contener exactamente 16 dígitos numéricos.");
+        }
         if (bancoNombre == null || bancoNombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del banco es obligatorio.");
         }

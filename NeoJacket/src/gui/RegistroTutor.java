@@ -48,6 +48,7 @@ public class RegistroTutor extends JFrame {
             setCaretColor(Color.WHITE);
             setBorder(BorderFactory.createEmptyBorder(8, 40, 8, 10));
             setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            setEchoChar('*');
         }
 
         @Override
@@ -63,6 +64,30 @@ public class RegistroTutor extends JFrame {
 
             super.paintComponent(g);
             g2.dispose();
+        }
+    }
+
+    class PasswordEyeButton extends JButton {
+        private final JPasswordField target;
+        private boolean mostrando = false;
+
+        public PasswordEyeButton(JPasswordField target) {
+            this.target = target;
+            setText("👁");
+            setFocusable(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setForeground(new Color(251, 232, 138));
+            setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            addActionListener(e -> toggle());
+        }
+
+        private void toggle() {
+            mostrando = !mostrando;
+            target.setEchoChar(mostrando ? '\0' : '*');
+            setText(mostrando ? "🙈" : "👁");
+            target.repaint();
         }
     }
 
@@ -166,6 +191,9 @@ public class RegistroTutor extends JFrame {
             RoundedPassField txtPass = new RoundedPassField(20);
             txtPass.setBounds(40, 225, 330, 50);
             panelTutor.add(txtPass);
+            PasswordEyeButton btnMostrarPass = new PasswordEyeButton(txtPass);
+            btnMostrarPass.setBounds(330, 236, 28, 28);
+            panelTutor.add(btnMostrarPass);
 
             JLabel lblIdent = new JLabel("Número de identificación");
             lblIdent.setForeground(Color.WHITE);

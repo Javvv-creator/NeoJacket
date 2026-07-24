@@ -81,7 +81,7 @@ public class RegistroNeo extends JFrame {
             setCaretColor(DORADO);
             setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 12));
             setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            setEchoChar('•');
+            setEchoChar('*');
         }
 
         @Override
@@ -98,6 +98,30 @@ public class RegistroNeo extends JFrame {
 
             super.paintComponent(g);
             g2.dispose();
+        }
+    }
+
+    class PasswordEyeButton extends JButton {
+        private final JPasswordField target;
+        private boolean mostrando = false;
+
+        public PasswordEyeButton(JPasswordField target) {
+            this.target = target;
+            setText("👁");
+            setFocusable(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setForeground(DORADO);
+            setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            addActionListener(e -> toggle());
+        }
+
+        private void toggle() {
+            mostrando = !mostrando;
+            target.setEchoChar(mostrando ? '\0' : '•');
+            setText(mostrando ? "🙈" : "👁");
+            target.repaint();
         }
     }
 
@@ -404,6 +428,9 @@ public class RegistroNeo extends JFrame {
             RoundedPassField txtPass = new RoundedPassField(20);
             txtPass.setBounds(COL1_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(txtPass);
+            PasswordEyeButton btnMostrarPass = new PasswordEyeButton(txtPass);
+            btnMostrarPass.setBounds(COL1_X + FIELD_W - 34, y + 28, 24, 24);
+            panelReg.add(btnMostrarPass);
 
             panelReg.add(crearLabel("Tipo de cuenta", COL2_X, y));
             NeoComboBox<String> cbTipo = new NeoComboBox<>(new String[]{"Monetaria", "Ahorro", "Corriente"});
@@ -416,6 +443,9 @@ public class RegistroNeo extends JFrame {
             RoundedPassField txtPassConfirm = new RoundedPassField(20);
             txtPassConfirm.setBounds(COL1_X, y + 24, FIELD_W, FIELD_H);
             panelReg.add(txtPassConfirm);
+            PasswordEyeButton btnMostrarPassConfirm = new PasswordEyeButton(txtPassConfirm);
+            btnMostrarPassConfirm.setBounds(COL1_X + FIELD_W - 34, y + 28, 24, 24);
+            panelReg.add(btnMostrarPassConfirm);
 
             // ---------- FILA 3: Tipo de perfil / Género ----------
             y += 100;

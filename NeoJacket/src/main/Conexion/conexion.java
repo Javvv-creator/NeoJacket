@@ -14,7 +14,7 @@ public class conexion {
     // Valores por defecto para desarrollo local; se sobreescriben si existe db.properties.
     private static final String URL_DEFAULT = "jdbc:mysql://localhost:3306/neojacket_db";
     private static final String USER_DEFAULT = "root";
-    private static final String PASSWORD_DEFAULT = "admin";
+    private static final String PASSWORD_DEFAULT = "";
 
     private static final String ARCHIVO_CONFIG = "db.properties";
 

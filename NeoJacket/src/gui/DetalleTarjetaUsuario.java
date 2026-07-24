@@ -92,21 +92,6 @@ public class DetalleTarjetaUsuario extends JFrame {
             yDer += rowHeight;
             txtCreada = agregarCampo(panel, "Creada el:", colDerX, yDer, fieldOffsetX, fieldWidth, amarillo);
 
-            BotonNeo btnBloquear = new BotonNeo("Bloquear tarjeta");
-            btnBloquear.setBounds(30, 540, 280, 55);
-            btnBloquear.addActionListener(e -> {
-                new BloquearTarjeta(idTarjeta);
-                dispose();
-            });
-            panel.add(btnBloquear);
-
-            BotonNeo btnDesbloquear = new BotonNeo("Desbloquear tarjeta");
-            btnDesbloquear.setBounds(330, 540, 280, 55);
-            btnDesbloquear.addActionListener(e -> {
-                new DesbloquearTarjeta(idTarjeta);
-                dispose();
-            });
-            panel.add(btnDesbloquear);
 
             BotonNeo btnRegresar = new BotonNeo("← Regresar al Dashboard");
             btnRegresar.setBounds(30, 620, 400, 55);
