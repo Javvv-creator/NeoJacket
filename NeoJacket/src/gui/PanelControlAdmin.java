@@ -1,7 +1,10 @@
 package gui;
 
+import funcionalidades.PanelControlAdminDAO;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import java.text.SimpleDateFormat;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -13,6 +16,9 @@ public class PanelControlAdmin extends JFrame {
     private final Color amarilloPastel = new Color(251, 232, 138);
     private final Color verdeTarjeta = new Color(25, 38, 35, 180);
     private final Color verdeCard = new Color(20, 32, 30, 190);
+
+    // DAO con las consultas reales del panel de administración
+    private final PanelControlAdminDAO dao = new PanelControlAdminDAO();
 
     // ==========================================
     // BOTÓN DE NAVEGACIÓN DEL SIDEBAR (CLONADO)
@@ -240,13 +246,13 @@ public class PanelControlAdmin extends JFrame {
             add(bienvenida);
 
             // ======================
-            // TARJETAS ESTADÍSTICAS
+            // TARJETAS ESTADÍSTICAS (datos reales vía PanelControlAdminDAO)
             // ======================
-            add(crearTarjeta("Usuarios", "48", 340, 200));
-            add(crearTarjeta("Cuentas", "45", 600, 200));
-            add(crearTarjeta("Tarjetas", "37", 860, 200));
-            add(crearTarjeta("Menores", "20", 1120, 200));
-            add(crearTarjeta("Transacciones", "24", 1380, 200));
+            add(crearTarjeta("Usuarios", String.valueOf(dao.obtenerTotalUsuarios()), 340, 200));
+            add(crearTarjeta("Cuentas", String.valueOf(dao.obtenerTotalCuentas()), 600, 200));
+            add(crearTarjeta("Tarjetas", String.valueOf(dao.obtenerTotalTarjetas()), 860, 200));
+            add(crearTarjeta("Menores", String.valueOf(dao.obtenerTotalMenores()), 1120, 200));
+            add(crearTarjeta("Transacciones", String.valueOf(dao.obtenerTotalTransacciones()), 1380, 200));
 
             // ======================
             // PANEL ADMINISTRADOR INFO
@@ -269,9 +275,10 @@ public class PanelControlAdmin extends JFrame {
             add(admin);
 
             // ======================
-            // GRAFICA DE BARRAS
+            // GRAFICA DE BARRAS — Usuarios registrados por mes (últimos 5 meses)
+            // Marco amarillo delgado
             // ======================
-            JPanel grafica = crearCard(340, 360, 950, 410);
+            JPanel grafica = crearCard(340, 360, 950, 410, amarilloPastel);
             grafica.setLayout(null);
 
             JLabel tituloGrafica = new JLabel("Usuarios Registrados");
@@ -280,6 +287,8 @@ public class PanelControlAdmin extends JFrame {
             tituloGrafica.setBounds(30, 20, 300, 30);
             grafica.add(tituloGrafica);
 
+            List<PanelControlAdminDAO.DatoMes> datosMeses = dao.obtenerUsuariosPorMes(5);
+
             JPanel barras = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -287,13 +296,44 @@ public class PanelControlAdmin extends JFrame {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                    int[] datos = {80, 120, 180, 240, 290};
-                    int x = 70;
-                    g2.setColor(amarilloPastel);
+                    if (datosMeses.isEmpty()) {
+                        g2.dispose();
+                        return;
+                    }
 
-                    for (int valor : datos) {
-                        g2.fillRoundRect(x, 300 - valor, 70, valor, 15, 15);
-                        x += 150;
+                    int n = datosMeses.size();
+                    int anchoBarra = 70;
+                    int espacio = (getWidth() - n * anchoBarra) / (n + 1);
+                    int baseY = 300;
+                    int alturaMaxima = 280;
+
+                    int maxTotal = 1;
+                    for (PanelControlAdminDAO.DatoMes d : datosMeses) {
+                        maxTotal = Math.max(maxTotal, d.total);
+                    }
+
+                    g2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                    FontMetrics fm = g2.getFontMetrics();
+
+                    int x = espacio;
+                    for (PanelControlAdminDAO.DatoMes d : datosMeses) {
+                        int alturaBarra = d.total <= 0 ? 4 : Math.max(8, (int) ((d.total / (double) maxTotal) * alturaMaxima));
+
+                        g2.setColor(amarilloPastel);
+                        g2.fillRoundRect(x, baseY - alturaBarra, anchoBarra, alturaBarra, 15, 15);
+
+                        // Total encima de la barra
+                        g2.setColor(Color.WHITE);
+                        String totalTexto = String.valueOf(d.total);
+                        int anchoTexto = fm.stringWidth(totalTexto);
+                        g2.drawString(totalTexto, x + (anchoBarra - anchoTexto) / 2, baseY - alturaBarra - 8);
+
+                        // Etiqueta del mes debajo de la barra
+                        g2.setColor(Color.LIGHT_GRAY);
+                        int anchoEtiqueta = fm.stringWidth(d.etiqueta);
+                        g2.drawString(d.etiqueta, x + (anchoBarra - anchoEtiqueta) / 2, baseY + 22);
+
+                        x += anchoBarra + espacio;
                     }
                     g2.dispose();
                 }
@@ -305,9 +345,10 @@ public class PanelControlAdmin extends JFrame {
             add(grafica);
 
             // ======================
-            // ACTIVIDAD RECIENTE
+            // ACTIVIDAD RECIENTE (datos reales: login + transacciones + registros)
+            // Marco amarillo delgado
             // ======================
-            JPanel actividad = crearCard(1310, 360, 380, 410);
+            JPanel actividad = crearCard(1310, 360, 380, 410, amarilloPastel);
             actividad.setLayout(null);
 
             JLabel tituloActividad = new JLabel("Actividad Reciente");
@@ -316,23 +357,32 @@ public class PanelControlAdmin extends JFrame {
             tituloActividad.setBounds(20, 20, 250, 30);
             actividad.add(tituloActividad);
 
-            String[] eventos = {
-                "Usuario registrado",
-                "Cuenta creada",
-                "Tarjeta emitida",
-                "Divisa actualizada",
-                "Menor agregado",
-                "Transferencia realizada"
-            };
+            List<PanelControlAdminDAO.ActividadItem> eventosRecientes = dao.obtenerActividadReciente(6);
+            SimpleDateFormat sdfHora = new SimpleDateFormat("dd/MM HH:mm");
 
-            int yy = 75;
-            for (String e : eventos) {
-                JLabel lbl = new JLabel("• " + e);
-                lbl.setForeground(Color.WHITE);
-                lbl.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-                lbl.setBounds(30, yy, 300, 25);
-                actividad.add(lbl);
-                yy += 42;
+            if (eventosRecientes.isEmpty()) {
+                JLabel sinActividad = new JLabel("Aún no hay actividad registrada.");
+                sinActividad.setForeground(Color.LIGHT_GRAY);
+                sinActividad.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                sinActividad.setBounds(30, 75, 320, 25);
+                actividad.add(sinActividad);
+            } else {
+                int yy = 70;
+                for (PanelControlAdminDAO.ActividadItem item : eventosRecientes) {
+                    JLabel lblTexto = new JLabel("• " + item.texto);
+                    lblTexto.setForeground(Color.WHITE);
+                    lblTexto.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                    lblTexto.setBounds(30, yy, 320, 22);
+                    actividad.add(lblTexto);
+
+                    JLabel lblFecha = new JLabel(item.fecha != null ? sdfHora.format(item.fecha) : "");
+                    lblFecha.setForeground(new Color(150, 160, 150));
+                    lblFecha.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                    lblFecha.setBounds(46, yy + 20, 300, 18);
+                    actividad.add(lblFecha);
+
+                    yy += 55;
+                }
             }
             add(actividad);
         }
@@ -344,7 +394,13 @@ public class PanelControlAdmin extends JFrame {
         }
     }
 
+    /** Tarjeta/panel redondeado con borde blanco tenue (uso general). */
     private JPanel crearCard(int x, int y, int w, int h) {
+        return crearCard(x, y, w, h, new Color(255, 255, 255, 40));
+    }
+
+    /** Tarjeta/panel redondeado con color de borde personalizado (ej. amarillo). */
+    private JPanel crearCard(int x, int y, int w, int h, Color colorBorde) {
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -352,7 +408,8 @@ public class PanelControlAdmin extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(new Color(25, 38, 35, 210));
                 g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 30, 30));
-                g2.setColor(new Color(255, 255, 255, 40));
+                g2.setColor(colorBorde);
+                g2.setStroke(new BasicStroke(1.2f));
                 g2.draw(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 30, 30));
                 g2.dispose();
             }
