@@ -77,6 +77,7 @@ public class ServicioTransaccion {
                     detalle.put("estado", rs.getString("estado"));
                     detalle.put("cuenta_origen", rs.getString("cuenta_origen"));
                     detalle.put("cuenta_destino", rs.getString("cuenta_destino"));
+                    detalle.put("descripcion", rs.getString("descripcion"));
                     detalle.put("usuario", rs.getString("nombre") + " " + rs.getString("apellido"));
                     return detalle;
                 }

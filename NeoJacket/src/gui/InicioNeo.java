@@ -63,56 +63,45 @@ public class InicioNeo extends JFrame {
 
         public FondoPanel() {
             setLayout(null);
-            crearPanelPersonas();
-            crearPanelRedes(); 
+            crearPanelRedes(); // El panel "Personas" ha sido removido por completo
             crearContenido();
         }
 
         // ============================
-        // PANEL SUPERIOR "PERSONAS"
-        // ============================
-        private void crearPanelPersonas() {
-            JPanel panelPersonas = new JPanel();
-            panelPersonas.setLayout(null);
-            panelPersonas.setBackground(new Color(25, 38, 35, 160)); 
-            panelPersonas.setBounds(0, 0, getWidth(), 80);
-
-            JLabel lblPersonas = new JLabel("Personas");
-            lblPersonas.setFont(new Font("Segoe UI", Font.BOLD, 26));
-            lblPersonas.setForeground(Color.WHITE);
-            lblPersonas.setBounds(40, 20, 300, 40);
-            panelPersonas.add(lblPersonas);
-
-            add(panelPersonas);
-        }
-
-        // ============================
-        // PANEL DE REDES SOCIALES Y CONTACTO
+        // PANEL DE REDES SOCIALES (100% CENTRADO HORIZONTAL)
         // ============================
         private void crearPanelRedes() {
-            JPanel contenedorIzquierdo = new JPanel();
-            contenedorIzquierdo.setLayout(new BoxLayout(contenedorIzquierdo, BoxLayout.Y_AXIS));
+            // GridBagLayout garantiza que los componentes no se arrastren a la izquierda
+            JPanel contenedorIzquierdo = new JPanel(new GridBagLayout());
             contenedorIzquierdo.setOpaque(false);
-            contenedorIzquierdo.setBounds(40, 180, 250, 390);
+            
+            // Ubicación en la pantalla (X=40 para dejar margen limpio, Y=200 para centrarlo verticalmente en su zona)
+            contenedorIzquierdo.setBounds(40, 200, 280, 420); 
 
-            JLabel lblTituloRedes = new JLabel("Visita nuestras redes sociales");
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.anchor = GridBagConstraints.CENTER; // Alineación central absoluta
+            gbc.fill = GridBagConstraints.NONE;
+
+            // 1. TÍTULO REDES
+            JLabel lblTituloRedes = new JLabel("Visita nuestras redes sociales", SwingConstants.CENTER);
             lblTituloRedes.setFont(new Font("Segoe UI", Font.BOLD, 16));
             lblTituloRedes.setForeground(Color.WHITE);
-            lblTituloRedes.setAlignmentX(Component.CENTER_ALIGNMENT);
-            contenedorIzquierdo.add(lblTituloRedes);
             
-            contenedorIzquierdo.add(Box.createVerticalStrut(15)); 
+            gbc.gridy = 0;
+            gbc.insets = new Insets(0, 0, 15, 0); // Separación inferior de 15px
+            contenedorIzquierdo.add(lblTituloRedes, gbc);
 
-            JPanel panelBotones = new JPanel();
-            panelBotones.setLayout(new GridLayout(3, 1, 0, 12)); 
+            // 2. PANEL DE BOTONES
+            JPanel panelBotones = new JPanel(new GridLayout(3, 1, 0, 12)); 
             panelBotones.setOpaque(false);
-            panelBotones.setMaximumSize(new Dimension(220, 180));
+            panelBotones.setPreferredSize(new Dimension(220, 180)); // Tamaño exacto de los botones
 
             Color colorRedes = new Color(25, 38, 35, 140);
             Color colorRedesHover = new Color(94, 116, 73, 200);
 
             BotonNeo btnInstagram = new BotonNeo("Instagram", colorRedes, colorRedesHover);
-            btnInstagram.addActionListener(e -> abrirEnlace("https://www.instagram.com/neo_jacketgt?igsh=MWt6ZXdjbjR2eW5mNA=="));
+            btnInstagram.addActionListener(e -> abrirEnlace("https://www.instagram.com/neo_jacket.gt/"));
             panelBotones.add(btnInstagram);
 
             BotonNeo btnTikTok = new BotonNeo("TikTok", colorRedes, colorRedesHover);
@@ -120,24 +109,30 @@ public class InicioNeo extends JFrame {
             panelBotones.add(btnTikTok);
 
             BotonNeo btnFacebook = new BotonNeo("Facebook", colorRedes, colorRedesHover);
-            btnFacebook.addActionListener(e -> abrirEnlace("https://www.facebook.com"));
+            btnFacebook.addActionListener(e -> abrirEnlace("https://www.facebook.com/profile.php"));
             panelBotones.add(btnFacebook);
 
-            contenedorIzquierdo.add(panelBotones);
+            gbc.gridy = 1;
+            gbc.insets = new Insets(0, 0, 25, 0); // Separación inferior de 25px
+            contenedorIzquierdo.add(panelBotones, gbc);
 
-            contenedorIzquierdo.add(Box.createVerticalStrut(20)); 
-
-            JLabel lblContacto = new JLabel("O contáctanos a nuestro número");
+            // 3. TEXTO CONTACTO
+            JLabel lblContacto = new JLabel("O contáctanos a nuestro número", SwingConstants.CENTER);
             lblContacto.setFont(new Font("Segoe UI", Font.PLAIN, 15));
             lblContacto.setForeground(new Color(200, 200, 200)); 
-            lblContacto.setAlignmentX(Component.CENTER_ALIGNMENT);
-            contenedorIzquierdo.add(lblContacto);
+            
+            gbc.gridy = 2;
+            gbc.insets = new Insets(0, 0, 6, 0); // Separación de 6px antes del número
+            contenedorIzquierdo.add(lblContacto, gbc);
 
-            JLabel lblTelefono = new JLabel("4906-6594");
+            // 4. NÚMERO DE TELÉFONO
+            JLabel lblTelefono = new JLabel("4906-6594", SwingConstants.CENTER);
             lblTelefono.setFont(new Font("Segoe UI", Font.BOLD, 19));
             lblTelefono.setForeground(new Color(251, 232, 138)); 
-            lblTelefono.setAlignmentX(Component.CENTER_ALIGNMENT);
-            contenedorIzquierdo.add(lblTelefono);
+            
+            gbc.gridy = 3;
+            gbc.insets = new Insets(0, 0, 0, 0);
+            contenedorIzquierdo.add(lblTelefono, gbc);
 
             add(contenedorIzquierdo);
         }
@@ -159,13 +154,13 @@ public class InicioNeo extends JFrame {
             JLabel mensaje1 = new JLabel("Tu banca, más simple, más segura, más tú.");
             mensaje1.setFont(new Font("Segoe UI", Font.BOLD, 40));
             mensaje1.setForeground(Color.WHITE);
-            mensaje1.setBounds(350, 200, 1000, 50);
+            mensaje1.setBounds(360, 200, 1000, 50);
             add(mensaje1);
 
             JLabel mensaje2 = new JLabel("Gestiona tus cuentas, realiza pagos y transferencias desde un solo lugar.");
             mensaje2.setFont(new Font("Segoe UI", Font.PLAIN, 24));
             mensaje2.setForeground(Color.WHITE);
-            mensaje2.setBounds(350, 260, 1000, 40);
+            mensaje2.setBounds(360, 260, 1000, 40);
             add(mensaje2);
 
             // ============================
@@ -177,22 +172,22 @@ public class InicioNeo extends JFrame {
             Color amarillo = new Color(251, 232, 138);
             Color amarilloHover = new Color(255, 245, 180);
 
-            // BOTÓN INICIAR SESIÓN (CORREGIDO)
+            // BOTÓN INICIAR SESIÓN
             BotonNeo btnIniciar = new BotonNeo("Iniciar Sesión", verdeTrans, verdeHover);
             btnIniciar.setBounds(450, 450, 250, 60);
             btnIniciar.addActionListener(e -> {
-                new LoginNeo(); // <--- Ya no está comentado, ahora sí inicializa tu login
-                dispose();      // Cierra la pantalla actual de inicio
+                new LoginNeo(); 
+                dispose();      
             });
             add(btnIniciar);
 
-            // BOTÓN HAZTE CLIENTE (CORREGIDO)
+            // BOTÓN HAZTE CLIENTE
             BotonNeo btnCliente = new BotonNeo("Hazte Cliente", amarillo, amarilloHover);
             btnCliente.setForeground(Color.BLACK);
             btnCliente.setBounds(750, 450, 250, 60);
             btnCliente.addActionListener(e -> {
-                new RegistroNeo(); // <--- Ya no está comentado, ahora sí inicializa tu registro
-                dispose();         // Cierra la pantalla actual de inicio
+                new RegistroNeo(); 
+                dispose();         
             });
             add(btnCliente);
         }

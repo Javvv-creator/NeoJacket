@@ -2,96 +2,39 @@ package gui;
 
 import java.awt.*;
 import javax.swing.*;
+import gui.components.RoundedTextFieldGrande;
+import gui.components.BotonNeoColor;
 
 public class DatosPersonales extends JFrame {
 
     private Image fondo;
     private Image logo;
 
-    private RoundedTextField txtNombreCompleto;
-    private RoundedTextField txtDpiCui;
-    private RoundedTextField txtFechaNacimiento;
-    private RoundedTextField txtCorreoElectronico;
-    private RoundedTextField txtTelefono;
-
-    // ============================
-    // TEXTFIELD REDONDEADO
-    // ============================
-    class RoundedTextField extends JTextField {
-        public RoundedTextField(int size) {
-            super(size);
-            setOpaque(false);
-            setForeground(Color.WHITE);
-            setCaretColor(Color.WHITE);
-            setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 10));
-            setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(new Color(25, 38, 35, 200));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-
-            g2.setColor(new Color(251, 232, 138));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
-
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
-
-    // ============================
-    // BOTÓN NEO
-    // ============================
-    class BotonNeo extends JButton {
-        private Color normal;
-        private Color hover;
-
-        public BotonNeo(String texto, Color normal, Color hover) {
-            super(texto);
-            this.normal = normal;
-            this.hover = hover;
-
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setForeground(Color.BLACK);
-            setFont(new Font("Segoe UI", Font.BOLD, 20));
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(getModel().isRollover() ? hover : normal);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
-
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
+    private RoundedTextFieldGrande txtNombreCompleto;
+    private RoundedTextFieldGrande txtDpiCui;
+    private String tipoCuenta;
+    private RoundedTextFieldGrande txtFechaNacimiento;
+    private RoundedTextFieldGrande txtCorreoElectronico;
+    private RoundedTextFieldGrande txtTelefono;
 
     // ============================
     // CONSTRUCTOR
     // ============================
-    public DatosPersonales() {
+    public DatosPersonales(String tipoCuenta) {
 
-        fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
-        logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
+    this.tipoCuenta = tipoCuenta;
 
-        setTitle("Neo Jacket - Datos Personales");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setResizable(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setContentPane(new FondoPanel());
-        setVisible(true);
-    }
+    fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
+    logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
+
+    setTitle("Neo Jacket - Datos Personales");
+    setExtendedState(JFrame.MAXIMIZED_BOTH);
+    setResizable(true);
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setLocationRelativeTo(null);
+    setContentPane(new FondoPanel());
+    setVisible(true);
+}
 
     // ============================
     // PANEL PRINCIPAL
@@ -150,7 +93,7 @@ public class DatosPersonales extends JFrame {
             Color amarillo = new Color(251, 232, 138);
             Color amarilloHover = new Color(255, 245, 180);
 
-            BotonNeo btnSiguiente = new BotonNeo("Siguiente", amarillo, amarilloHover);
+            BotonNeoColor btnSiguiente = new BotonNeoColor("Siguiente", amarillo, amarilloHover);
             btnSiguiente.setBounds(40, 590, 400, 55);
             panel.add(btnSiguiente);
             
@@ -168,7 +111,7 @@ public class DatosPersonales extends JFrame {
                     return;
                 }
 
-                new DatosTarjeta(correo, dpi);
+                new DatosTarjeta(correo, dpi, tipoCuenta);
                 dispose();
             });
         }
@@ -181,8 +124,8 @@ public class DatosPersonales extends JFrame {
             return lbl;
         }
 
-        private RoundedTextField crearField(int x, int y) {
-            RoundedTextField txt = new RoundedTextField(20);
+        private RoundedTextFieldGrande crearField(int x, int y) {
+            RoundedTextFieldGrande txt = new RoundedTextFieldGrande(20);
             txt.setBounds(x, y, 450, 50);
             return txt;
         }

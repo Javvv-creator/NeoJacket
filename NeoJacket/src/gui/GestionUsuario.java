@@ -1,84 +1,340 @@
 package gui;
- 
+
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.sql.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import funcionalidades.PasswordUtil;
 import main.Conexion.conexion;
- 
+
 public class GestionUsuario extends JFrame {
- 
+
     private Image fondo;
     private Image logo;
- 
-    class BotonNeo extends JButton {
- 
-        public BotonNeo(String texto) {
+
+    private final Color amarilloPastel = new Color(251, 232, 138);
+    private final Color verdeFondoCampos = new Color(20, 32, 30);
+    private final Color verdeBotonNormal = new Color(94, 116, 73);
+    private final Color bordeDelgadoBlanco = new Color(255, 255, 255, 100); // Subido un poco el blanco
+
+    // ==========================================
+    // BOTÓN DE NAVEGACIÓN DEL SIDEBAR
+    // ==========================================
+    class BotonSidebarNeo extends JButton {
+
+        private boolean esSeleccionado = false;
+
+        public BotonSidebarNeo(String texto, boolean esSeleccionado) {
             super(texto);
+            this.esSeleccionado = esSeleccionado;
+            setFocusPainted(false);
             setContentAreaFilled(false);
             setBorderPainted(false);
-            setFocusPainted(false);
-            setForeground(Color.WHITE);
+            setOpaque(false);
             setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+            if (esSeleccionado) {
+                setBackground(amarilloPastel);
+                setForeground(Color.BLACK);
+            } else {
+                setBackground(verdeBotonNormal);
+                setForeground(Color.WHITE);
+            }
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    if (!esSeleccionado) {
+                        setBackground(amarilloPastel);
+                        setForeground(Color.BLACK);
+                    }
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    if (!esSeleccionado) {
+                        setBackground(verdeBotonNormal);
+                        setForeground(Color.WHITE);
+                    }
+                }
+            });
         }
- 
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
- 
-            if (getModel().isRollover()) {
-                g2.setColor(new Color(251, 232, 138, 220));
-            } else {
-                g2.setColor(new Color(94, 116, 73, 190));
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+            if (!esSeleccionado) {
+                g2.setColor(new Color(251, 232, 138, 100));
+                g2.setStroke(new BasicStroke(1f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
             }
- 
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // ==========================================
+    // BOTÓN NEO ACCIONES ESPECIALES
+    // ==========================================
+    class BotonNeo extends JButton {
+
+        private Color normal;
+        private Color hover;
+        private Color colorTexto;
+
+        public BotonNeo(String texto) {
+            this(texto, new Color(94, 116, 73, 190), new Color(251, 232, 138), Color.WHITE);
+        }
+
+        public BotonNeo(String texto, Color normal, Color hover, Color colorTexto) {
+            super(texto);
+            this.normal = normal;
+            this.hover = hover;
+            this.colorTexto = colorTexto;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(colorTexto);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            boolean isHover = getModel().isRollover();
+            g2.setColor(isHover ? hover : normal);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
- 
-            g2.setColor(new Color(255, 255, 255, 80));
+
+            g2.setColor(isHover ? new Color(0, 0, 0, 40) : new Color(255, 255, 255, 80));
+            g2.setStroke(new BasicStroke(1f));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
- 
+
+            if (isHover) {
+                setForeground(Color.BLACK);
+            } else {
+                setForeground(colorTexto);
+            }
+
             super.paintComponent(g);
             g2.dispose();
         }
     }
- 
+
+    // ==========================================
+    // MÉTODOS DE ESTILIZADO DE COMPONENTES (INPUTS AMARILLOS)
+    // ==========================================
+    private void estilizarCampoTexto(JTextField campo) {
+        campo.setBackground(verdeFondoCampos);
+        campo.setForeground(Color.WHITE);
+        campo.setCaretColor(Color.WHITE);
+        campo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        campo.setBorder(BorderFactory.createCompoundBorder(
+                new javax.swing.border.Border() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(amarilloPastel); // Mismo color amarillo de la imagen
+                g2.setStroke(new BasicStroke(1.5f)); // Grosor definido
+                g2.drawRoundRect(x, y, width - 1, height - 1, 15, 15); // Redondeado idéntico
+                g2.dispose();
+            }
+
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(0, 0, 0, 0);
+            }
+
+            @Override
+            public boolean isBorderOpaque() {
+                return false;
+            }
+        },
+                new EmptyBorder(0, 12, 0, 12)
+        ));
+        campo.setOpaque(false);
+    }
+
+    /**
+     * Estiliza un JComboBox para que:
+     * - La casilla principal (lo que se ve cerrado) sea TRANSPARENTE, dejando ver
+     *   el panel/tarjeta oscuro que hay detrás.
+     * - El texto de la casilla principal y de la lista desplegable sea BLANCO
+     *   (excepto el ítem seleccionado en el desplegable, que se ve en negro sobre amarillo).
+     * - El desplegable (popup) mantenga fondo oscuro sólido para que se pueda leer bien.
+     */
+    private void estilizarComboBox(JComboBox<String> combo) {
+        combo.setOpaque(false);
+        combo.setBackground(new Color(0, 0, 0, 0));
+        combo.setForeground(Color.WHITE);
+        combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        // Customizar comportamiento y flecha
+        combo.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
+            @Override
+            protected JButton createArrowButton() {
+                JButton btn = new JButton() {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2.setColor(amarilloPastel); // Flecha amarilla
+                        int[] xPoints = {getWidth() / 2 - 5, getWidth() / 2 + 5, getWidth() / 2};
+                        int[] yPoints = {getHeight() / 2 - 3, getHeight() / 2 - 3, getHeight() / 2 + 4};
+                        g2.fillPolygon(xPoints, yPoints, 3);
+                        g2.dispose();
+                    }
+                };
+                btn.setContentAreaFilled(false);
+                btn.setOpaque(false);
+                btn.setBorder(BorderFactory.createEmptyBorder());
+                return btn;
+            }
+
+            // CLAVE DEL FIX: BasicComboBoxUI siempre pinta un rectángulo de fondo
+            // sólido antes de dibujar el valor actual. Si no se sobrescribe esto,
+            // el combo NUNCA se ve transparente aunque el componente esté setOpaque(false).
+            @Override
+            public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
+                // No pintamos nada: dejamos ver el fondo del panel/tarjeta de atrás.
+            }
+
+            @Override
+            protected ComboBoxEditor createEditor() {
+                ComboBoxEditor editor = super.createEditor();
+                Component editorComp = editor.getEditorComponent();
+                if (editorComp instanceof JComponent) {
+                    ((JComponent) editorComp).setOpaque(false);
+                    editorComp.setBackground(new Color(0, 0, 0, 0));
+                    editorComp.setForeground(Color.WHITE);
+                }
+                return editor;
+            }
+        });
+
+        // Renderer: transparente para la casilla principal (index == -1),
+        // sólido con selección amarilla dentro del desplegable.
+        combo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setBorder(new EmptyBorder(5, 10, 5, 10));
+
+                if (index == -1) {
+                    // Esta es la casilla principal (cerrada) del combo, no el desplegable
+                    lbl.setOpaque(false);
+                    lbl.setBackground(new Color(0, 0, 0, 0));
+                    lbl.setForeground(Color.WHITE);
+                } else if (isSelected) {
+                    lbl.setOpaque(true);
+                    lbl.setBackground(amarilloPastel);
+                    lbl.setForeground(Color.BLACK);
+                } else {
+                    lbl.setOpaque(true);
+                    lbl.setBackground(verdeFondoCampos);
+                    lbl.setForeground(Color.WHITE);
+                }
+                return lbl;
+            }
+        });
+
+        final boolean[] isHover = {false};
+
+        combo.setBorder(new javax.swing.border.Border() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (isHover[0] || combo.hasFocus()) {
+                    g2.setColor(amarilloPastel);
+                } else {
+                    g2.setColor(new Color(251, 232, 138, 200));
+                }
+
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawRoundRect(x, y, width - 1, height - 1, 15, 15);
+                g2.dispose();
+            }
+
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(0, 12, 0, 12);
+            }
+
+            @Override
+            public boolean isBorderOpaque() {
+                return false;
+            }
+        });
+
+        combo.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                isHover[0] = true;
+                combo.repaint();
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                isHover[0] = false;
+                combo.repaint();
+            }
+        });
+    }
+
     public GestionUsuario() {
- 
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
- 
-        setTitle("Gestion de Usuario");
+
+        setTitle("Gestión de Usuarios - NeoJacket");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setResizable(true);
-
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
         setVisible(true);
     }
- 
+
     class FondoPanel extends JPanel {
- 
+
         public FondoPanel() {
             setLayout(null);
             crearSidebar();
             crearPanelPrincipal();
         }
- 
+
         private void crearSidebar() {
- 
-            JPanel sidebar = new JPanel();
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+                    g2.dispose();
+                }
+            };
+            sidebar.setOpaque(false);
+            sidebar.setBounds(20, 20, 300, 940);
             sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
-            sidebar.setBounds(20, 20, 300, 950);
- 
+
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
             JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
-            lblLogo.setBounds(20, 10, 250, 110);
+            lblLogo.setBounds(20, 15, 250, 110);
             sidebar.add(lblLogo);
- 
+
             String[] botones = {
                 "Gestión de Usuarios",
                 "Gestión de Menores",
@@ -87,248 +343,269 @@ public class GestionUsuario extends JFrame {
                 "Gestión de Divisas",
                 "Gestión de Transacciones"
             };
- 
-            int y = 140;
- 
+
+            int y = 145;
             for (String texto : botones) {
-                JButton btn = new JButton(texto);
+                boolean esSeleccionado = texto.equals("Gestión de Usuarios");
+                BotonSidebarNeo btn = new BotonSidebarNeo(texto, esSeleccionado);
                 btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
- 
-                if (texto.equals("Gestión de Usuarios")) {
-                    btn.setBackground(new Color(251, 232, 138));
-                    btn.setForeground(Color.BLACK);
-                } else {
-                    btn.setBackground(new Color(94, 116, 73));
-                    btn.setForeground(Color.WHITE);
-                }
-                
-                if (texto.equals("Gestión de Usuarios")) {
-                    btn.addActionListener(e -> {
+
+                btn.addActionListener(e -> {
+                    if (texto.equals("Gestión de Usuarios")) {
                         new GestionUsuario();
                         dispose();
-                    });
-                } else if (texto.equals("Gestión de Menores")) {
-                    btn.addActionListener(e -> {
+                    } else if (texto.equals("Gestión de Menores")) {
                         new GestionMenores();
                         dispose();
-                    });
-                } else if (texto.equals("Gestión de Cuentas")) {
-                    btn.addActionListener(e -> {
+                    } else if (texto.equals("Gestión de Cuentas")) {
                         new GestionCuentas();
                         dispose();
-                    });
-                } else if (texto.equals("Gestión de Tarjetas")) {
-                    btn.addActionListener(e -> {
+                    } else if (texto.equals("Gestión de Tarjetas")) {
                         new GestionTarjeta();
                         dispose();
-                    });
-                } else if (texto.equals("Gestión de Divisas")) {
-                    btn.addActionListener(e -> {
+                    } else if (texto.equals("Gestión de Divisas")) {
                         new GestionDivisas();
                         dispose();
-                    });
-                } else if (texto.equals("Gestión de Transacciones")) {
-                    btn.addActionListener(e -> {
+                    } else if (texto.equals("Gestión de Transacciones")) {
                         new GestionTransacciones();
                         dispose();
-                    });
-                }
+                    }
+                });
 
                 sidebar.add(btn);
-                y += 70;
+                y += 78;
             }
- 
+
+            BotonNeo btnCerrarSesion = new BotonNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80),
+                    Color.WHITE);
+            btnCerrarSesion.setBounds(20, 860, 250, 55);
+            btnCerrarSesion.addActionListener(e -> {
+                new InicioNeo().setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnCerrarSesion);
+
             add(sidebar);
         }
- 
+
         private void crearPanelPrincipal() {
- 
-            JPanel panel = new JPanel();
+            JPanel panel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 150));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                    g2.dispose();
+                }
+            };
+            panel.setOpaque(false);
             panel.setLayout(null);
-            panel.setBackground(new Color(25, 38, 35, 150));
-            panel.setBounds(350, 60, 1300, 760);
+            panel.setBounds(350, 40, 1320, 850);
             add(panel);
- 
-            // BANNER
-            JPanel banner = new JPanel();
+
+            JPanel banner = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 230));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                    g2.dispose();
+                }
+            };
+            banner.setOpaque(false);
             banner.setLayout(null);
-            banner.setBackground(new Color(25, 38, 35, 230));
-            banner.setBounds(0, 0, 1300, 110);
+            banner.setBounds(0, 0, 1320, 110);
             panel.add(banner);
- 
-            JLabel titulo = new JLabel("Gestion de Usuario");
+
+            JLabel titulo = new JLabel("Gestión de Usuarios");
             titulo.setFont(new Font("Segoe UI", Font.BOLD, 34));
             titulo.setForeground(Color.WHITE);
             titulo.setBounds(30, 20, 500, 40);
             banner.add(titulo);
- 
+
             JLabel subtitulo = new JLabel("Ingrese los criterios de búsqueda del usuario");
-            subtitulo.setForeground(Color.WHITE);
+            subtitulo.setForeground(Color.LIGHT_GRAY);
+            subtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             subtitulo.setBounds(30, 65, 500, 20);
             banner.add(subtitulo);
- 
-            // PANEL 1 — CRITERIOS DE BÚSQUEDA (con borde amarillo)
-            JPanel panelBusqueda = new JPanel();
-            panelBusqueda.setLayout(null);
-            panelBusqueda.setBackground(new Color(25, 38, 35, 180));
-            panelBusqueda.setBounds(40, 130, 1180, 80);
-            panelBusqueda.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 3, true));
+
+            BotonNeo btnAgregarUsuario = new BotonNeo("Agregar Usuario");
+            btnAgregarUsuario.setBounds(910, 32, 180, 45);
+            btnAgregarUsuario.addActionListener(e -> new DialogoAgregarUsuario());
+            banner.add(btnAgregarUsuario);
+
+            BotonNeo btnVolver = new BotonNeo("Volver", new Color(40, 55, 50), new Color(60, 80, 75), Color.WHITE);
+            btnVolver.setBounds(1115, 32, 120, 45);
+            btnVolver.addActionListener(e -> {
+                new PanelControlAdmin();
+                dispose();
+            });
+            banner.add(btnVolver);
+
+            // PANEL 1 — CRITERIOS (Bordes amarillos subidos a 1.8f y más opacos)
+            JPanel panelBusqueda = crearCardPanel(amarilloPastel, 210, 1.8f);
+            panelBusqueda.setBounds(40, 140, 1240, 85);
             panel.add(panelBusqueda);
- 
-            // Campo: ID de Usuario
+
             JLabel lblId = new JLabel("ID de Usuario");
             lblId.setForeground(Color.WHITE);
-            lblId.setBounds(30, 25, 120, 25);
+            lblId.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            lblId.setBounds(30, 30, 100, 25);
             panelBusqueda.add(lblId);
- 
+
             JTextField txtId = new JTextField();
-            txtId.setBounds(155, 20, 180, 35);
+            txtId.setBounds(135, 25, 170, 35);
+            estilizarCampoTexto(txtId);
             panelBusqueda.add(txtId);
- 
-            // Campo: DPI
+
             JLabel lblDpi = new JLabel("DPI de Usuario");
             lblDpi.setForeground(Color.WHITE);
-            lblDpi.setBounds(370, 25, 130, 25);
+            lblDpi.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            lblDpi.setBounds(340, 30, 110, 25);
             panelBusqueda.add(lblDpi);
- 
+
             JTextField txtDpi = new JTextField();
-            txtDpi.setBounds(505, 20, 180, 35);
+            txtDpi.setBounds(455, 25, 170, 35);
+            estilizarCampoTexto(txtDpi);
             panelBusqueda.add(txtDpi);
- 
-            // Campo: Nombre de Usuario
+
             JLabel lblNombre = new JLabel("Nombre");
             lblNombre.setForeground(Color.WHITE);
-            lblNombre.setBounds(720, 25, 80, 25);
+            lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            lblNombre.setBounds(660, 30, 70, 25);
             panelBusqueda.add(lblNombre);
- 
+
             JTextField txtNombre = new JTextField();
-            txtNombre.setBounds(805, 20, 200, 35);
+            txtNombre.setBounds(735, 25, 210, 35);
+            estilizarCampoTexto(txtNombre);
             panelBusqueda.add(txtNombre);
- 
-            // Botón Buscar dentro del panel de criterios
+
             BotonNeo btnBuscar = new BotonNeo("Buscar");
-            btnBuscar.setBounds(1040, 15, 110, 45);
+            btnBuscar.setBounds(1085, 20, 120, 45);
             panelBusqueda.add(btnBuscar);
- 
-            // PANEL 2 — TABLA DE RESULTADOS (con borde blanco)
-            JPanel panelTabla = new JPanel();
-            panelTabla.setLayout(null);
-            panelTabla.setBackground(new Color(25, 38, 35, 180));
-            panelTabla.setBounds(40, 230, 1180, 330);
-            panelTabla.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2, true));
+
+            // PANEL 2 — TABLA DE RESULTADOS (Línea blanca subida un poco menos)
+            JPanel panelTabla = crearCardPanel(Color.WHITE, 100, 1.2f);
+            panelTabla.setBounds(40, 250, 1240, 380);
             panel.add(panelTabla);
- 
+
             String[] columnas = {"ID", "Usuario", "Tipo", "DPI", "Estado"};
- 
             DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
                 @Override
-                public boolean isCellEditable(int row, int column) { return false; }
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
             };
- 
+
             JTable tabla = new JTable(modelo);
-            tabla.setRowHeight(35);
-            tabla.setBackground(new Color(25, 38, 35));
+            tabla.setRowHeight(38);
+            tabla.setBackground(verdeFondoCampos);
             tabla.setForeground(Color.WHITE);
-            tabla.setGridColor(new Color(94, 116, 73));
-            tabla.setSelectionBackground(new Color(251, 232, 138));
+            tabla.setGridColor(new Color(255, 255, 255, 20));
+            tabla.setSelectionBackground(amarilloPastel);
             tabla.setSelectionForeground(Color.BLACK);
             tabla.setShowGrid(true);
- 
+            tabla.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
             JTableHeader header = tabla.getTableHeader();
-            header.setBackground(new Color(94, 116, 73));
+            header.setBackground(new Color(25, 38, 35));
             header.setForeground(Color.WHITE);
             header.setFont(new Font("Segoe UI", Font.BOLD, 14));
- 
+
             JScrollPane scroll = new JScrollPane(tabla);
-            scroll.getViewport().setBackground(new Color(25, 38, 35));
-            scroll.setBounds(10, 10, 1160, 310);
+            scroll.setBorder(BorderFactory.createEmptyBorder());
+            scroll.getViewport().setBackground(verdeFondoCampos);
+            scroll.setBounds(15, 15, 1210, 350);
             panelTabla.add(scroll);
- 
-            // PANEL 3 — DETALLE Y CAMBIO DE ESTADO (con borde amarillo)
-            JPanel panelDetalle = new JPanel();
-            panelDetalle.setLayout(null);
-            panelDetalle.setBackground(new Color(25, 38, 35, 180));
-            panelDetalle.setBounds(40, 575, 1180, 160);
-            panelDetalle.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 2, true));
+
+            // PANEL 3 — DETALLE (Bordes amarillos subidos a 1.8f)
+            JPanel panelDetalle = crearCardPanel(amarilloPastel, 210, 1.8f);
+            panelDetalle.setBounds(40, 655, 1240, 165);
             panel.add(panelDetalle);
- 
-            // Fila 1: ID, Nombre, Tipo, DPI
+
             JLabel lblDetalleId = new JLabel("ID:");
-            lblDetalleId.setForeground(new Color(251, 232, 138));
+            lblDetalleId.setForeground(amarilloPastel);
             lblDetalleId.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            lblDetalleId.setBounds(20, 15, 40, 20);
+            lblDetalleId.setBounds(30, 20, 40, 20);
             panelDetalle.add(lblDetalleId);
- 
+
             JLabel valDetalleId = new JLabel("—");
             valDetalleId.setForeground(Color.WHITE);
-            valDetalleId.setBounds(60, 15, 130, 20);
+            valDetalleId.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            valDetalleId.setBounds(70, 20, 130, 20);
             panelDetalle.add(valDetalleId);
- 
+
             JLabel lblDetalleNombre = new JLabel("Nombre:");
-            lblDetalleNombre.setForeground(new Color(251, 232, 138));
+            lblDetalleNombre.setForeground(amarilloPastel);
             lblDetalleNombre.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            lblDetalleNombre.setBounds(210, 15, 70, 20);
+            lblDetalleNombre.setBounds(220, 20, 70, 20);
             panelDetalle.add(lblDetalleNombre);
- 
+
             JLabel valDetalleNombre = new JLabel("—");
             valDetalleNombre.setForeground(Color.WHITE);
-            valDetalleNombre.setBounds(285, 15, 180, 20);
+            valDetalleNombre.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            valDetalleNombre.setBounds(295, 20, 180, 20);
             panelDetalle.add(valDetalleNombre);
- 
+
             JLabel lblDetalleTipo = new JLabel("Tipo:");
-            lblDetalleTipo.setForeground(new Color(251, 232, 138));
+            lblDetalleTipo.setForeground(amarilloPastel);
             lblDetalleTipo.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            lblDetalleTipo.setBounds(480, 15, 45, 20);
+            lblDetalleTipo.setBounds(500, 20, 45, 20);
             panelDetalle.add(lblDetalleTipo);
- 
+
             JLabel valDetalleTipo = new JLabel("—");
             valDetalleTipo.setForeground(Color.WHITE);
-            valDetalleTipo.setBounds(530, 15, 130, 20);
+            valDetalleTipo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            valDetalleTipo.setBounds(550, 20, 130, 20);
             panelDetalle.add(valDetalleTipo);
- 
+
             JLabel lblDetalleDpi = new JLabel("DPI:");
-            lblDetalleDpi.setForeground(new Color(251, 232, 138));
+            lblDetalleDpi.setForeground(amarilloPastel);
             lblDetalleDpi.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            lblDetalleDpi.setBounds(675, 15, 40, 20);
+            lblDetalleDpi.setBounds(710, 20, 40, 20);
             panelDetalle.add(lblDetalleDpi);
- 
+
             JLabel valDetalleDpi = new JLabel("—");
             valDetalleDpi.setForeground(Color.WHITE);
-            valDetalleDpi.setBounds(720, 15, 180, 20);
+            valDetalleDpi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            valDetalleDpi.setBounds(755, 20, 180, 20);
             panelDetalle.add(valDetalleDpi);
- 
-            // Fila 2: Estado actual + Nuevo estado + botón Aplicar
+
             JLabel lblDetalleEstado = new JLabel("Estado actual:");
-            lblDetalleEstado.setForeground(new Color(251, 232, 138));
+            lblDetalleEstado.setForeground(amarilloPastel);
             lblDetalleEstado.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            lblDetalleEstado.setBounds(20, 65, 115, 25);
+            lblDetalleEstado.setBounds(30, 75, 115, 25);
             panelDetalle.add(lblDetalleEstado);
- 
+
             JLabel valDetalleEstado = new JLabel("—");
             valDetalleEstado.setForeground(Color.WHITE);
-            valDetalleEstado.setBounds(140, 65, 150, 25);
+            valDetalleEstado.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            valDetalleEstado.setBounds(145, 75, 130, 25);
             panelDetalle.add(valDetalleEstado);
- 
+
             JLabel lblNuevoEstado = new JLabel("Nuevo estado:");
-            lblNuevoEstado.setForeground(new Color(251, 232, 138));
+            lblNuevoEstado.setForeground(amarilloPastel);
             lblNuevoEstado.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            lblNuevoEstado.setBounds(310, 65, 115, 25);
+            lblNuevoEstado.setBounds(300, 75, 115, 25);
             panelDetalle.add(lblNuevoEstado);
- 
+
+            // Declaramos primero el arreglo para que el JComboBox lo pueda leer sin error
             String[] estados = {"Activo", "Inactivo", "Suspendido", "Bloqueado"};
             JComboBox<String> cmbEstado = new JComboBox<>(estados);
-            cmbEstado.setBounds(430, 60, 180, 35);
-            cmbEstado.setBackground(new Color(25, 38, 35));
-            cmbEstado.setForeground(Color.WHITE);
+            cmbEstado.setBounds(415, 70, 180, 35);
+            estilizarComboBox(cmbEstado);
             panelDetalle.add(cmbEstado);
- 
+
             BotonNeo btnAplicar = new BotonNeo("Aplicar cambio");
-            btnAplicar.setBounds(630, 55, 170, 42);
+            btnAplicar.setBounds(620, 66, 170, 42);
             panelDetalle.add(btnAplicar);
- 
-            // ---- LÓGICA: actualizar detalle al seleccionar fila ----
+
+            // ---- INTERACCIONES ----
             tabla.getSelectionModel().addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting() && tabla.getSelectedRow() != -1) {
                     int fila = tabla.getSelectedRow();
@@ -339,148 +616,102 @@ public class GestionUsuario extends JFrame {
                     valDetalleEstado.setText(tabla.getValueAt(fila, 4) != null ? tabla.getValueAt(fila, 4).toString() : "—");
                 }
             });
- 
-            // ---- LÓGICA: botón Aplicar cambio ----
+
             btnAplicar.addActionListener(e -> {
                 if (tabla.getSelectedRow() == -1) {
-                    JOptionPane.showMessageDialog(this,
-                        "Por favor, seleccione un usuario de la tabla antes de aplicar el cambio.",
-                        "Sin selección",
-                        JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Por favor, seleccione un usuario de la tabla.");
                     return;
                 }
- 
                 String nuevoEstado = (String) cmbEstado.getSelectedItem();
                 String usuario = valDetalleNombre.getText();
- 
-                int confirmacion = JOptionPane.showConfirmDialog(this,
-                    "¿Está seguro de cambiar el estado de \"" + usuario + "\" a \"" + nuevoEstado + "\"?",
-                    "Confirmar cambio de estado",
-                    JOptionPane.YES_NO_OPTION);
- 
+                int confirmacion = JOptionPane.showConfirmDialog(this, "¿Cambiar estado de \"" + usuario + "\" a \"" + nuevoEstado + "\"?");
+
                 if (confirmacion == JOptionPane.YES_OPTION) {
-                    String idUsuario = valDetalleId.getText();
-                    try (Connection con = conexion.getConexion();
-                         PreparedStatement ps = con.prepareStatement(
-                             "UPDATE usuarios SET estado = ? WHERE id_usuario = ?")) {
- 
+                    try (Connection con = conexion.getConexion(); PreparedStatement ps = con.prepareStatement("UPDATE usuarios SET estado = ? WHERE id_usuario = ?")) {
                         ps.setString(1, nuevoEstado.toLowerCase());
-                        ps.setString(2, idUsuario);
-                        int filas = ps.executeUpdate();
- 
-                        if (filas > 0) {
+                        ps.setString(2, valDetalleId.getText());
+                        if (ps.executeUpdate() > 0) {
                             valDetalleEstado.setText(nuevoEstado);
-                            // Actualizar también la celda en la tabla
                             int fila = tabla.getSelectedRow();
-                            if (fila != -1) modelo.setValueAt(nuevoEstado.toLowerCase(), fila, 4);
- 
-                            JOptionPane.showMessageDialog(this,
-                                "Estado de \"" + usuario + "\" actualizado a \"" + nuevoEstado + "\" correctamente.",
-                                "Éxito",
-                                JOptionPane.INFORMATION_MESSAGE);
+                            if (fila != -1) {
+                                modelo.setValueAt(nuevoEstado.toLowerCase(), fila, 4);
+                            }
+                            JOptionPane.showMessageDialog(this, "Estado actualizado con éxito.");
                         }
- 
                     } catch (SQLException ex) {
-                        JOptionPane.showMessageDialog(this,
-                            "Error al actualizar el estado:\n" + ex.getMessage(),
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
                         ex.printStackTrace();
                     }
                 }
             });
- 
-            // ---- LÓGICA: botón Buscar ----
+
             btnBuscar.addActionListener(e -> {
-                String idText     = txtId.getText().trim();
-                String dpiText    = txtDpi.getText().trim();
+                String idText = txtId.getText().trim();
+                String dpiText = txtDpi.getText().trim();
                 String nombreText = txtNombre.getText().trim();
- 
+
                 if (idText.isEmpty() && dpiText.isEmpty() && nombreText.isEmpty()) {
-                    JOptionPane.showMessageDialog(this,
-                        "Por favor, ingrese al menos un criterio de búsqueda (ID, DPI o Nombre).",
-                        "Campo requerido",
-                        JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Ingrese al menos un criterio de búsqueda.");
                     return;
                 }
- 
-                // Limpiar tabla y detalle
+
                 modelo.setRowCount(0);
-                valDetalleId.setText("—");
-                valDetalleNombre.setText("—");
-                valDetalleTipo.setText("—");
-                valDetalleDpi.setText("—");
-                valDetalleEstado.setText("—");
- 
-                // Construir query dinámico según campos llenos
-                StringBuilder sql = new StringBuilder(
-                    "SELECT u.id_usuario, u.nombre, r.nombre_rol, u.dpi_numero, u.estado " +
-                    "FROM usuarios u " +
-                    "LEFT JOIN roles r ON u.id_rol = r.id_rol " +
-                    "WHERE 1=1 "
-                );
- 
-                if (!idText.isEmpty())     sql.append("AND u.id_usuario = ? ");
-                if (!dpiText.isEmpty())    sql.append("AND u.dpi_numero = ? ");
-                if (!nombreText.isEmpty()) sql.append("AND u.nombre LIKE ? ");
- 
-                try (Connection con = conexion.getConexion();
-                     PreparedStatement ps = con.prepareStatement(sql.toString())) {
- 
+                StringBuilder sql = new StringBuilder("SELECT u.id_usuario, u.nombre, r.nombre_rol, u.dpi_numero, u.estado FROM usuarios u LEFT JOIN roles r ON u.id_rol = r.id_rol WHERE 1=1 ");
+                if (!idText.isEmpty()) {
+                    sql.append("AND u.id_usuario = ? ");
+                }
+                if (!dpiText.isEmpty()) {
+                    sql.append("AND u.dpi_numero = ? ");
+                }
+                if (!nombreText.isEmpty()) {
+                    sql.append("AND u.nombre LIKE ? ");
+                }
+
+                try (Connection con = conexion.getConexion(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
                     int idx = 1;
-                    if (!idText.isEmpty())     ps.setString(idx++, idText);
-                    if (!dpiText.isEmpty())    ps.setString(idx++, dpiText);
-                    if (!nombreText.isEmpty()) ps.setString(idx++, "%" + nombreText + "%");
- 
+                    if (!idText.isEmpty()) {
+                        ps.setString(idx++, idText);
+                    }
+                    if (!dpiText.isEmpty()) {
+                        ps.setString(idx++, dpiText);
+                    }
+                    if (!nombreText.isEmpty()) {
+                        ps.setString(idx++, "%" + nombreText + "%");
+                    }
+
                     ResultSet rs = ps.executeQuery();
-                    boolean hayResultados = false;
- 
                     while (rs.next()) {
-                        hayResultados = true;
                         modelo.addRow(new Object[]{
-                            rs.getString("id_usuario"),
-                            rs.getString("nombre"),
+                            rs.getString("id_usuario"), rs.getString("nombre"),
                             rs.getString("nombre_rol") != null ? rs.getString("nombre_rol") : "—",
                             rs.getString("dpi_numero") != null ? rs.getString("dpi_numero") : "—",
                             rs.getString("estado")
                         });
                     }
- 
-                    if (!hayResultados) {
-                        JOptionPane.showMessageDialog(this,
-                            "No se encontraron usuarios con los criterios indicados.",
-                            "Sin resultados",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    }
- 
                 } catch (SQLException ex) {
-                    JOptionPane.showMessageDialog(this,
-                        "Error al consultar la base de datos:\n" + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
                     ex.printStackTrace();
                 }
             });
- 
-            // Botón Agregar Usuario
-            BotonNeo btnAgregarUsuario = new BotonNeo("Agregar Usuario");
-            btnAgregarUsuario.setBounds(870, 30, 180, 45);
-            banner.add(btnAgregarUsuario);
-
-            btnAgregarUsuario.addActionListener(e -> {
-                new DialogoAgregarUsuario();
-            });
-
-            // Botón Volver
-            JButton btnVolver = new JButton("Volver");
-            btnVolver.setBounds(1080, 20, 120, 40);
-            btnVolver.addActionListener(e -> {
-                new PanelControlAdmin();
-                dispose();
-            });
-            panel.add(btnVolver);
         }
- 
+
+        private JPanel crearCardPanel(Color colorBorde, int alfa, float grosor) {
+            JPanel card = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35, 180));
+                    g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 24, 24));
+                    g2.setColor(new Color(colorBorde.getRed(), colorBorde.getGreen(), colorBorde.getBlue(), alfa));
+                    g2.setStroke(new BasicStroke(grosor));
+                    g2.draw(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 24, 24));
+                    g2.dispose();
+                }
+            };
+            card.setOpaque(false);
+            card.setLayout(null);
+            return card;
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -488,23 +719,32 @@ public class GestionUsuario extends JFrame {
         }
     }
 
-    // ================== DIALOGO: AGREGAR USUARIO ==================
+    // ==========================================
+    // DIALOGO: AGREGAR USUARIO ESTILIZADO
+    // ==========================================
     class DialogoAgregarUsuario extends JDialog {
 
         public DialogoAgregarUsuario() {
-
             setTitle("Agregar Usuario");
-            setSize(520, 710);
+            setSize(520, 740);
             setLocationRelativeTo(null);
             setModal(true);
             setResizable(false);
-            setUndecorated(false);
-            getContentPane().setBackground(new Color(25, 38, 35));
 
-            JPanel panel = new JPanel();
+            JPanel panel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(25, 38, 35));
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                    g2.setColor(amarilloPastel);
+                    g2.setStroke(new BasicStroke(1.8f)); // Línea del diálogo robusta
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                    g2.dispose();
+                }
+            };
             panel.setLayout(null);
-            panel.setBackground(new Color(25, 38, 35));
-            panel.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 3, true));
             setContentPane(panel);
 
             JLabel titulo = new JLabel("Nuevo Usuario");
@@ -513,155 +753,65 @@ public class GestionUsuario extends JFrame {
             titulo.setBounds(30, 20, 400, 35);
             panel.add(titulo);
 
-            int y = 70;
-            int alturaCampo = 60;
+            int y = 75;
+            int alturaCampo = 62;
 
-            // Nombre
-            JLabel lblNombre = new JLabel("Nombre");
-            lblNombre.setForeground(Color.WHITE);
-            lblNombre.setBounds(30, y, 200, 20);
-            panel.add(lblNombre);
+            String[] labels = {"Nombre", "Apellido", "Rol", "Correo", "Teléfono", "Fecha de nacimiento (AAAA-MM-DD)", "Género", "Contraseña", "DPI"};
+            Component[] campos = new Component[9];
 
-            JTextField txtNombre = new JTextField();
-            txtNombre.setBounds(30, y + 22, 440, 32);
-            panel.add(txtNombre);
-            y += alturaCampo;
+            campos[0] = new JTextField();
+            campos[1] = new JTextField();
+            campos[2] = new JComboBox<>(new String[]{"Administrador", "Cliente"});
+            campos[3] = new JTextField();
+            campos[4] = new JTextField();
+            campos[5] = new JTextField();
+            campos[6] = new JComboBox<>(new String[]{"M", "F", "Otro"});
+            campos[7] = new JPasswordField();
+            campos[8] = new JTextField();
 
-            // Apellido
-            JLabel lblApellido = new JLabel("Apellido");
-            lblApellido.setForeground(Color.WHITE);
-            lblApellido.setBounds(30, y, 200, 20);
-            panel.add(lblApellido);
+            for (int i = 0; i < labels.length; i++) {
+                JLabel lbl = new JLabel(labels[i]);
+                lbl.setForeground(Color.LIGHT_GRAY);
+                lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                lbl.setBounds(30, y, 400, 20);
+                panel.add(lbl);
 
-            JTextField txtApellido = new JTextField();
-            txtApellido.setBounds(30, y + 22, 440, 32);
-            panel.add(txtApellido);
-            y += alturaCampo;
+                campos[i].setBounds(30, y + 22, 440, 35);
+                if (campos[i] instanceof JTextField) {
+                    estilizarCampoTexto((JTextField) campos[i]);
+                }
+                if (campos[i] instanceof JComboBox) {
+                    estilizarComboBox((JComboBox<String>) campos[i]);
+                }
+                panel.add(campos[i]);
 
-            // Rol (fijo en código: 1=Administrador, 2=Cajero, 3=Cliente)
-            JLabel lblRol = new JLabel("Rol");
-            lblRol.setForeground(Color.WHITE);
-            lblRol.setBounds(30, y, 200, 20);
-            panel.add(lblRol);
+                y += alturaCampo;
+            }
 
-            String[] roles = {"Administrador", "Cliente"};
-            JComboBox<String> cmbRol = new JComboBox<>(roles);
-            cmbRol.setBounds(30, y + 22, 440, 32);
-            cmbRol.setBackground(new Color(25, 38, 35));
-            cmbRol.setForeground(Color.WHITE);
-            panel.add(cmbRol);
-            y += alturaCampo;
-
-            // Correo
-            JLabel lblCorreo = new JLabel("Correo");
-            lblCorreo.setForeground(Color.WHITE);
-            lblCorreo.setBounds(30, y, 200, 20);
-            panel.add(lblCorreo);
-
-            JTextField txtCorreo = new JTextField();
-            txtCorreo.setBounds(30, y + 22, 440, 32);
-            panel.add(txtCorreo);
-            y += alturaCampo;
-
-            // Teléfono
-            JLabel lblTelefono = new JLabel("Teléfono");
-            lblTelefono.setForeground(Color.WHITE);
-            lblTelefono.setBounds(30, y, 200, 20);
-            panel.add(lblTelefono);
-
-            JTextField txtTelefono = new JTextField();
-            txtTelefono.setBounds(30, y + 22, 440, 32);
-            panel.add(txtTelefono);
-            y += alturaCampo;
-
-            // Fecha de nacimiento
-            JLabel lblFecha = new JLabel("Fecha de nacimiento (AAAA-MM-DD)");
-            lblFecha.setForeground(Color.WHITE);
-            lblFecha.setBounds(30, y, 300, 20);
-            panel.add(lblFecha);
-
-            JTextField txtFecha = new JTextField();
-            txtFecha.setBounds(30, y + 22, 440, 32);
-            panel.add(txtFecha);
-            y += alturaCampo;
-
-            // Género
-            JLabel lblGenero = new JLabel("Género");
-            lblGenero.setForeground(Color.WHITE);
-            lblGenero.setBounds(30, y, 200, 20);
-            panel.add(lblGenero);
-
-            String[] generos = {"M", "F", "Otro"};
-            JComboBox<String> cmbGenero = new JComboBox<>(generos);
-            cmbGenero.setBounds(30, y + 22, 440, 32);
-            cmbGenero.setBackground(new Color(25, 38, 35));
-            cmbGenero.setForeground(Color.WHITE);
-            panel.add(cmbGenero);
-            y += alturaCampo;
-
-            // Contraseña
-            JLabel lblPassword = new JLabel("Contraseña");
-            lblPassword.setForeground(Color.WHITE);
-            lblPassword.setBounds(30, y, 200, 20);
-            panel.add(lblPassword);
-
-            JPasswordField txtPassword = new JPasswordField();
-            txtPassword.setBounds(30, y + 22, 440, 32);
-            panel.add(txtPassword);
-            y += alturaCampo;
-
-            // DPI
-            JLabel lblDpi = new JLabel("DPI");
-            lblDpi.setForeground(Color.WHITE);
-            lblDpi.setBounds(30, y, 200, 20);
-            panel.add(lblDpi);
-
-            JTextField txtDpi = new JTextField();
-            txtDpi.setBounds(30, y + 22, 440, 32);
-            panel.add(txtDpi);
-            y += alturaCampo;
-
-            // Botón Guardar
             BotonNeo btnGuardar = new BotonNeo("Guardar Usuario");
             btnGuardar.setBounds(150, y + 10, 200, 45);
             panel.add(btnGuardar);
 
-            // ---- LÓGICA: botón Guardar ----
             btnGuardar.addActionListener(e -> {
+                String nombre = ((JTextField) campos[0]).getText().trim();
+                String apellido = ((JTextField) campos[1]).getText().trim();
+                String rolSeleccionado = (String) ((JComboBox<?>) campos[2]).getSelectedItem();
+                String correo = ((JTextField) campos[3]).getText().trim();
+                String telefono = ((JTextField) campos[4]).getText().trim();
+                String fecha = ((JTextField) campos[5]).getText().trim();
+                String genero = (String) ((JComboBox<?>) campos[6]).getSelectedItem();
+                String password = new String(((JPasswordField) campos[7]).getPassword());
+                String dpi = ((JTextField) campos[8]).getText().trim();
 
-                String nombre = txtNombre.getText().trim();
-                String apellido = txtApellido.getText().trim();
-                String rolSeleccionado = (String) cmbRol.getSelectedItem();
-                String correo = txtCorreo.getText().trim();
-                String telefono = txtTelefono.getText().trim();
-                String fecha = txtFecha.getText().trim();
-                String genero = (String) cmbGenero.getSelectedItem();
-                String password = new String(txtPassword.getPassword());
-                String dpi = txtDpi.getText().trim();
-
-                if (nombre.isEmpty() || apellido.isEmpty() || correo.isEmpty()
-                        || fecha.isEmpty() || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(this,
-                        "Por favor, complete los campos obligatorios (Nombre, Apellido, Correo, Fecha de nacimiento y Contraseña).",
-                        "Campos requeridos",
-                        JOptionPane.WARNING_MESSAGE);
+                if (nombre.isEmpty() || apellido.isEmpty() || correo.isEmpty() || fecha.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Complete los campos obligatorios.");
                     return;
                 }
 
-                String passwordHash = password; // guardado en texto plano por ahora
+                int idRol = "Administrador".equals(rolSeleccionado) ? 1 : 2;
 
-                int idRol;
-                switch (rolSeleccionado) {
-                    case "Administrador": idRol = 1; break;
-                    case "Cliente":        idRol = 2; break;
-                    default:               idRol = 2; break;
-                }
-
-                try (Connection con = conexion.getConexion();
-                     PreparedStatement ps = con.prepareStatement(
-                         "INSERT INTO usuarios (id_rol, nombre, apellido, correo, telefono, fecha_nacimiento, genero, password_hash, dpi_numero) "
-                       + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-
+                try (Connection con = conexion.getConexion(); PreparedStatement ps = con.prepareStatement(
+                        "INSERT INTO usuarios (id_rol, nombre, apellido, correo, telefono, fecha_nacimiento, genero, password_hash, dpi_numero) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                     ps.setInt(1, idRol);
                     ps.setString(2, nombre);
                     ps.setString(3, apellido);
@@ -669,24 +819,14 @@ public class GestionUsuario extends JFrame {
                     ps.setString(5, telefono.isEmpty() ? null : telefono);
                     ps.setString(6, fecha);
                     ps.setString(7, genero);
-                    ps.setString(8, passwordHash);
+                    ps.setString(8, PasswordUtil.hash(password));
                     ps.setString(9, dpi.isEmpty() ? null : dpi);
 
-                    int filas = ps.executeUpdate();
-
-                    if (filas > 0) {
-                        JOptionPane.showMessageDialog(this,
-                            "Usuario \"" + nombre + " " + apellido + "\" agregado correctamente.",
-                            "Éxito",
-                            JOptionPane.INFORMATION_MESSAGE);
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Usuario agregado correctamente.");
                         dispose();
                     }
-
                 } catch (SQLException ex) {
-                    JOptionPane.showMessageDialog(this,
-                        "Error al guardar el usuario:\n" + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
                     ex.printStackTrace();
                 }
             });
@@ -695,4 +835,3 @@ public class GestionUsuario extends JFrame {
         }
     }
 }
-

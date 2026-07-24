@@ -1,6 +1,6 @@
 package gui;
 
-import java.awt.*; // Importación directa de la interfaz AgregarFondos
+import java.awt.*; 
 import javax.swing.*;
 
 public class Saldos extends javax.swing.JFrame {
@@ -15,33 +15,66 @@ public class Saldos extends javax.swing.JFrame {
     // CLASE INTERNA: BOTÓN PERSONALIZADO NEO
     // ==========================================
     class BotonNeo extends JButton {
-    public BotonNeo(String texto) {
-        super(texto);
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setForeground(Color.WHITE);
-        setCursor(new Cursor(Cursor.HAND_CURSOR));
+        public BotonNeo(String texto) {
+            super(texto);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(Color.WHITE);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(getModel().isRollover()
+                    ? new Color(251, 232, 138, 220) // Hover amarillo
+                    : new Color(25, 38, 35, 200));  // Fondo oscuro
+
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+
+            g2.setColor(new Color(251, 232, 138)); // Línea amarilla delgada
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+
+            super.paintComponent(g);
+            g2.dispose();
+        }
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    // ==========================================
+    // CLASE INTERNA: BOTÓN DE ACCIÓN DEL SIDEBAR (Supervisión / Cerrar sesión)
+    // Bordes redondeados, colores flexibles (igual estilo que el Dashboard)
+    // ==========================================
+    class BotonAccionNeo extends JButton {
+        private Color normal;
+        private Color hover;
 
-        g2.setColor(getModel().isRollover()
-                ? new Color(251, 232, 138, 220) // Hover amarillo
-                : new Color(25, 38, 35, 200));  // Fondo oscuro
+        public BotonAccionNeo(String texto, Color normal, Color hover, Color colorTexto) {
+            super(texto);
+            this.normal = normal;
+            this.hover = hover;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(colorTexto);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
 
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-
-        g2.setColor(new Color(251, 232, 138)); // Línea amarilla delgada
-        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
-
-        super.paintComponent(g);
-        g2.dispose();
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getModel().isRollover() ? hover : normal);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            super.paintComponent(g);
+            g2.dispose();
+        }
     }
-}
 
     // ==========================================
     // CONSTRUCTOR DE LA VENTANA
@@ -68,76 +101,171 @@ public class Saldos extends javax.swing.JFrame {
 
         public FondoPanel() {
             setLayout(null);
-            crearSidebar();
+            crearSidebar(this);
             crearContenido();
         }
 
         // ==========================================
         // DISEÑO DEL MENÚ LATERAL (SIDEBAR)
         // ==========================================
-        private void crearSidebar() {
-            JPanel sidebar = new JPanel();
-            sidebar.setLayout(null);
-            sidebar.setBackground(new Color(25, 38, 35, 220));
-            sidebar.setBounds(20, 20, 300, 950);
+        private void crearSidebar(JPanel panel) {
 
+            JPanel sidebar = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(new Color(25, 38, 35, 220));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 35, 35);
+                    g2.dispose();
+                }
+            };
+
+            sidebar.setOpaque(false);
+            sidebar.setBounds(20, 20, 300, 870);
+            sidebar.setLayout(null);
+
+            Color amarillo = new Color(251, 232, 138);
+            Color fondoTransparente = new Color(0, 0, 0, 0);
+            Color amarilloBorde = new Color(251, 232, 138);
+
+            // Logo
             Image logoEscalado = logo.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
             JLabel lblLogo = new JLabel(new ImageIcon(logoEscalado));
             lblLogo.setBounds(20, 10, 250, 110);
             sidebar.add(lblLogo);
 
-            JButton btnSaldosActivo = new JButton("Saldos");
-            btnSaldosActivo.setBounds(20, 140, 250, 55);
-            btnSaldosActivo.setFocusPainted(false);
-            btnSaldosActivo.setBorderPainted(false);
-            btnSaldosActivo.setBackground(new Color(251, 232, 138));
-            btnSaldosActivo.setForeground(Color.BLACK);
-            btnSaldosActivo.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            sidebar.add(btnSaldosActivo);
+            String[] opciones = {
+                "Saldos",
+                "Bancos Conectados",
+                "Transferencias",
+                "Historial",
+                "Agregar Tarjeta"
+            };
 
-            String[] botonesMenu = {"Bancos conectados", "Transferencias", "Divisas", "Historial"};
-            int y = 210;
+            int y = 140;
 
-            for (String textoBtn : botonesMenu) {
-                JButton btn = new JButton(textoBtn);
-                btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                btn.setBackground(new Color(94, 116, 73));
-                btn.setForeground(Color.WHITE);
-                btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                
-                btn.addActionListener(e -> {
-                    if (textoBtn.equals("Bancos conectados")) {
-                        new BancosConectados().setVisible(true);
-                    } else if (textoBtn.equals("Transferencias")) {
-                        new Transferencias().setVisible(true);
-                    } else if (textoBtn.equals("Divisas")) {
-                        new Divisas().setVisible(true);
-                    } else if (textoBtn.equals("Historial")) {
-                        new Historial().setVisible(true);
+            for (String texto : opciones) {
+
+                JButton btn = new JButton(texto) {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        g2.setColor(getBackground());
+                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+                        if (getBackground() != amarillo) {
+                            g2.setColor(amarilloBorde);
+                            g2.setStroke(new BasicStroke(1f));
+                            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                        }
+
+                        g2.dispose();
+                        super.paintComponent(g);
                     }
-                    dispose();
+                };
+
+                btn.setBounds(20, y, 250, 46);
+                btn.setFocusPainted(false);
+                btn.setContentAreaFilled(false);
+                btn.setBorderPainted(false);
+                btn.setOpaque(false);
+                btn.setForeground(Color.WHITE);
+                btn.setBackground(fondoTransparente);
+
+                Font fuenteActual = btn.getFont();
+                btn.setFont(new Font(fuenteActual.getName(), fuenteActual.getStyle(), fuenteActual.getSize() + 2));
+
+                btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent e) {
+                        btn.setBackground(amarillo);
+                        btn.setForeground(Color.BLACK);
+                    }
+
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        btn.setBackground(fondoTransparente);
+                        btn.setForeground(Color.WHITE);
+                    }
                 });
-                
+
+                if (texto.equals("Bancos Conectados")) {
+                    btn.addActionListener(e -> {
+                        new BancosConectados().setVisible(true);
+                        dispose();
+                    });
+                }
+                if (texto.equals("Transferencias")) {
+                    btn.addActionListener(e -> {
+                        new Transferencias().setVisible(true);
+                        dispose();
+                    });
+                }
+                if (texto.equals("Historial")) {
+                    btn.addActionListener(e -> {
+                        new Historial().setVisible(true);
+                        dispose();
+                    });
+                }
+                if (texto.equals("Agregar Tarjeta")) {
+                    btn.addActionListener(e -> {
+                        int idUsuario = funcionalidades.SesionUsuario.getIdUsuario();
+                        new DetalleTarjetaDasboard(idUsuario);
+                        dispose();
+                    });
+                }
+
                 sidebar.add(btn);
-                y += 70;
+                y += 68;
             }
 
-            JButton btnCerrarSesion = new JButton("Cerrar sesión");
-            btnCerrarSesion.setBounds(20, 880, 250, 55);
-            btnCerrarSesion.setFocusPainted(false);
-            btnCerrarSesion.setBorderPainted(false);
-            btnCerrarSesion.setBackground(new Color(191, 76, 58));
-            btnCerrarSesion.setForeground(Color.WHITE);
-            btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            // Botón Supervisión — aparece justo debajo del último botón del
+            // menú (igual que en el Dashboard), solo si el usuario tiene
+            // menores a cargo. Rojo/verde/amarillo con bordes redondeados.
+            funcionalidades.SupervisionDAO daoSup = new funcionalidades.SupervisionDAO();
+            int idSesion = funcionalidades.SesionUsuario.getIdUsuario();
+            if (idSesion > 0 && daoSup.tieneMenoresACargo(idSesion)) {
+                BotonAccionNeo btnSupervision = new BotonAccionNeo(
+                        "Supervisión",
+                        new Color(251, 232, 138),
+                        new Color(255, 245, 180),
+                        new Color(25, 38, 35));
+                btnSupervision.setBounds(20, y, 250, 55);
+                btnSupervision.addActionListener(e -> {
+                    new PanelSupervision(idSesion).setVisible(true);
+                    dispose();
+                });
+                sidebar.add(btnSupervision);
+            }
+
+            // Botón Regresar al Dashboard — ahora en el sidebar, arriba de Cerrar sesión
+            BotonAccionNeo btnRegresarDashboard = new BotonAccionNeo(
+                    "← Regresar al Dashboard",
+                    new Color(94, 116, 73, 220),
+                    new Color(120, 150, 90),
+                    Color.WHITE);
+            btnRegresarDashboard.setBounds(20, 730, 250, 55);
+            btnRegresarDashboard.addActionListener(e -> {
+                new Dashboard(funcionalidades.SesionUsuario.getIdUsuario()).setVisible(true);
+                dispose();
+            });
+            sidebar.add(btnRegresarDashboard);
+
+            BotonAccionNeo btnCerrarSesion = new BotonAccionNeo(
+                    "Cerrar sesión",
+                    new Color(191, 76, 58),
+                    new Color(214, 100, 80),
+                    Color.WHITE);
+            btnCerrarSesion.setBounds(20, 800, 250, 55);
             btnCerrarSesion.addActionListener(e -> {
                 new InicioNeo().setVisible(true);
                 dispose();
             });
             sidebar.add(btnCerrarSesion);
 
-            add(sidebar);
+            panel.add(sidebar);
         }
 
         // ==========================================
@@ -149,27 +277,28 @@ public class Saldos extends javax.swing.JFrame {
             Font tituloTarjeta = new Font("Segoe UI", Font.BOLD, 16);
             Color amarilloPastel = new Color(251, 232, 138);
 
-            JPanel contenedor = new JPanel();
+            // DETALLE ACTUALIZADO: El contenedor ahora tiene exactamente la misma opacidad y color del Sidebar
+            JPanel contenedor = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(new Color(25, 38, 35, 220)); // Color idéntico al Sidebar, ideal para que no se vea tan oscuro
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                    g2.dispose();
+                    super.paintComponent(g);
+                }
+            };
             contenedor.setLayout(null);
-            contenedor.setBackground(new Color(25, 38, 35, 150));
+            contenedor.setOpaque(false); // Necesario para que respete el paintComponent personalizado
             contenedor.setBounds(350, 60, 1300, 760);
             add(contenedor);
 
-            // Sub-Panel: Pestañas de Navegación Superior
-            JPanel barraSuperior = new JPanel() {
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(new Color(94, 116, 73, 200));
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-        g2.dispose();
-    }
-};
-barraSuperior.setBounds(0, 0, 1300, 55);
-barraSuperior.setLayout(null);
-contenedor.add(barraSuperior);
+            // BARRA SUPERIOR: Fondo oscuro uniforme de baja saturación integrado
+            JPanel barraSuperior = new JPanel();
+            barraSuperior.setBounds(0, 0, 1300, 55);
+            barraSuperior.setBackground(new Color(23, 32, 29)); 
+            barraSuperior.setLayout(null);
+            contenedor.add(barraSuperior);
 
             // Pestaña superior 1: Agregar fondos
             JButton btnTab1 = crearBotonPestaña("Agregar Fondos", 0);
@@ -188,7 +317,7 @@ contenedor.add(barraSuperior);
             barraSuperior.add(btnTab2);
 
             // Pestaña superior 3: Consultar saldos
-            JButton btnTab3 = crearBotonPestaña("Consultar Saldos", 866);
+            JButton btnTab3 = crearBotonPestaña("Consultar Saldos", 867); 
             btnTab3.addActionListener(e -> {
                 new ConsultarSaldos().setVisible(true);
                 dispose();
@@ -197,9 +326,8 @@ contenedor.add(barraSuperior);
 
             // Etiquetas de Encabezado Principal
             JLabel lblControlSaldos = new JLabel("CONTROL DE SALDOS");
-            lblControlSaldos.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            lblControlSaldos.setForeground(Color.WHITE);
             lblControlSaldos.setFont(tituloSeccion);
+            lblControlSaldos.setForeground(Color.WHITE);
             lblControlSaldos.setBounds(40, 85, 500, 45);
             contenedor.add(lblControlSaldos);
 
@@ -212,7 +340,6 @@ contenedor.add(barraSuperior);
             int cardWidth = 330;
             int cardHeight = 280;
             int cardY = 250;
-
 
             // Tarjeta 1: Sección de Ingreso de Capital (Lleva a AgregarFondos)
             BotonNeo cardAgregar = new BotonNeo("");
@@ -231,14 +358,11 @@ contenedor.add(barraSuperior);
             cardAgregar.add(t1Texto);
             
             Image img = new ImageIcon(getClass().getResource("/gui/image/agregarFondos.png")).getImage();
-Image imgEscalada = img.getScaledInstance(220, 190, Image.SCALE_SMOOTH); // más grande
-JLabel iconAgregar = new JLabel(new ImageIcon(imgEscalada));
-iconAgregar.setBounds(60, 130, 180, 150); // centrado dentro del cuadro
-cardAgregar.add(iconAgregar);
+            Image imgEscalada = img.getScaledInstance(260, 200, Image.SCALE_SMOOTH); 
+            JLabel iconAgregar = new JLabel(new ImageIcon(imgEscalada));
+            iconAgregar.setBounds(60, 130, 180, 150); 
+            cardAgregar.add(iconAgregar);
 
-
-
-            
             cardAgregar.addActionListener(e -> {
                 new AgregarFondos().setVisible(true);
                 dispose(); 
@@ -260,12 +384,11 @@ cardAgregar.add(iconAgregar);
             t2Texto.setBounds(20, 60, 330, 160);
             cardActualizar.add(t2Texto);
             
-           Image imgActualizar = new ImageIcon(getClass().getResource("/gui/image/actualizarSaldos.png")).getImage();
-Image imgEscaladaActualizar = imgActualizar.getScaledInstance(220, 190, Image.SCALE_SMOOTH);
-JLabel iconActualizar = new JLabel(new ImageIcon(imgEscaladaActualizar));
-iconActualizar.setBounds(60, 130, 180, 150);
-cardActualizar.add(iconActualizar);
-
+            Image imgActualizar = new ImageIcon(getClass().getResource("/gui/image/actualizarSaldos.png")).getImage();
+            Image imgEscaladaActualizar = imgActualizar.getScaledInstance(250, 190, Image.SCALE_SMOOTH);
+            JLabel iconActualizar = new JLabel(new ImageIcon(imgEscaladaActualizar));
+            iconActualizar.setBounds(60, 130, 180, 150);
+            cardActualizar.add(iconActualizar);
 
             cardActualizar.addActionListener(e -> {
                 new ActualizarSaldos().setVisible(true);
@@ -289,40 +412,37 @@ cardActualizar.add(iconActualizar);
             cardConsultar.add(t3Texto);
             
             Image imgConsultar = new ImageIcon(getClass().getResource("/gui/image/consultarSaldo.png")).getImage();
-Image imgEscaladaConsultar = imgConsultar.getScaledInstance(220, 190, Image.SCALE_SMOOTH);
-JLabel iconConsultar = new JLabel(new ImageIcon(imgEscaladaConsultar));
-iconConsultar.setBounds(60, 130, 180, 150);
-cardConsultar.add(iconConsultar);
+            Image imgEscaladaConsultar = imgConsultar.getScaledInstance(250, 200, Image.SCALE_SMOOTH);
+            JLabel iconConsultar = new JLabel(new ImageIcon(imgEscaladaConsultar));
+            iconConsultar.setBounds(60, 130, 180, 150);
+            cardConsultar.add(iconConsultar);
             
             cardConsultar.addActionListener(e -> {
                 new ConsultarSaldos().setVisible(true);
                 dispose();
             });
             
-            // =========================================================
-// BOTÓN REGRESAR EN LA PARTE INFERIOR DE LA PANTALLA
-// =========================================================
-Saldos.BotonNeo btnRegresar = new Saldos.BotonNeo("← Regresar");
-    int altoPantalla = Toolkit.getDefaultToolkit().getScreenSize().height;
-    btnRegresar.setBounds(50, altoPantalla - 140, 180, 50); // abajo a la izquierda
-    contenedor.add(btnRegresar);
+            // Botón Regresar
+            Saldos.BotonNeo btnRegresar = new Saldos.BotonNeo("← Regresar");
+            int altoPantalla = Toolkit.getDefaultToolkit().getScreenSize().height;
+            btnRegresar.setBounds(50, altoPantalla - 140, 180, 50); 
+            contenedor.add(btnRegresar);
 
-    btnRegresar.addActionListener(e -> {
-        new Dashboard().setVisible(true); // abre la ventana anterior
-        dispose();                   // cierra la actual
-});
-
+            btnRegresar.addActionListener(e -> {
+                new Dashboard().setVisible(true); 
+                dispose();                   
+            });
         }
-        
 
         // ==========================================
         // MÉTODOS AUXILIARES Y CONVERSORES
         // ==========================================
+        // ESTILO PESTAÑA: Letras grises nítidas que cambian a blanco puro en Hover
         private JButton crearBotonPestaña(String texto, int xPos) {
             JButton btn = new JButton(texto);
             btn.setBounds(xPos, 0, 434, 55);
-            btn.setBackground(new Color(25, 38, 35, 100));
-            btn.setForeground(Color.WHITE);
+            btn.setBackground(new Color(16, 22, 20)); // Fondo oscuro integrado
+            btn.setForeground(new Color(150, 150, 150)); // Gris desactivado
             btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
             btn.setFocusPainted(false);
             btn.setBorder(BorderFactory.createEmptyBorder());
@@ -330,13 +450,13 @@ Saldos.BotonNeo btnRegresar = new Saldos.BotonNeo("← Regresar");
             btn.setOpaque(true);
             
             btn.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    btn.setBackground(new Color(251, 232, 138, 200));
-                    btn.setForeground(Color.BLACK);
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    btn.setForeground(Color.WHITE); // Se ilumina a blanco al pasar el mouse
                 }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    btn.setBackground(new Color(25, 38, 35, 100));
-                    btn.setForeground(Color.WHITE);
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    btn.setForeground(new Color(150, 150, 150)); // Regresa a gris
                 }
             });
             return btn;
@@ -371,8 +491,6 @@ Saldos.BotonNeo btnRegresar = new Saldos.BotonNeo("← Regresar");
         }
     }
 
-    
-
     // ==========================================
     // COMPONENTES DE RESPALDO (IDE GENERATED)
     // ==========================================
@@ -380,7 +498,6 @@ Saldos.BotonNeo btnRegresar = new Saldos.BotonNeo("← Regresar");
     private void initComponents() {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 400, Short.MAX_VALUE)
@@ -389,6 +506,7 @@ Saldos.BotonNeo btnRegresar = new Saldos.BotonNeo("← Regresar");
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 300, Short.MAX_VALUE)
         );
+        getContentPane().setLayout(layout);
         pack();
     }
 

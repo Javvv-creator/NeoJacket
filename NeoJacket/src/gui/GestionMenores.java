@@ -15,6 +15,11 @@ public class GestionMenores extends JFrame {
     private Image fondo;
     private Image logo;
 
+    // Paleta consistente con el resto de la app
+    private final Color verdeOscuro = new Color(25, 38, 35);
+    private final Color amarilloPastel = new Color(251, 232, 138);
+    private final Color verdeBoton = new Color(94, 116, 73);
+
     class BotonNeo extends JButton {
 
         public BotonNeo(String texto) {
@@ -23,6 +28,7 @@ public class GestionMenores extends JFrame {
             setBorderPainted(false);
             setFocusPainted(false);
             setForeground(Color.WHITE);
+            setFont(new Font("Segoe UI", Font.BOLD, 13));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
@@ -39,11 +45,152 @@ public class GestionMenores extends JFrame {
 
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
 
-            g2.setColor(new Color(255, 255, 255, 80));
+            g2.setColor(new Color(255, 255, 255, 60));
+            g2.setStroke(new BasicStroke(1f));
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
 
             super.paintComponent(g);
             g2.dispose();
+        }
+    }
+
+    /**
+     * Botón de sidebar estilo "contorno": fondo oscuro semitransparente,
+     * borde amarillo delgado y redondeado, texto blanco en negrita — mismo
+     * lenguaje visual que el sidebar de Dashboard/Transferencias/Historial
+     * del resto de la app. El botón activo se distingue con relleno amarillo.
+     */
+    class BotonSidebarNeo extends JButton {
+        private final boolean activo;
+
+        public BotonSidebarNeo(String texto, boolean activo) {
+            super(texto);
+            this.activo = activo;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setForeground(activo ? Color.BLACK : Color.WHITE);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            if (activo) {
+                Color relleno = getModel().isRollover() ? new Color(255, 240, 190) : amarilloPastel;
+                g2.setColor(relleno);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+            } else {
+                Color fondo = getModel().isRollover()
+                        ? new Color(94, 116, 73, 90)
+                        : new Color(25, 38, 35, 100);
+                g2.setColor(fondo);
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+            }
+
+            g2.setColor(new Color(251, 232, 138, activo ? 0 : 200));
+            g2.setStroke(new BasicStroke(1.2f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    /**
+     * Panel contenedor con fondo oscuro semitransparente y borde amarillo
+     * delgado y redondeado — reemplaza los BorderFactory.createLineBorder
+     * cuadrados/gruesos que había antes.
+     */
+    class PanelRedondeado extends JPanel {
+        private final int radio;
+        private final int alphaFondo;
+
+        public PanelRedondeado(int radio, int alphaFondo) {
+            this.radio = radio;
+            this.alphaFondo = alphaFondo;
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(new Color(verdeOscuro.getRed(), verdeOscuro.getGreen(), verdeOscuro.getBlue(), alphaFondo));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radio, radio);
+
+            g2.setColor(new Color(251, 232, 138, 160));
+            g2.setStroke(new BasicStroke(1.2f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radio, radio);
+
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    /**
+     * Campo de texto oscuro con borde amarillo delgado y redondeado,
+     * mismo estilo que el resto de formularios de la app.
+     */
+    class CampoTextoOscuro extends JTextField {
+        public CampoTextoOscuro() {
+            setOpaque(false);
+            setForeground(Color.WHITE);
+            setCaretColor(Color.WHITE);
+            setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(new Color(13, 20, 18, 230));
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+
+            g2.setColor(new Color(251, 232, 138, 150));
+            g2.setStroke(new BasicStroke(1.1f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    /**
+     * Botón "Volver" rediseñado: chip oscuro redondeado con borde amarillo
+     * delgado, en vez del JButton plano por defecto que tenía antes.
+     */
+    class BotonVolver extends JButton {
+        public BotonVolver(String texto) {
+            super(texto);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(amarilloPastel);
+            setFont(new Font("Segoe UI", Font.BOLD, 13));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(getModel().isRollover() ? new Color(45, 60, 55) : new Color(30, 44, 40));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+
+            g2.setColor(new Color(251, 232, 138, 180));
+            g2.setStroke(new BasicStroke(1.2f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 
@@ -54,6 +201,8 @@ public class GestionMenores extends JFrame {
 
         setTitle("Gestión de Menores Supervisados");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
@@ -88,7 +237,7 @@ public class GestionMenores extends JFrame {
 
             String[] botones = {
                 "Gestión de Usuarios",
-                "Gestión de Menores Supervisados",
+                "Gestión de Menores",
                 "Gestión de Cuentas",
                 "Gestión de Tarjetas",
                 "Gestión de Divisas",
@@ -98,52 +247,40 @@ public class GestionMenores extends JFrame {
             int y = 140;
 
             for (String texto : botones) {
-                JButton btn = new JButton(texto);
+                boolean activo = texto.equals("Gestión de Menores");
+                JButton btn = new BotonSidebarNeo(texto, activo);
                 btn.setBounds(20, y, 250, 55);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
 
-                if (texto.equals("Gestión de Menores Supervisados")) {
-                    btn.setBackground(new Color(251, 232, 138));
-                    btn.setForeground(Color.BLACK);
-                } else {
-                    btn.setBackground(new Color(94, 116, 73));
-                    btn.setForeground(Color.WHITE);
-                }
-
-                if (texto.equals("Gestión de Usuarios")) {
-                    btn.addActionListener(e -> {
-                        new GestionUsuario();
-                    });
-                }
-
-                if (texto.equals("Gestión de Menores Supervisados")) {
+                 if (texto.equals("Gestión de Menores")) {
                     btn.addActionListener(e -> {
                         new GestionMenores();
+                        dispose();
                     });
-                }
 
-                if (texto.equals("Gestión de Cuentas")) {
+                 }else if (texto.equals("Gestión de Usuarios")) {
+                    btn.addActionListener(e -> {
+                        new GestionUsuario();
+                        dispose();
+                    });
+                }else if (texto.equals("Gestión de Cuentas")) {
                     btn.addActionListener(e -> {
                         new GestionCuentas();
+                        dispose();
                     });
-                }
-
-                if (texto.equals("Gestión de Tarjetas")) {
+                }else if (texto.equals("Gestión de Tarjetas")) {
                     btn.addActionListener(e -> {
                         new GestionTarjeta();
+                        dispose();
                     });
-                }
-
-                if (texto.equals("Gestión de Divisas")) {
+                }else if (texto.equals("Gestión de Divisas")) {
                     btn.addActionListener(e -> {
                         new GestionDivisas();
+                        dispose();
                     });
-                }
-
-                if (texto.equals("Gestión de Transacciones")) {
+                }else if (texto.equals("Gestión de Transacciones")) {
                     btn.addActionListener(e -> {
                         new GestionTransacciones();
+                        dispose();
                     });
                 }
 
@@ -162,11 +299,10 @@ public class GestionMenores extends JFrame {
             panel.setBounds(350, 60, 1300, 760);
             add(panel);
 
-            // BANNER
-            JPanel banner = new JPanel();
+            // BANNER — mismo margen y ancho que los paneles de abajo, para que los 3 queden alineados
+            PanelRedondeado banner = new PanelRedondeado(18, 230);
             banner.setLayout(null);
-            banner.setBackground(new Color(25, 38, 35, 230));
-            banner.setBounds(0, 0, 1300, 110);
+            banner.setBounds(40, 0, 1220, 110);
             panel.add(banner);
 
             JLabel titulo = new JLabel("Gestión de Menores Supervisados");
@@ -180,12 +316,20 @@ public class GestionMenores extends JFrame {
             subtitulo.setBounds(30, 65, 500, 20);
             banner.add(subtitulo);
 
+            // "Volver" ahora vive DENTRO del banner (no como hermano suelto)
+            BotonVolver btnVolver = new BotonVolver("← Volver");
+            btnVolver.setBounds(1220 - 150, 30, 120, 45);
+            banner.add(btnVolver);
+
+            btnVolver.addActionListener(e -> {
+                new PanelControlAdmin();
+                dispose();
+            });
+
             // PANEL FILTROS
-            JPanel panelFiltros = new JPanel();
+            PanelRedondeado panelFiltros = new PanelRedondeado(18, 180);
             panelFiltros.setLayout(null);
-            panelFiltros.setBackground(new Color(25, 38, 35, 180));
-            panelFiltros.setBounds(40, 130, 1180, 100);
-            panelFiltros.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138), 3, true));
+            panelFiltros.setBounds(40, 130, 1220, 100);
             panel.add(panelFiltros);
 
             JLabel lblIdMenor = new JLabel("ID (Menor)");
@@ -193,8 +337,9 @@ public class GestionMenores extends JFrame {
             lblIdMenor.setBounds(30, 20, 150, 25);
             panelFiltros.add(lblIdMenor);
 
-            txtIdMenor = new JTextField();
-            txtIdMenor.setBounds(150, 15, 200, 35);
+            // CORRECCIÓN AQUÍ: Se eliminó la re-declaración local de "JTextField"
+            txtIdMenor = new CampoTextoOscuro();
+            txtIdMenor.setBounds(150, 15, 200, 40);
             panelFiltros.add(txtIdMenor);
 
             JLabel lblIdTutor = new JLabel("ID (Tutor)");
@@ -202,24 +347,23 @@ public class GestionMenores extends JFrame {
             lblIdTutor.setBounds(400, 20, 150, 25);
             panelFiltros.add(lblIdTutor);
 
-            txtIdTutor = new JTextField();
-            txtIdTutor.setBounds(500, 15, 200, 35);
+            // CORRECCIÓN AQUÍ: Se eliminó la re-declaración local de "JTextField"
+            txtIdTutor = new CampoTextoOscuro();
+            txtIdTutor.setBounds(500, 15, 200, 40);
             panelFiltros.add(txtIdTutor);
 
             BotonNeo btnBuscar = new BotonNeo("Buscar");
-            btnBuscar.setBounds(760, 15, 130, 35);
+            btnBuscar.setBounds(760, 15, 130, 40);
             panelFiltros.add(btnBuscar);
 
             BotonNeo btnLimpiar = new BotonNeo("Limpiar");
-            btnLimpiar.setBounds(910, 15, 130, 35);
+            btnLimpiar.setBounds(910, 15, 130, 40);
             panelFiltros.add(btnLimpiar);
 
             // PANEL TABLA
-            JPanel panelTabla = new JPanel();
+            PanelRedondeado panelTabla = new PanelRedondeado(18, 180);
             panelTabla.setLayout(null);
-            panelTabla.setBackground(new Color(25, 38, 35, 180));
-            panelTabla.setBounds(40, 250, 1180, 330);
-            panelTabla.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2, true));
+            panelTabla.setBounds(40, 250, 1220, 330);
             panel.add(panelTabla);
 
             String[] columnas = {"ID", "MENOR", "ID (TUTOR)", "TUTOR"};
@@ -245,8 +389,9 @@ public class GestionMenores extends JFrame {
             header.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
             JScrollPane scroll = new JScrollPane(tabla);
+            scroll.setBorder(BorderFactory.createLineBorder(new Color(251, 232, 138, 120), 1, true));
             scroll.getViewport().setBackground(new Color(25, 38, 35));
-            scroll.setBounds(10, 10, 1160, 310);
+            scroll.setBounds(10, 10, 1200, 310);
             panelTabla.add(scroll);
 
             // BOTONES
@@ -257,16 +402,6 @@ public class GestionMenores extends JFrame {
             BotonNeo btnDesvincular = new BotonNeo("Desvincular");
             btnDesvincular.setBounds(260, 600, 220, 50);
             panel.add(btnDesvincular);
-
-            JButton btnVolver = new JButton("Volver");
-            btnVolver.setBounds(1080, 20, 120, 40);
-
-            btnVolver.addActionListener(e -> {
-                new PanelControlAdmin();
-                dispose();
-            });
-
-            panel.add(btnVolver);
 
             // LOGICA: Buscar
             btnBuscar.addActionListener(e -> {
@@ -400,11 +535,12 @@ public class GestionMenores extends JFrame {
             boolean hayFiltroMenor = filtroMenor != null && !filtroMenor.isEmpty();
             boolean hayFiltroTutor = filtroTutor != null && !filtroTutor.isEmpty();
 
+            // CORRECCIÓN AQUÍ: Se cambió el filtro a s.id_menor y s.id_adulto para mayor precisión
             if (hayFiltroMenor) {
-                sql.append(" AND m.id_usuario = ?");
+                sql.append(" AND s.id_menor = ?");
             }
             if (hayFiltroTutor) {
-                sql.append(" AND t.id_usuario = ?");
+                sql.append(" AND s.id_adulto = ?");
             }
 
             try (Connection con = conexion.getConexion();
@@ -430,7 +566,7 @@ public class GestionMenores extends JFrame {
                 }
 
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "El ID debe ser un número.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "El ID debe ser un número entero válido.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Error al cargar los menores: " + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
             }

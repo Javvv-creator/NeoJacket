@@ -1,22 +1,39 @@
 package gui;
 
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.*;
+import gui.components.BotonNeo;
 
 public class DetalleCuenta extends JFrame {
 
     private Image fondo;
     private Image logo;
+    private final int idCuenta;
 
-    // ============================
-    // TEXTFIELD REDONDEADO
-    // ============================
+    // Campos como variables de instancia para poder llenarlos
+    private RoundedTextField txtNumeroCuenta;
+    private RoundedTextField txtPropietario;
+    private RoundedTextField txtTipoCuenta;
+    private RoundedTextField txtBanco;
+    private RoundedTextField txtFechaCreacion;
+    private RoundedTextField txtSaldo;
+    private RoundedTextField txtEstado;
+    private RoundedTextField txtMoneda;
+    private RoundedTextField txtCodigoCuenta;
+    private RoundedTextField txtUltimaActualizacion;
+    private RoundedTextField txtUltimaTransaccion;
+
     class RoundedTextField extends JTextField {
         public RoundedTextField(int size) {
             super(size);
             setOpaque(false);
             setForeground(Color.WHITE);
             setCaretColor(Color.WHITE);
+            setEditable(false);
             setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         }
 
@@ -34,37 +51,11 @@ public class DetalleCuenta extends JFrame {
     }
 
     // ============================
-    // BOTÓN NEO
-    // ============================
-    class BotonNeo extends JButton {
-        public BotonNeo(String texto) {
-            super(texto);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setForeground(Color.WHITE);
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(getModel().isRollover()
-                    ? new Color(251, 232, 138, 220)
-                    : new Color(94, 116, 73, 190));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-            g2.setColor(new Color(255, 255, 255, 80));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
-            super.paintComponent(g);
-            g2.dispose();
-        }
-    }
-
-    // ============================
     // CONSTRUCTOR
     // ============================
-    public DetalleCuenta() {
+    public DetalleCuenta(int idCuenta) {
+
+        this.idCuenta = idCuenta;
 
         fondo = new ImageIcon(getClass().getResource("/gui/image/fondo.png")).getImage();
         logo = new ImageIcon(getClass().getResource("/gui/image/logoblanco.png")).getImage();
@@ -72,15 +63,14 @@ public class DetalleCuenta extends JFrame {
         setTitle("Información de Cuenta");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setResizable(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Cambiado a DISPOSE para no cerrar todo el programa al regresar
         setLocationRelativeTo(null);
         setContentPane(new FondoPanel());
         setVisible(true);
+
+        cargarDetalle();
     }
 
-    // ============================
-    // PANEL PRINCIPAL
-    // ============================
     class FondoPanel extends JPanel {
 
         public FondoPanel() {
@@ -89,9 +79,6 @@ public class DetalleCuenta extends JFrame {
             crearContenido();
         }
 
-        // ============================
-        // SIDEBAR
-        // ============================
         private void crearSidebar() {
 
             JPanel sidebar = new JPanel();
@@ -120,7 +107,6 @@ public class DetalleCuenta extends JFrame {
                 btn.setBounds(20, y, 250, 55);
                 btn.setFocusPainted(false);
                 btn.setBorderPainted(false);
-
                 btn.setBackground(new Color(94, 116, 73));
                 btn.setForeground(Color.WHITE);
 
@@ -129,9 +115,34 @@ public class DetalleCuenta extends JFrame {
                     btn.setForeground(Color.BLACK);
                 }
 
-                if (texto.equals("Gestión de Cuentas")) {
+                if (texto.equals("Gestión de Usuarios")) {
+                    btn.addActionListener(e -> {
+                        new GestionUsuario();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Menores Supervisados")) {
+                    btn.addActionListener(e -> {
+                        new GestionMenores();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Cuentas")) {
                     btn.addActionListener(e -> {
                         new GestionCuentas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Tarjetas")) {
+                    btn.addActionListener(e -> {
+                        new GestionTarjeta();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Divisas")) {
+                    btn.addActionListener(e -> {
+                        new GestionDivisas();
+                        dispose();
+                    });
+                } else if (texto.equals("Gestión de Transacciones")) {
+                    btn.addActionListener(e -> {
+                        new GestionTransacciones();
                         dispose();
                     });
                 }
@@ -143,9 +154,6 @@ public class DetalleCuenta extends JFrame {
             add(sidebar);
         }
 
-        // ============================
-        // CONTENIDO PRINCIPAL
-        // ============================
         private void crearContenido() {
 
             JPanel panel = new JPanel();
@@ -168,58 +176,44 @@ public class DetalleCuenta extends JFrame {
             Color amarillo = new Color(251, 232, 138);
 
             // ============================
-            // DATOS DE LA CUENTA
+            // DOS COLUMNAS
             // ============================
-            int y = 120;
+            int colIzqX = 30;
+            int colDerX = 700;
+            int fieldOffsetX = 220;
+            int fieldWidth = 350;
+            int rowHeight = 65;
 
-            panel.add(crearLabel("Número de cuenta:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            int yIzq = 130;
+            int yDer = 130;
 
-            y += 60;
-            panel.add(crearLabel("Propietario:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            txtNumeroCuenta = agregarCampo(panel, "Número de cuenta:", colIzqX, yIzq, fieldOffsetX, fieldWidth, amarillo);
+            yIzq += rowHeight;
+            txtPropietario = agregarCampo(panel, "Propietario:", colIzqX, yIzq, fieldOffsetX, fieldWidth, amarillo);
+            yIzq += rowHeight;
+            txtTipoCuenta = agregarCampo(panel, "Tipo de cuenta:", colIzqX, yIzq, fieldOffsetX, fieldWidth, amarillo);
+            yIzq += rowHeight;
+            txtBanco = agregarCampo(panel, "Banco:", colIzqX, yIzq, fieldOffsetX, fieldWidth, amarillo);
+            yIzq += rowHeight;
+            txtFechaCreacion = agregarCampo(panel, "Fecha de creación:", colIzqX, yIzq, fieldOffsetX, fieldWidth, amarillo);
+            yIzq += rowHeight;
+            txtSaldo = agregarCampo(panel, "Saldo actual:", colIzqX, yIzq, fieldOffsetX, fieldWidth, amarillo);
 
-            y += 60;
-            panel.add(crearLabel("Tipo de cuenta:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Banco:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Fecha de creación:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Saldo actual:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Estado:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Moneda:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Código de cuenta:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Última actualización:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
-
-            y += 60;
-            panel.add(crearLabel("Última transacción:", 30, y, amarillo));
-            panel.add(crearField(250, y - 5));
+            txtEstado = agregarCampo(panel, "Estado:", colDerX, yDer, fieldOffsetX, fieldWidth, amarillo);
+            yDer += rowHeight;
+            txtMoneda = agregarCampo(panel, "Moneda:", colDerX, yDer, fieldOffsetX, fieldWidth, amarillo);
+            yDer += rowHeight;
+            txtCodigoCuenta = agregarCampo(panel, "Código de cuenta:", colDerX, yDer, fieldOffsetX, fieldWidth, amarillo);
+            yDer += rowHeight;
+            txtUltimaActualizacion = agregarCampo(panel, "Última actualización:", colDerX, yDer, fieldOffsetX, fieldWidth, amarillo);
+            yDer += rowHeight;
+            txtUltimaTransaccion = agregarCampo(panel, "Última transacción:", colDerX, yDer, fieldOffsetX, fieldWidth, amarillo);
 
             // ============================
             // BOTÓN REGRESAR
             // ============================
             BotonNeo btnRegresar = new BotonNeo("Regresar");
-            btnRegresar.setBounds(30, 700, 200, 50);
+            btnRegresar.setBounds(30, 620, 200, 50);
             btnRegresar.addActionListener(e -> {
                 new GestionCuentas();
                 dispose();
@@ -227,16 +221,16 @@ public class DetalleCuenta extends JFrame {
             panel.add(btnRegresar);
         }
 
-        private JLabel crearLabel(String texto, int x, int y, Color color) {
-            JLabel lbl = new JLabel(texto);
+        private RoundedTextField agregarCampo(JPanel panel, String etiqueta, int xLabel, int y,
+                                               int offsetX, int width, Color color) {
+            JLabel lbl = new JLabel(etiqueta);
             lbl.setForeground(color);
-            lbl.setBounds(x, y, 250, 25);
-            return lbl;
-        }
+            lbl.setBounds(xLabel, y, offsetX - 10, 25);
+            panel.add(lbl);
 
-        private RoundedTextField crearField(int x, int y) {
             RoundedTextField txt = new RoundedTextField(20);
-            txt.setBounds(x, y, 350, 40);
+            txt.setBounds(xLabel + offsetX, y - 5, width, 40);
+            panel.add(txt);
             return txt;
         }
 
@@ -246,6 +240,49 @@ public class DetalleCuenta extends JFrame {
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
     }
+
+    // ============================
+    // CARGAR DATOS DE LA CUENTA DESDE LA BASE DE DATOS (Corregido)
+    // ============================
+    private void cargarDetalle() {
+
+        // Se removieron las columnas c.fecha_creacion, c.fecha_actualizacion y c.ultima_transaccion
+        String sql = "SELECT c.numero_cuenta, CONCAT(u.nombre, ' ', u.apellido) AS propietario, "
+                + "t.nombre AS tipo_cuenta, b.nombre AS banco, c.saldo, "
+                + "c.estado, c.moneda, c.id_cuenta "
+                + "FROM cuentas_bancarias c "
+                + "JOIN usuarios u ON c.id_usuario = u.id_usuario "
+                + "JOIN tipos_cuentas t ON c.id_tipo_cuenta = t.id_tipo "
+                + "JOIN bancos b ON c.id_banco = b.id_banco "
+                + "WHERE c.id_cuenta = ?";
+
+        try (Connection con = main.Conexion.conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, idCuenta);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    txtNumeroCuenta.setText(rs.getString("numero_cuenta"));
+                    txtPropietario.setText(rs.getString("propietario"));
+                    txtTipoCuenta.setText(rs.getString("tipo_cuenta"));
+                    txtBanco.setText(rs.getString("banco"));
+                    txtSaldo.setText("$ " + rs.getBigDecimal("saldo").toString());
+                    txtEstado.setText(rs.getString("estado").toUpperCase());
+                    txtMoneda.setText(rs.getString("moneda"));
+                    txtCodigoCuenta.setText(String.valueOf(rs.getInt("id_cuenta")));
+                   
+                    // Llenamos por defecto los campos cuyas columnas no existen físicamente en la BD
+                    txtFechaCreacion.setText("No disponible");
+                    txtUltimaActualizacion.setText("No disponible");
+                    txtUltimaTransaccion.setText("No disponible");
+                } else {
+                    JOptionPane.showMessageDialog(this, "No se encontró la cuenta.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar el detalle: " + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }
-
-

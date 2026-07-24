@@ -1,11 +1,15 @@
 package funcionalidades;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
-
 import main.CRUD.CRUD;
+import main.Conexion.conexion; 
 
 public class CrearUsuario {
 
@@ -33,23 +37,34 @@ public class CrearUsuario {
             String tipoCuenta,
             String genero
     ) {
+        boolean esMenor = "Menor supervisado".equals(perfil);
+
         try {
-            validarCamposObligatorios(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, genero);
-            validarDpi(dpiNumero);
+            // Para el menor no se valida ni se requiere DPI
+            if (esMenor) {
+                validarCamposObligatorios(nombre, apellido, password, correo, telefono, fechaNacimiento, genero);
+            } else {
+                validarCamposObligatorios(nombre, apellido, password, dpiNumero, correo, telefono, fechaNacimiento, genero);
+                validarDpi(dpiNumero);
+                // Verificar DPI duplicado solo para adultos
+                String dpiEncontrado = crud.buscarUsuario2(dpiNumero.trim());
+                if (dpiEncontrado != null) {
+                    JOptionPane.showMessageDialog(null,
+                            "❌ El DPI ya está registrado: " + dpiEncontrado,
+                            "Error - Crear Usuario",
+                            JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
+            }
+
             validarPassword(password);
             validarCorreo(correo);
             validarTelefono(telefono);
             validarFechaNacimiento(fechaNacimiento);
             validarGenero(genero);
 
-            String dpiEncontrado = crud.buscarUsuario2(dpiNumero.trim());
-            if (dpiEncontrado != null) {
-                JOptionPane.showMessageDialog(null,
-                        "❌ El DPI ya está registrado: " + dpiEncontrado,
-                        "Error - Crear Usuario",
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
+            // Para menores el DPI se guarda como null
+            String dpiFinal = esMenor ? null : dpiNumero.trim();
 
             crud.nuevoUsuario(
                     nombre.trim(),
@@ -59,7 +74,8 @@ public class CrearUsuario {
                     fechaNacimiento.trim(),
                     genero.trim(),
                     password,
-                    dpiNumero.trim()
+                    dpiFinal,
+                    perfil  // CORREGIDO: pasa el perfil para que se guarde en BD
             );
 
             JOptionPane.showMessageDialog(null,
@@ -88,6 +104,211 @@ public class CrearUsuario {
                 throw new IllegalArgumentException("Todos los campos deben estar completos. Falta un dato requerido.");
             }
         }
+    }
+    
+    /**
+     * Crea una cuenta bancaria asignando el mismo número de cuenta/tarjeta que el usuario ingresó.
+     */
+    public boolean crearCuentaBancaria(int idUsuario, int idBanco, String tipoCuenta, String numeroCuenta) {
+        try {
+            Connection con = conexion.getConexion();
+
+            // Flexibilidad en la búsqueda: Consulta si coincide de forma exacta con o sin el prefijo "Cuenta "
+            PreparedStatement psTipo = con.prepareStatement(
+                    "SELECT id_tipo FROM tipos_cuentas WHERE nombre = ? OR nombre = ? OR nombre = ?"
+            );
+            psTipo.setString(1, tipoCuenta);
+            psTipo.setString(2, "Cuenta " + tipoCuenta);
+            psTipo.setString(3, "Cuenta de " + tipoCuenta);
+            ResultSet rsTipo = psTipo.executeQuery();
+
+            int idTipoCuenta = -1;
+            if (rsTipo.next()) {
+                idTipoCuenta = rsTipo.getInt("id_tipo");
+            }
+            rsTipo.close();
+            psTipo.close();
+
+            if (idTipoCuenta == -1) {
+                throw new Exception("Tipo de cuenta no válido en la Base de Datos: " + tipoCuenta);
+            }
+
+            // Insertar nueva cuenta bancaria usando el número provisto por el usuario
+            PreparedStatement psCuenta = con.prepareStatement(
+                    "INSERT INTO cuentas_bancarias (id_usuario, id_banco, id_tipo_cuenta, numero_cuenta, saldo, estado) "
+                    + "VALUES (?, ?, ?, ?, ?, ?)"
+            );
+            psCuenta.setInt(1, idUsuario);
+            psCuenta.setInt(2, idBanco);
+            psCuenta.setInt(3, idTipoCuenta);
+            psCuenta.setString(4, numeroCuenta.trim()); // 💡 Ahora usa el número real del formulario
+            psCuenta.setDouble(5, 0.00); // Saldo inicial
+            psCuenta.setString(6, "activa");
+
+            int filas = psCuenta.executeUpdate();
+
+            // Verificación en consola
+            System.out.println("Cuenta creada -> Usuario: " + idUsuario
+                    + ", Banco: " + idBanco
+                    + ", Tipo: " + tipoCuenta
+                    + ", Número: " + numeroCuenta
+                    + ", Filas insertadas: " + filas);
+
+            psCuenta.close();
+            con.close();
+
+            return filas > 0;
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                null,
+                e.getMessage(),
+                "Error al crear cuenta",
+                JOptionPane.ERROR_MESSAGE
+            );
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Crea automáticamente la cuenta bancaria de un menor recién registrado,
+     * usando el banco vinculado de su tutor (así es como Transferencias del
+     * menor ya asume que funciona: banco del tutor, cuenta propia del menor).
+     *
+     * Debe llamarse justo después de:
+     *   1) crear el usuario del menor (crearDesdeRegistroNeo)
+     *   2) vincular la supervisión (SupervisionDAO.crearSupervision(idAdulto, idMenor))
+     *
+     * @param idMenor  id_usuario del menor recién creado
+     * @param idAdulto id_usuario del tutor que lo supervisa
+     * @return true si la cuenta se creó correctamente
+     */
+    public boolean crearCuentaAutomaticaParaMenor(int idMenor, int idAdulto) {
+        List<String> bancosTutor = obtenerBancosVinculados(idAdulto);
+        if (bancosTutor.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "El tutor no tiene ningún banco vinculado todavía.\n" +
+                    "No se pudo crear automáticamente la cuenta del menor.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
+        // Usa el primer banco vinculado del tutor como banco del menor
+        String nombreBanco = bancosTutor.get(0);
+        Integer idBanco = obtenerIdBancoPorNombre(nombreBanco);
+        if (idBanco == null) {
+            JOptionPane.showMessageDialog(null,
+                    "No se pudo resolver el banco \"" + nombreBanco + "\" del tutor.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        // Genera un número de cuenta único y legible para el menor
+        String numeroCuenta = "NC-M" + idMenor + "-" + (System.currentTimeMillis() % 100000);
+
+        boolean creada = crearCuentaBancaria(idMenor, idBanco, "Ahorro", numeroCuenta);
+        if (creada) {
+            System.out.println("[DEBUG] Cuenta automática creada para menor idMenor=" + idMenor
+                    + " en banco \"" + nombreBanco + "\" (idBanco=" + idBanco + "), numeroCuenta=" + numeroCuenta);
+        }
+        return creada;
+    }
+
+    public int obtenerIdUsuario(String correo, String dpiNumero) {
+        int idUsuario = -1;
+        try {
+            Connection con = conexion.getConexion();
+            PreparedStatement ps = con.prepareStatement(
+                    "SELECT id_usuario FROM usuarios WHERE correo = ? OR dpi_numero = ?"
+            );
+            ps.setString(1, correo);
+            ps.setString(2, dpiNumero);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                idUsuario = rs.getInt("id_usuario");
+            }
+
+            rs.close();
+            ps.close();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return idUsuario;
+    }
+
+    /**
+     * Devuelve el id_cuenta de la cuenta bancaria activa más reciente
+     * que tiene el usuario en el banco indicado.
+     *
+     * @param idUsuario id del usuario dueño de la cuenta
+     * @param idBanco   id del banco donde se busca la cuenta
+     * @return el id_cuenta encontrado, o -1 si no existe ninguna cuenta activa
+     *         para ese usuario en ese banco
+     */
+    public int obtenerIdCuenta(int idUsuario, int idBanco) {
+        int idCuenta = -1;
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_cuenta FROM cuentas_bancarias "
+                     + "WHERE id_usuario = ? AND id_banco = ? AND estado = 'activa' "
+                     + "ORDER BY id_cuenta DESC LIMIT 1"
+             )) {
+            ps.setInt(1, idUsuario);
+            ps.setInt(2, idBanco);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    idCuenta = rs.getInt("id_cuenta");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return idCuenta;
+    }
+
+    public Integer obtenerIdBancoPorNombre(String banco) {
+        if (banco == null || banco.trim().isEmpty()) {
+            return null;
+        }
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_banco FROM bancos WHERE nombre = ? OR nombre_corto = ? LIMIT 1"
+             )) {
+            ps.setString(1, banco.trim());
+            ps.setString(2, banco.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id_banco");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<String> obtenerBancosVinculados(int idUsuario) {
+        List<String> bancos = new ArrayList<>();
+        String sql = "SELECT DISTINCT b.nombre " +
+                     "FROM cuentas_bancarias c " +
+                     "JOIN bancos b ON c.id_banco = b.id_banco " +
+                     "WHERE c.id_usuario = ? AND c.estado = 'activa' " +
+                     "ORDER BY b.nombre";
+
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    bancos.add(rs.getString("nombre"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bancos;
     }
 
     private void validarFechaNacimiento(String fechaNacimiento) {
